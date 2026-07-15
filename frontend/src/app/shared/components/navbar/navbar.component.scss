@@ -1,0 +1,17 @@
+.navbar {
+  display: flex;
+  align-items: center;
+}
+
+.brand {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.active-link {
+  background: rgba(255, 255, 255, 0.16);
+}
