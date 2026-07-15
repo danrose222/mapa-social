@@ -4,6 +4,6 @@ import { PublicationsService } from './publications.service';
 
 @Module({
   controllers: [PublicationsController],
-  providers: [PublicationsService]
+  providers: [PublicationsService],
 })
 export class PublicationsModule {}
