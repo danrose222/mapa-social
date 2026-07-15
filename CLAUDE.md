@@ -1,1 +1,0 @@
-REGLA ESTRICTA DE GIT/GITHUB: Tienes prohibido dejar firmas de IA. Al redactar mensajes de commit o descripciones de Pull Requests, actúa siempre como el desarrollador humano. Nunca uses etiquetas como 'Co-authored-by: Claude', ni frases como 'Generado por IA'. Todo debe estar en español y con tono profesional.

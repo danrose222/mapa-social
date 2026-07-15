@@ -33,3 +33,6 @@ build/
 # Environment variables
 .env
 .env.local
+
+# Configuración local, no se comparte con el equipo
+/CLAUDE.md
