@@ -21,4 +21,3 @@ import { PublicationsModule } from './modules/publications/publications.module';
   providers: [AppService],
 })
 export class AppModule {}
-
