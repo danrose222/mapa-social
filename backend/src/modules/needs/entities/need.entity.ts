@@ -8,7 +8,17 @@ import { Category } from '../../categories/entities/category.entity';
 @Entity('needs')
 export class Need extends BaseEntity {
   @Column({
-    length: 200,
+    name: 'user_id',
+  })
+  userId!: number;
+
+  @Column({
+    name: 'category_id',
+  })
+  categoryId!: number;
+
+  @Column({
+    length: 255,
   })
   title!: string;
 
@@ -18,19 +28,24 @@ export class Need extends BaseEntity {
   description!: string;
 
   @Column({
-    default: true,
+    type: 'decimal',
+    precision: 10,
+    scale: 8,
   })
-  active!: boolean;
+  latitude!: number;
 
   @Column({
-    name: 'user_id',
+    type: 'decimal',
+    precision: 11,
+    scale: 8,
   })
-  userId!: number;
+  longitude!: number;
 
   @Column({
-    name: 'category_id',
+    length: 50,
+    default: 'active',
   })
-  categoryId!: number;
+  status!: string;
 
   @ManyToOne(() => User, (user) => user.needs)
   @JoinColumn({

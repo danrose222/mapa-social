@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsBoolean,
   IsInt,
+  IsNumber,
   IsOptional,
   IsString,
   MaxLength,
@@ -9,14 +9,14 @@ import {
 
 export class CreateNeedDto {
   @ApiProperty({
-    example: `'Necesito ayuda con la compra de alimentos'`,
+    example: 'Necesito ayuda con la compra de alimentos',
   })
   @IsString()
-  @MaxLength(200)
+  @MaxLength(255)
   title!: string;
 
   @ApiProperty({
-    example: `'Estoy buscando a alguien que pueda ayudarme a comprar alimentos para mi familia.'`,
+    example: 'Estoy buscando ayuda para conseguir alimentos para mi familia.',
   })
   @IsString()
   description!: string;
@@ -34,10 +34,29 @@ export class CreateNeedDto {
   categoryId!: number;
 
   @ApiProperty({
-    example: true,
+    example: -31.420083,
+    description: 'Latitud de la necesidad',
+  })
+  @IsNumber({
+    maxDecimalPlaces: 8,
+  })
+  latitude!: number;
+
+  @ApiProperty({
+    example: -64.188776,
+    description: 'Longitud de la necesidad',
+  })
+  @IsNumber({
+    maxDecimalPlaces: 8,
+  })
+  longitude!: number;
+
+  @ApiProperty({
+    example: 'active',
     required: false,
   })
   @IsOptional()
-  @IsBoolean()
-  active?: boolean;
+  @IsString()
+  @MaxLength(50)
+  status?: string;
 }
