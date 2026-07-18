@@ -1,0 +1,23 @@
+<mat-card class="auth-card">
+  <h2>Crear cuenta</h2>
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Email</mat-label>
+      <input matInput formControlName="email" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Contraseña</mat-label>
+      <input matInput type="password" formControlName="password" />
+    </mat-form-field>
+
+    <button mat-flat-button color="primary" class="full-width" type="submit">
+      Registrar
+    </button>
+
+    <p class="auth-link">
+      ¿Ya tienes cuenta?
+      <a routerLink="/auth/login">Inicia sesión</a>
+    </p>
+  </form>
+</mat-card>

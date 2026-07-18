@@ -1,0 +1,26 @@
+<mat-card class="auth-card">
+  <h2>Iniciar sesión</h2>
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Email</mat-label>
+      <input matInput formControlName="email" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Contraseña</mat-label>
+      <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" />
+      <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility()" [attr.aria-label]="hidePassword ? 'Mostrar contraseña' : 'Ocultar contraseña'">
+        <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <button mat-flat-button color="primary" class="full-width" type="submit">
+      Entrar
+    </button>
+  </form>
+
+  <p class="helper-text">
+    ¿No tienes cuenta?
+    <a routerLink="/auth/register">Crear una</a>
+  </p>
+</mat-card>

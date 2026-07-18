@@ -2,6 +2,19 @@ const bcrypt = require('bcryptjs');
 
 module.exports = {
   async up(queryInterface) {
+    const existing = await queryInterface.rawSelect(
+      'users',
+      {
+        where: { email: 'test1@test.com' },
+        attributes: ['id'],
+      },
+      ['id'],
+    );
+
+    if (existing) {
+      return;
+    }
+
     const passwordHash = await bcrypt.hash('Test123!', 10);
 
     await queryInterface.bulkInsert('users', [
