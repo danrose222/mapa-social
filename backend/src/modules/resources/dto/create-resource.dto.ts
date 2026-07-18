@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsBoolean,
   IsInt,
+  IsNumber,
   IsOptional,
   IsString,
   MaxLength,
@@ -9,14 +9,14 @@ import {
 
 export class CreateResourceDto {
   @ApiProperty({
-    example: `'Necesito ayuda con la compra de alimentos'`,
+    example: 'Donación de alimentos',
   })
   @IsString()
-  @MaxLength(200)
+  @MaxLength(255)
   title!: string;
 
   @ApiProperty({
-    example: `'Estoy buscando a alguien que pueda ayudarme a comprar alimentos para mi familia.'`,
+    example: 'Dispongo de alimentos no perecederos para donar.',
   })
   @IsString()
   description!: string;
@@ -33,7 +33,26 @@ export class CreateResourceDto {
   @IsInt()
   categoryId!: number;
 
+  @ApiProperty({
+    example: -31.420083,
+    description: 'Latitud del recurso',
+  })
+  @IsNumber()
+  latitude!: number;
+
+  @ApiProperty({
+    example: -64.188776,
+    description: 'Longitud del recurso',
+  })
+  @IsNumber()
+  longitude!: number;
+
+  @ApiProperty({
+    example: 'available',
+    required: false,
+  })
   @IsOptional()
-  @IsBoolean()
-  active?: boolean;
+  @IsString()
+  @MaxLength(50)
+  status?: string;
 }
