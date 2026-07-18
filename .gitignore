@@ -21,6 +21,7 @@ build/
 
 # Backend - NestJS specific
 /backend/dist
+/backend/coverage/
 
 # IDEs and editors directories and files
 .vscode/
@@ -36,3 +37,7 @@ build/
 
 # Configuración local, no se comparte con el equipo
 /CLAUDE.md
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
