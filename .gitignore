@@ -38,3 +38,6 @@ build/
 # Archivos de sistema operativo
 .DS_Store
 Thumbs.db
+
+# Configuración local, no se comparte con el equipo
+/CLAUDE.md
