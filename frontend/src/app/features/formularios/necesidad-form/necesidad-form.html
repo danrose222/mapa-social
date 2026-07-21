@@ -1,0 +1,114 @@
+<section class="form-page">
+  <header class="page-heading">
+    <p class="eyebrow">Necesidades comunitarias</p>
+
+    <h1>Registrar una necesidad</h1>
+
+    <p>
+      Completá los datos para visualizar cómo se registrará una necesidad
+      comunitaria dentro de la plataforma.
+    </p>
+  </header>
+
+  <mat-card class="form-card">
+    <mat-card-content>
+      <form class="form-grid">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Título de la necesidad</mat-label>
+
+          <input
+            matInput
+            type="text"
+            placeholder="Ej.: Alimentos para comedor comunitario"
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Categoría</mat-label>
+
+          <mat-select>
+            @for (categoria of categorias; track categoria) {
+              <mat-option [value]="categoria">
+                {{ categoria }}
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Localidad o territorio</mat-label>
+
+          <input
+            matInput
+            type="text"
+            placeholder="Ej.: Rosario Centro"
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Descripción</mat-label>
+
+          <textarea
+            matInput
+            rows="5"
+            placeholder="Describí la situación y qué tipo de ayuda se necesita"
+          ></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Dirección o referencia</mat-label>
+
+          <input
+            matInput
+            type="text"
+            placeholder="Calle, altura o punto de referencia"
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre de contacto</mat-label>
+
+          <input
+            matInput
+            type="text"
+            placeholder="Nombre y apellido"
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Teléfono o correo electrónico</mat-label>
+
+          <input
+            matInput
+            type="text"
+            placeholder="Datos de contacto"
+          />
+        </mat-form-field>
+
+        <div class="form-actions full-width">
+          <a
+            mat-button
+            routerLink="/"
+          >
+            Cancelar
+          </a>
+
+          <button
+            mat-stroked-button
+            type="button"
+          >
+            Guardar borrador
+          </button>
+
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+          >
+            Registrar necesidad
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</section>
