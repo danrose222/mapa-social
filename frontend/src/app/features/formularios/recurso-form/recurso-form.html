@@ -1,0 +1,104 @@
+<section class="form-page">
+  <header class="page-heading">
+    <p class="eyebrow">Recursos y servicios</p>
+
+    <h1>Ofrecer un recurso</h1>
+
+    <p>
+      Completá los datos para representar cómo una organización o persona
+      podrá publicar un recurso disponible para la comunidad.
+    </p>
+  </header>
+
+  <mat-card class="form-card">
+    <mat-card-content>
+      <form class="form-grid">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nombre del recurso o servicio</mat-label>
+
+          <input
+            matInput
+            type="text"
+            placeholder="Ej.: Apoyo escolar gratuito"
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Categoría</mat-label>
+
+          <mat-select>
+            @for (categoria of categorias; track categoria) {
+              <mat-option [value]="categoria">
+                {{ categoria }}
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Organización responsable</mat-label>
+
+          <input
+            matInput
+            type="text"
+            placeholder="Nombre de la organización"
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Descripción</mat-label>
+
+          <textarea
+            matInput
+            rows="5"
+            placeholder="Describí el recurso, servicio o ayuda ofrecida"
+          ></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Ubicación</mat-label>
+
+          <input
+            matInput
+            type="text"
+            placeholder="Dirección, localidad o punto de referencia"
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Días y horarios</mat-label>
+
+          <input
+            matInput
+            type="text"
+            placeholder="Ej.: lunes a viernes de 9 a 17"
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Datos de contacto</mat-label>
+
+          <input
+            matInput
+            type="text"
+            placeholder="Teléfono o correo electrónico"
+          />
+        </mat-form-field>
+
+        <div class="form-actions full-width">
+          <a mat-button routerLink="/">
+            Cancelar
+          </a>
+
+          <button mat-stroked-button type="button">
+            Guardar borrador
+          </button>
+
+          <button mat-flat-button color="primary" type="button">
+            Publicar recurso
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</section>

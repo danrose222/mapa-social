@@ -1,6 +1,46 @@
 <mat-toolbar color="primary" class="navbar">
-  <span class="brand">Mapa Social</span>
+  <a class="brand" routerLink="/">Mapa Social</a>
+
   <span class="spacer"></span>
-  <a mat-button routerLink="/mapa" routerLinkActive="active-link">Mapa</a>
-  <a mat-button routerLink="/login" routerLinkActive="active-link">Login</a>
+
+  <a
+    mat-button
+    routerLink="/"
+    routerLinkActive="active-link"
+    [routerLinkActiveOptions]="{ exact: true }"
+  >
+    Inicio
+  </a>
+
+  <a
+    mat-button
+    routerLink="/mapa"
+    routerLinkActive="active-link"
+  >
+    Mapa
+  </a>
+
+  <a
+    mat-button
+    routerLink="/registrar-necesidad"
+    routerLinkActive="active-link"
+  >
+    Registrar necesidad
+  </a>
+
+  <a
+    mat-button
+    routerLink="/ofrecer-recurso"
+    routerLinkActive="active-link"
+  >
+    Ofrecer recurso
+  </a>
+
+  <a
+    mat-button
+    routerLink="/login"
+    routerLinkActive="active-link"
+  >
+    Login
+  </a>
 </mat-toolbar>

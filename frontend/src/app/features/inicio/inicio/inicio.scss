@@ -1,0 +1,94 @@
+:host {
+  display: block;
+}
+
+.hero {
+  display: grid;
+  min-height: 420px;
+  padding: 64px 24px;
+  place-items: center;
+  background:
+    linear-gradient(
+      135deg,
+      rgb(63 81 181 / 95%),
+      rgb(92 107 192 / 88%)
+    );
+  color: white;
+  text-align: center;
+}
+
+.hero-content {
+  width: min(820px, 100%);
+}
+
+.eyebrow {
+  margin-bottom: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.1;
+}
+
+.hero-description {
+  max-width: 680px;
+  margin: 24px auto;
+  font-size: 1.15rem;
+  line-height: 1.6;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.options {
+  padding: 48px 24px 64px;
+}
+
+.options h2 {
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+mat-card {
+  height: 100%;
+}
+
+mat-card-content {
+  flex: 1;
+  padding-top: 16px;
+  line-height: 1.6;
+}
+
+mat-icon[mat-card-avatar] {
+  display: grid;
+  place-items: center;
+  background-color: rgb(63 81 181 / 10%);
+  color: #3f51b5;
+}
+
+@media (max-width: 800px) {
+  .hero {
+    min-height: 360px;
+    padding: 48px 20px;
+  }
+
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+}
