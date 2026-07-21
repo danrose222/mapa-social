@@ -13,3 +13,4 @@ Ejecuta el siguiente comando en la raíz del proyecto:
 ```bash
 docker-compose up --build
 ```
+
