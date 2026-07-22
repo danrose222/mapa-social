@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-
+import { SearchNeedsDto } from './dto/search-needs.dto';
+import { SearchService } from './search/search.service';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { Repository } from 'typeorm';
@@ -16,12 +17,11 @@ export class NeedsService {
   constructor(
     @InjectRepository(Need)
     private readonly repository: Repository<Need>,
-
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
+    private readonly searchService: SearchService,
   ) {}
 
   async create(dto: CreateNeedDto) {
@@ -52,7 +52,15 @@ export class NeedsService {
       },
     });
   }
-
+  search(dto: SearchNeedsDto) {
+    const qb = this.repository
+      .createQueryBuilder('entity')
+      .leftJoinAndSelect('entity.category', 'category')
+      .leftJoinAndSelect('entity.user', 'user')
+      .where('entity.status = :status', { status: 'active' });
+  
+    return this.searchService.applyFilters(qb, dto).getMany();
+  }
   findOne(id: number) {
     return this.repository.findOne({
       where: { id },
