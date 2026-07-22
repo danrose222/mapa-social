@@ -7,8 +7,9 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
-
+import { SearchNeedsDto } from './dto/search-needs.dto';
 import { ApiTags } from '@nestjs/swagger';
 
 import { NeedsService } from './needs.service';
@@ -29,6 +30,11 @@ export class NeedsController {
   @Get()
   findAll() {
     return this.service.findAll();
+  }
+
+  @Get('search')
+  search(@Query() dto: SearchNeedsDto) {
+    return this.service.search(dto);
   }
 
   @Get(':id')
