@@ -18,7 +18,8 @@
     "migration:create": "typeorm-ts-node-commonjs migration:create src/database/migrations",
     "migration:generate": "typeorm-ts-node-commonjs -d src/database/datasource.ts migration:generate src/database/migrations/AutoMigration",
     "migration:run": "typeorm-ts-node-commonjs -d src/database/datasource.ts migration:run",
-    "migration:revert": "typeorm-ts-node-commonjs -d src/database/datasource.ts migration:revert"
+    "migration:revert": "typeorm-ts-node-commonjs -d src/database/datasource.ts migration:revert",
+    "seed": "ts-node src/database/seeds/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.0",

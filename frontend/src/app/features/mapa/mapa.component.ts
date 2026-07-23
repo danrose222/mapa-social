@@ -119,59 +119,9 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
   });
 
   
-  // hay que reemplazar este arreglo por datos obtenidos desde MapaService
-  // cuando esté disponible la API.
-  private readonly necesidades: Necesidad[] = [
-    {
-      id: 1,
-      usuario_id: 10,
-      categoria_id: 2,
-      titulo: 'Ayuda escolar urgente',
-      descripcion: 'La escuela necesita materiales didácticos y apoyo para el comedor escolar.',
-      latitud: -31.4213,
-      longitud: -64.1914,
-      estado: 'pendiente',
-      fecha_creacion: '2026-07-22 09:15:00',
-    },
-    {
-      id: 2,
-      usuario_id: 12,
-      categoria_id: 3,
-      titulo: 'Refuerzo de salud comunitaria',
-      descripcion: 'Actividad de salud preventiva para adultos mayores requiere voluntarios.',
-      latitud: -31.4170,
-      longitud: -64.1887,
-      estado: 'pendiente',
-      fecha_creacion: '2026-07-21 16:30:00',
-    },
-  ];
+  private necesidades: Necesidad[] = [];
 
-  // Hay que reemplazar este arreglo por datos obtenidos desde MapaService
-  // cuando esté disponible la API REST.
-  private readonly recursos: Recurso[] = [
-    {
-      id: 1,
-      usuario_id: 20,
-      categoria_id: 5,
-      titulo: 'Entrega de alimentos',
-      descripcion: 'ONG local ofrece canastas básicas y asistencia alimentaria.',
-      latitud: -31.3965,
-      longitud: -64.1865,
-      estado: 'activo',
-      fecha_creacion: '2026-07-20 11:40:00',
-    },
-    {
-      id: 2,
-      usuario_id: 21,
-      categoria_id: 4,
-      titulo: 'Capacitación laboral',
-      descripcion: 'Recurso disponible para entrenamiento en oficios y búsqueda laboral.',
-      latitud: -31.4192,
-      longitud: -64.1836,
-      estado: 'activo',
-      fecha_creacion: '2026-07-19 14:05:00',
-    },
-  ];
+  private recursos: Recurso[] = [];
 
   private agregarMarcador(
     latitud: number,
@@ -191,7 +141,55 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.initializeMap();
+    this.loadDataFromBackend()
+      .catch(() => {})
+      .then(() => this.initializeMap());
+  }
+
+  private async loadDataFromBackend(): Promise<void> {
+    try {
+      const [needsRes, resourcesRes] = await Promise.all([
+        fetch('/api/needs'),
+        fetch('/api/resources'),
+      ]);
+
+      if (!needsRes.ok || !resourcesRes.ok) {
+        throw new Error(`Error al cargar datos: ${needsRes.status} / ${resourcesRes.status}`);
+      }
+
+      const [needsJson, resourcesJson] = await Promise.all([
+        needsRes.json(),
+        resourcesRes.json(),
+      ]);
+
+      this.necesidades = needsJson.map((n: any) => ({
+        id: n.id,
+        usuario_id: n.userId ?? n.user_id ?? 0,
+        categoria_id: n.categoryId ?? n.category_id ?? 0,
+        titulo: n.title ?? n.titulo ?? '',
+        descripcion: n.description ?? n.descripcion ?? '',
+        latitud: Number(n.latitude ?? n.latitud ?? 0),
+        longitud: Number(n.longitude ?? n.longitud ?? 0),
+        estado: n.status ?? n.estado ?? '',
+        fecha_creacion: n.createdAt ?? n.fecha_creacion ?? '',
+      }));
+
+      this.recursos = resourcesJson.map((r: any) => ({
+        id: r.id,
+        usuario_id: r.userId ?? r.user_id ?? 0,
+        categoria_id: r.categoryId ?? r.category_id ?? 0,
+        titulo: r.title ?? r.titulo ?? '',
+        descripcion: r.description ?? r.descripcion ?? '',
+        latitud: Number(r.latitude ?? r.latitud ?? 0),
+        longitud: Number(r.longitude ?? r.longitud ?? 0),
+        estado: r.status ?? r.estado ?? '',
+        fecha_creacion: r.createdAt ?? r.fecha_creacion ?? '',
+      }));
+    } catch (err) {
+      // Si no hay backend disponible, mantenemos los datos de ejemplo locales.
+      // eslint-disable-next-line no-console
+      console.warn('Mapa: no se pudo cargar datos desde backend, usando datos locales', err);
+    }
   }
 
   private initializeMap(): void {
@@ -199,10 +197,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    const cordobaCoordinates: L.LatLngExpression = [
-      -31.4201,
-      -64.1888,
-    ];
+    const cordobaCoordinates: L.LatLngExpression = [-31.4201, -64.1888];
 
     this.map = L.map(this.mapContainer.nativeElement, {
       center: cordobaCoordinates,
