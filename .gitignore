@@ -35,9 +35,9 @@ build/
 .env
 .env.local
 
-# Configuración local, no se comparte con el equipo
-/CLAUDE.md
-
 # Archivos de sistema operativo
 .DS_Store
 Thumbs.db
+
+# Configuración local, no se comparte con el equipo
+/CLAUDE.md
