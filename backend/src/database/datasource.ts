@@ -1,9 +1,14 @@
 import 'reflect-metadata';
+import { join } from 'path';
 import { DataSource } from 'typeorm';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
 
+// Rutas relativas a este archivo (no al directorio de trabajo), con
+// extensión .ts o .js según se ejecute con ts-node (desarrollo) o con el
+// build compilado en /dist (producción, donde el código fuente .ts no
+// existe porque la imagen del backend lo excluye).
 export default new DataSource({
   type: 'mysql',
 
@@ -17,9 +22,9 @@ export default new DataSource({
 
   database: process.env.DB_NAME,
 
-  entities: ['src/modules/**/*.entity.ts'],
+  entities: [join(__dirname, '..', 'modules', '**', '*.entity.{ts,js}')],
 
-  migrations: ['src/database/migrations/*.ts'],
+  migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
 
   synchronize: false,
 
