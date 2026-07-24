@@ -34,6 +34,11 @@ FROM nginxinc/nginx-unprivileged:alpine AS runner
 
 COPY --from=builder --chown=nginx:nginx /app/dist/frontend/browser /usr/share/nginx/html
 
+# Proxy reverso: reenvía /api a la API real (mismo archivo que usa
+# docker-compose.dev.yml como volumen), para que el frontend servido por
+# Nginx no dependa de un montaje externo en producción.
+COPY --chown=nginx:nginx nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 8080
 
 CMD ["nginx", "-g", "daemon off;"]
