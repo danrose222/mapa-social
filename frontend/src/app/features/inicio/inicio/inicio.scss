@@ -1,20 +1,24 @@
 :host {
   display: block;
+  width: 100%;
 }
 
 .hero {
   display: grid;
+  width: calc(100% - 32px);
   min-height: 420px;
+  margin: 16px auto 0;
   padding: 64px 24px;
   place-items: center;
-  background:
-    linear-gradient(
-      135deg,
-      rgb(63 81 181 / 95%),
-      rgb(92 107 192 / 88%)
-    );
-  color: white;
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-secondary)
+  );
+  color: var(--color-white);
   text-align: center;
+  box-shadow: var(--shadow-soft);
 }
 
 .hero-content {
@@ -22,8 +26,10 @@
 }
 
 .eyebrow {
-  margin-bottom: 12px;
-  font-weight: 600;
+  margin: 0 0 12px;
+  color: #cfe8f1;
+  font-size: 0.9rem;
+  font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
 }
@@ -37,6 +43,7 @@ h1 {
 .hero-description {
   max-width: 680px;
   margin: 24px auto;
+  color: #e8f3f7;
   font-size: 1.15rem;
   line-height: 1.6;
 }
@@ -48,12 +55,41 @@ h1 {
   gap: 12px;
 }
 
+.hero-actions a[mat-flat-button] {
+  background-color: var(--color-accent);
+  color: var(--color-white);
+}
+
+.hero-actions a[mat-flat-button]:hover {
+  background-color: #c94c25;
+  box-shadow: var(--shadow-hover);
+}
+
+.hero-actions a[mat-stroked-button] {
+  border-color: #b9d9e6;
+  background-color: rgb(255 255 255 / 8%);
+  color: var(--color-white);
+}
+
+.hero-actions a[mat-stroked-button]:hover {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent);
+  color: var(--color-white);
+}
+
 .options {
+  margin: 0;
   padding: 48px 24px 64px;
+  background: linear-gradient(
+    180deg,
+    var(--color-background),
+    var(--color-background-dark)
+  );
 }
 
 .options h2 {
-  margin-bottom: 28px;
+  margin: 0 0 28px;
+  color: var(--color-primary);
   text-align: center;
 }
 
@@ -67,28 +103,98 @@ h1 {
 
 mat-card {
   height: 100%;
+  border: 1px solid var(--color-border);
+  border-top: 4px solid var(--color-secondary);
+  border-radius: 14px;
+  background: linear-gradient(
+    180deg,
+    var(--color-surface),
+    var(--color-surface-secondary)
+  );
+  box-shadow: var(--shadow-soft);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+mat-card:hover {
+  border-color: var(--color-accent);
+  border-top-color: var(--color-accent);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-6px);
+}
+
+.card-grid mat-card:nth-child(2) {
+  border-top-color: var(--color-accent);
+}
+
+mat-card-title {
+  color: var(--color-primary);
+  transition: color 180ms ease;
+}
+
+mat-card:hover mat-card-title {
+  color: var(--color-accent);
 }
 
 mat-card-content {
   flex: 1;
   padding-top: 16px;
+  color: var(--color-text-secondary);
   line-height: 1.6;
 }
 
 mat-icon[mat-card-avatar] {
   display: grid;
   place-items: center;
-  background-color: rgb(63 81 181 / 10%);
-  color: #3f51b5;
+  background-color: rgb(47 131 168 / 16%);
+  color: var(--color-secondary);
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+mat-card:hover mat-icon[mat-card-avatar] {
+  background-color: var(--color-accent);
+  color: var(--color-white);
+  transform: scale(1.08);
+}
+
+.card-grid mat-card:nth-child(2) mat-icon {
+  background-color: rgb(230 95 50 / 16%);
+  color: var(--color-accent);
+}
+
+mat-card-actions a {
+  color: var(--color-secondary);
+}
+
+mat-card-actions a:hover {
+  background-color: var(--color-accent);
+  color: var(--color-white);
 }
 
 @media (max-width: 800px) {
   .hero {
+    width: calc(100% - 24px);
     min-height: 360px;
+    margin-top: 12px;
     padding: 48px 20px;
   }
 
   .card-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .hero-actions {
+    flex-direction: column;
+  }
+
+  .hero-actions a {
+    width: 100%;
   }
 }

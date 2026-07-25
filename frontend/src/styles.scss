@@ -1,13 +1,86 @@
 @import 'leaflet/dist/leaflet.css';
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
 
-html, body {
-  height: 100%;
+:root {
+  --color-primary: #183f52;
+  --color-secondary: #2f83a8;
+  --color-accent: #e65f32;
+
+  --color-background: #dfeaf0;
+  --color-background-dark: #c9dce5;
+  --color-surface: #edf4f7;
+  --color-surface-secondary: #d5e5ec;
+
+  --color-text: #183f52;
+  --color-text-secondary: #45616f;
+  --color-border: #aac4d0;
+
+  --color-white: #ffffff;
+
+  --shadow-soft: 0 8px 22px rgb(24 63 82 / 12%);
+  --shadow-hover: 0 12px 28px rgb(230 95 50 / 22%);
+}
+
+html,
+body {
+  min-height: 100%;
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
-  background: #f5f7fb;
+  background:
+    linear-gradient(
+      180deg,
+      var(--color-background),
+      var(--color-background-dark)
+    );
+  color: var(--color-text);
 }
 
 body {
   min-height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: var(--color-secondary);
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+a:hover {
+  color: var(--color-accent);
+}
+
+button,
+a[mat-button],
+a[mat-flat-button],
+a[mat-stroked-button],
+button[mat-button],
+button[mat-flat-button],
+button[mat-stroked-button] {
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+button:hover,
+a[mat-button]:hover,
+a[mat-flat-button]:hover,
+a[mat-stroked-button]:hover,
+button[mat-button]:hover,
+button[mat-flat-button]:hover,
+button[mat-stroked-button]:hover {
+  transform: translateY(-2px);
+}
+
+mat-card {
+  background-color: var(--color-surface);
 }
