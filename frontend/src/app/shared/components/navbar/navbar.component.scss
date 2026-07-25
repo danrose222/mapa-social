@@ -1,21 +1,54 @@
 .navbar {
   display: flex;
   gap: 4px;
+  min-height: 64px;
+  padding: 0 16px;
+  background:
+    linear-gradient(
+      90deg,
+      var(--color-primary),
+      #20576f
+    );
+  color: var(--color-white);
+  box-shadow: 0 4px 14px rgb(24 63 82 / 28%);
 }
 
 .brand {
-  color: inherit;
+  color: var(--color-white);
   font-size: 20px;
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: none;
+  transition:
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.brand:hover {
+  color: var(--color-accent);
+  transform: translateY(-1px);
 }
 
 .spacer {
   flex: 1 1 auto;
 }
 
+.navbar a[mat-button] {
+  color: var(--color-white);
+  border-radius: 8px;
+}
+
+.navbar a[mat-button]:hover {
+  background-color: var(--color-accent);
+  color: var(--color-white);
+}
+
 .active-link {
-  background-color: rgb(255 255 255 / 15%);
+  background-color: var(--color-secondary);
+  color: var(--color-white);
+}
+
+.active-link:hover {
+  background-color: var(--color-accent);
 }
 
 @media (max-width: 850px) {
@@ -28,9 +61,14 @@
 
   .brand {
     width: 100%;
+    margin-bottom: 4px;
   }
 
   .spacer {
     display: none;
+  }
+
+  .navbar a[mat-button] {
+    flex: 1 1 auto;
   }
 }
