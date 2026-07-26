@@ -1,4 +1,14 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import {
+  AfterLoad,
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
+import * as bcrypt from 'bcrypt';
 
 import { BaseEntity } from '../../../common/entities/base.entity';
 import { Role } from '../../roles/entities/role.entity';
@@ -57,4 +67,23 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Resource, (resource) => resource.user)
   resources!: Resource[];
+
+  private previousPasswordHash?: string;
+
+  @AfterLoad()
+  private captureCurrentPasswordHash(): void {
+    this.previousPasswordHash = this.password;
+  }
+
+  @BeforeInsert()
+  private async hashPasswordOnInsert(): Promise<void> {
+    this.password = await bcrypt.hash(this.password, 10);
+  }
+
+  @BeforeUpdate()
+  private async hashPasswordOnUpdate(): Promise<void> {
+    if (this.password !== this.previousPasswordHash) {
+      this.password = await bcrypt.hash(this.password, 10);
+    }
+  }
 }
