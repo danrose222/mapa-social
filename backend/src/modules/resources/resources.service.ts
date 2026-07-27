@@ -93,6 +93,14 @@ export class ResourcesService {
 
     this.assertCanModify(resource, currentUser);
 
+    const isModerator = currentUser.role === 'moderador';
+
+    if (dto.status !== undefined && !isModerator) {
+      throw new ForbiddenException(
+        'Solo un moderador puede cambiar el estado del recurso',
+      );
+    }
+
     Object.assign(resource, dto);
 
     return this.repository.save(resource);

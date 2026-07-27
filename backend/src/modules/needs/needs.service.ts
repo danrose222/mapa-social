@@ -101,6 +101,14 @@ export class NeedsService {
 
     this.assertCanModify(need, currentUser);
 
+    const isModerator = currentUser.role === 'moderador';
+
+    if (dto.status !== undefined && !isModerator) {
+      throw new ForbiddenException(
+        'Solo un moderador puede cambiar el estado de la publicación',
+      );
+    }
+
     Object.assign(need, dto);
 
     return this.repository.save(need);
