@@ -12,6 +12,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
+import {
+  PublicationsApiService,
+} from '../../../core/services/publications-api.service';
+
 interface Categoria {
   id: number;
   nombre: string;
@@ -34,6 +38,7 @@ interface Categoria {
 })
 export class NecesidadForm {
   private readonly formBuilder = inject(FormBuilder);
+  private readonly publicationsApi = inject(PublicationsApiService);
 
   readonly categorias: Categoria[] = [
     { id: 1, nombre: 'Salud' },
@@ -96,6 +101,7 @@ export class NecesidadForm {
     ],
   });
 
+  isSubmitting = false;
   successMessage = '';
   errorMessage = '';
 
@@ -110,10 +116,43 @@ export class NecesidadForm {
       return;
     }
 
-    console.log('Formulario válido:', this.form.getRawValue());
+    const payload = this.form.getRawValue();
 
-    this.successMessage =
-      'El formulario es válido y está listo para enviarse a la API.';
+    this.isSubmitting = true;
+
+    this.publicationsApi.createNeed(payload).subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        this.successMessage =
+          'La necesidad se registró correctamente.';
+
+        localStorage.removeItem('need_draft');
+      },
+      error: (error) => {
+        this.isSubmitting = false;
+
+        if (error.status === 401) {
+          this.errorMessage =
+            'Necesitás iniciar sesión para registrar una necesidad.';
+          return;
+        }
+
+        if (error.status === 403) {
+          this.errorMessage =
+            'No tenés permisos para registrar una necesidad.';
+          return;
+        }
+
+        if (error.status === 400) {
+          this.errorMessage =
+            'La API rechazó los datos enviados. El backend todavía debe aceptar los campos del formulario.';
+          return;
+        }
+
+        this.errorMessage =
+          'No se pudo registrar la necesidad. Intentá nuevamente.';
+      },
+    });
   }
 
   saveDraft(): void {
