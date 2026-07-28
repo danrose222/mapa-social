@@ -5,34 +5,57 @@
     <h1>Registrar una necesidad</h1>
 
     <p>
-      Completá los datos para visualizar cómo se registrará una necesidad
-      comunitaria dentro de la plataforma.
+      Completá los datos para registrar una necesidad comunitaria
+      dentro de la plataforma.
     </p>
   </header>
 
   <mat-card class="form-card">
     <mat-card-content>
-      <form class="form-grid">
+      <form
+        class="form-grid"
+        [formGroup]="form"
+        (ngSubmit)="onSubmit()"
+      >
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Título de la necesidad</mat-label>
 
           <input
             matInput
             type="text"
+            maxlength="255"
+            formControlName="title"
             placeholder="Ej.: Alimentos para comedor comunitario"
           />
+
+          @if (isInvalid('title')) {
+            <mat-error>
+              El título es obligatorio y no puede superar los
+              255 caracteres.
+            </mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Categoría</mat-label>
 
-          <mat-select>
-            @for (categoria of categorias; track categoria) {
-              <mat-option [value]="categoria">
-                {{ categoria }}
+          <mat-select formControlName="categoryId">
+            <mat-option [value]="0">
+              Seleccionar categoría
+            </mat-option>
+
+            @for (categoria of categorias; track categoria.id) {
+              <mat-option [value]="categoria.id">
+                {{ categoria.nombre }}
               </mat-option>
             }
           </mat-select>
+
+          @if (isInvalid('categoryId')) {
+            <mat-error>
+              Seleccioná una categoría válida.
+            </mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline">
@@ -41,8 +64,16 @@
           <input
             matInput
             type="text"
+            maxlength="120"
+            formControlName="locality"
             placeholder="Ej.: Rosario Centro"
           />
+
+          @if (isInvalid('locality')) {
+            <mat-error>
+              La localidad es obligatoria.
+            </mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
@@ -51,8 +82,16 @@
           <textarea
             matInput
             rows="5"
+            formControlName="description"
             placeholder="Describí la situación y qué tipo de ayuda se necesita"
           ></textarea>
+
+          @if (isInvalid('description')) {
+            <mat-error>
+              La descripción es obligatoria y debe tener al menos
+              10 caracteres.
+            </mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
@@ -61,8 +100,16 @@
           <input
             matInput
             type="text"
+            maxlength="255"
+            formControlName="address"
             placeholder="Calle, altura o punto de referencia"
           />
+
+          @if (isInvalid('address')) {
+            <mat-error>
+              La dirección o referencia es obligatoria.
+            </mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline">
@@ -71,8 +118,16 @@
           <input
             matInput
             type="text"
+            maxlength="120"
+            formControlName="contactName"
             placeholder="Nombre y apellido"
           />
+
+          @if (isInvalid('contactName')) {
+            <mat-error>
+              El nombre de contacto es obligatorio.
+            </mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline">
@@ -81,9 +136,29 @@
           <input
             matInput
             type="text"
+            maxlength="150"
+            formControlName="contactInfo"
             placeholder="Datos de contacto"
           />
+
+          @if (isInvalid('contactInfo')) {
+            <mat-error>
+              Ingresá un teléfono o correo electrónico.
+            </mat-error>
+          }
         </mat-form-field>
+
+        @if (successMessage) {
+          <p class="form-message success-message full-width">
+            {{ successMessage }}
+          </p>
+        }
+
+        @if (errorMessage) {
+          <p class="form-message error-message full-width">
+            {{ errorMessage }}
+          </p>
+        }
 
         <div class="form-actions full-width">
           <a
@@ -96,6 +171,7 @@
           <button
             mat-stroked-button
             type="button"
+            (click)="saveDraft()"
           >
             Guardar borrador
           </button>
@@ -103,7 +179,7 @@
           <button
             mat-flat-button
             color="primary"
-            type="button"
+            type="submit"
           >
             Registrar necesidad
           </button>
