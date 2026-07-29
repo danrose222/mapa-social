@@ -42,6 +42,25 @@ export class Resource extends BaseEntity {
   longitude!: number;
 
   @Column({
+    length: 255,
+    nullable: true,
+  })
+  address?: string;
+
+  @Column({
+    name: 'organization_name',
+    length: 150,
+    nullable: true,
+  })
+  organizationName?: string;
+
+  @Column({
+    length: 255,
+    nullable: true,
+  })
+  schedule?: string;
+
+  @Column({
     length: 50,
     default: 'available',
   })

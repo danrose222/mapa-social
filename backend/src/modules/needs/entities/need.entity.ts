@@ -42,6 +42,12 @@ export class Need extends BaseEntity {
   longitude!: number;
 
   @Column({
+    length: 255,
+    nullable: true,
+  })
+  address?: string;
+
+  @Column({
     length: 50,
     default: 'active',
   })
