@@ -1,5 +1,5 @@
-import { ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import { NestFactory, Reflector } from '@nestjs/core';
 
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
@@ -20,6 +20,12 @@ async function bootstrap() {
 
       forbidNonWhitelisted: true,
     }),
+  );
+
+  // Necesario para que @Exclude() de class-transformer tenga efecto
+  // en las entidades (por ejemplo, ocultar el password de User).
+  app.useGlobalInterceptors(
+    new ClassSerializerInterceptor(app.get(Reflector)),
   );
 
   const config = new DocumentBuilder()

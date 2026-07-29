@@ -25,12 +25,6 @@ export class CreateResourceDto {
     example: 1,
   })
   @IsInt()
-  userId!: number;
-
-  @ApiProperty({
-    example: 1,
-  })
-  @IsInt()
   categoryId!: number;
 
   @ApiProperty({
