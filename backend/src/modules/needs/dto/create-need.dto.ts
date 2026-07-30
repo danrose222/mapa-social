@@ -40,6 +40,17 @@ export class CreateNeedDto {
   })
   longitude!: number;
   @ApiProperty({
+    example: 'Barrio Alberdi, cerca de la plaza',
+    description:
+      'Referencia legible de la ubicación (opcional, no reemplaza a latitude/longitude)',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  address?: string;
+
+  @ApiProperty({
     example: 'active',
     required: false,
   })
