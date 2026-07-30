@@ -51,6 +51,16 @@ export class CreateNeedDto {
   address?: string;
 
   @ApiProperty({
+    example: 'Alberdi',
+    description: 'Barrio o localidad (opcional)',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(150)
+  locality?: string;
+
+  @ApiProperty({
     example: 'Juan Pérez',
     description: 'Nombre de contacto (opcional)',
     required: false,

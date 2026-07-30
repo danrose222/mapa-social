@@ -48,6 +48,12 @@ export class Need extends BaseEntity {
   address?: string;
 
   @Column({
+    length: 150,
+    nullable: true,
+  })
+  locality?: string;
+
+  @Column({
     name: 'contact_name',
     length: 150,
     nullable: true,
