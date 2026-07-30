@@ -79,4 +79,14 @@ export class CreateResourceDto {
   @IsString()
   @MaxLength(50)
   status?: string;
+
+  @ApiProperty({
+    example: '011-5555-1234',
+    description: 'Teléfono o medio de contacto (opcional)',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(150)
+  contactInfo?: string;
 }

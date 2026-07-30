@@ -12,6 +12,7 @@ import { Repository } from 'typeorm';
 import { Need } from './entities/need.entity';
 import { User } from '../users/entities/user.entity';
 import { Category } from '../categories/entities/category.entity';
+import { Resource } from '../resources/entities/resource.entity';
 
 import { CreateNeedDto } from './dto/create-need.dto';
 import { UpdateNeedDto } from './dto/update-need.dto';
@@ -30,6 +31,8 @@ export class NeedsService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
+    @InjectRepository(Resource)
+    private readonly resourceRepository: Repository<Resource>,
     private readonly searchService: SearchService,
   ) {}
 
@@ -79,6 +82,42 @@ export class NeedsService {
     });
   }
 
+  async findMatches(id: number, radius: number) {
+    const need = await this.repository.findOne({
+      where: { id },
+    });
+
+    if (!need) {
+      throw new NotFoundException('Necesidad inexistente');
+    }
+
+    return this.resourceRepository
+      .createQueryBuilder('entity')
+      .leftJoinAndSelect('entity.category', 'category')
+      .where('entity.categoryId = :categoryId', {
+        categoryId: need.categoryId,
+      })
+      .andWhere('entity.status = :status', { status: 'available' })
+      .andWhere(
+        `(6371 * acos(
+            cos(radians(:lat)) * cos(radians(entity.latitude))
+            * cos(radians(entity.longitude) - radians(:lng))
+            + sin(radians(:lat)) * sin(radians(entity.latitude))
+          )) < :radius`,
+        { lat: need.latitude, lng: need.longitude, radius },
+      )
+      .orderBy(
+        `(6371 * acos(
+            cos(radians(:lat)) * cos(radians(entity.latitude))
+            * cos(radians(entity.longitude) - radians(:lng))
+            + sin(radians(:lat)) * sin(radians(entity.latitude))
+          ))`,
+        'ASC',
+      )
+      .limit(10)
+      .getMany();
+  }
+
   private assertCanModify(need: Need, currentUser: AuthUser) {
     const isOwner = need.userId === currentUser.id;
     const isModerator = currentUser.role === 'moderador';
@@ -109,7 +148,17 @@ export class NeedsService {
       );
     }
 
+    const previousStatus = need.status;
+
     Object.assign(need, dto);
+
+    if (dto.status === 'resuelta') {
+      need.resolvedBy = currentUser.id;
+      need.resolvedAt = new Date();
+    } else if (dto.status !== undefined && previousStatus === 'resuelta') {
+      need.resolvedBy = null;
+      need.resolvedAt = null;
+    }
 
     return this.repository.save(need);
   }

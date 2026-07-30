@@ -5,10 +5,13 @@ import {
   OnDestroy,
   ViewChild,
   ViewEncapsulation,
+  inject,
 } from '@angular/core';
 
 import { MatCardModule } from '@angular/material/card';
 import * as L from 'leaflet';
+
+import { AuthService } from '../../core/services/auth.service';
 
 interface Necesidad {
   id: number;
@@ -20,6 +23,10 @@ interface Necesidad {
   longitud: number;
   estado: string;
   fecha_creacion: string;
+  contactName?: string;
+  contactInfo?: string;
+  resolvedAt?: string;
+  recursosSugeridos: string[];
 }
 
 interface Recurso {
@@ -32,6 +39,8 @@ interface Recurso {
   longitud: number;
   estado: string;
   fecha_creacion: string;
+  contactInfo?: string;
+  resolvedAt?: string;
 }
 
 @Component({
@@ -293,6 +302,8 @@ interface Recurso {
   ],
 })
 export class MapaComponent implements AfterViewInit, OnDestroy {
+  private readonly authService = inject(AuthService);
+
   @ViewChild('mapContainer', { static: true })
   private mapContainer!: ElementRef<HTMLDivElement>;
 
@@ -328,6 +339,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
     encabezado: string,
     titulo: string,
     descripcion: string,
+    infoAdicional = '',
   ): void {
     const marker = L.marker(
       [latitud, longitud],
@@ -338,7 +350,47 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
       <strong>${encabezado}</strong><br>
       <strong>${titulo}</strong><br>
       ${descripcion}
+      ${infoAdicional}
     `);
+  }
+
+  private formatearFecha(fecha: string): string {
+    const date = new Date(fecha);
+
+    if (Number.isNaN(date.getTime())) {
+      return fecha;
+    }
+
+    return date.toLocaleDateString('es-AR');
+  }
+
+  private construirInfoResuelta(resolvedAt?: string): string {
+    if (!resolvedAt) {
+      return '';
+    }
+
+    return `<br>Resuelta el ${this.formatearFecha(resolvedAt)}`;
+  }
+
+  private construirInfoContacto(
+    contactInfo?: string,
+    contactName?: string,
+  ): string {
+    if (!contactInfo || !this.authService.currentUser()) {
+      return '';
+    }
+
+    const etiquetaNombre = contactName ? `: ${contactName}` : '';
+
+    return `<br><a href="mailto:${contactInfo}">Contactar${etiquetaNombre}</a>`;
+  }
+
+  private construirInfoMatches(recursosSugeridos: string[]): string {
+    if (!recursosSugeridos.length) {
+      return '';
+    }
+
+    return `<br>Recursos sugeridos: ${recursosSugeridos.join(', ')}`;
   }
 
   ngAfterViewInit(): void {
@@ -365,7 +417,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
         resourcesRes.json(),
       ]);
 
-      this.necesidades = needsJson.map((n: any) => ({
+      const necesidades: Necesidad[] = needsJson.map((n: any) => ({
         id: n.id,
         usuario_id: n.userId ?? n.user_id ?? 0,
         categoria_id:
@@ -382,7 +434,39 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
         estado: n.status ?? n.estado ?? '',
         fecha_creacion:
           n.createdAt ?? n.fecha_creacion ?? '',
+        contactName: n.contactName,
+        contactInfo: n.contactInfo,
+        resolvedAt: n.resolvedAt,
+        recursosSugeridos: [],
       }));
+
+      this.necesidades = await Promise.all(
+        necesidades.map(async (necesidad) => {
+          try {
+            const matchesRes = await fetch(
+              `/api/needs/${necesidad.id}/matches`,
+            );
+
+            if (!matchesRes.ok) {
+              return necesidad;
+            }
+
+            const matchesJson = await matchesRes.json();
+
+            const recursosSugeridos: string[] = Array.isArray(
+              matchesJson,
+            )
+              ? matchesJson
+                  .map((recurso: any) => recurso.title)
+                  .filter(Boolean)
+              : [];
+
+            return { ...necesidad, recursosSugeridos };
+          } catch {
+            return necesidad;
+          }
+        }),
+      );
 
       this.recursos = resourcesJson.map((r: any) => ({
         id: r.id,
@@ -401,6 +485,8 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
         estado: r.status ?? r.estado ?? '',
         fecha_creacion:
           r.createdAt ?? r.fecha_creacion ?? '',
+        contactInfo: r.contactInfo,
+        resolvedAt: r.resolvedAt,
       }));
     } catch (err) {
       // Si no hay backend disponible, mantenemos los datos locales.
@@ -441,6 +527,14 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
     ).addTo(this.map);
 
     this.necesidades.forEach((necesidad) => {
+      const infoAdicional =
+        this.construirInfoResuelta(necesidad.resolvedAt) +
+        this.construirInfoContacto(
+          necesidad.contactInfo,
+          necesidad.contactName,
+        ) +
+        this.construirInfoMatches(necesidad.recursosSugeridos);
+
       this.agregarMarcador(
         necesidad.latitud,
         necesidad.longitud,
@@ -448,10 +542,15 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
         'Necesidad',
         necesidad.titulo,
         necesidad.descripcion,
+        infoAdicional,
       );
     });
 
     this.recursos.forEach((recurso) => {
+      const infoAdicional =
+        this.construirInfoResuelta(recurso.resolvedAt) +
+        this.construirInfoContacto(recurso.contactInfo);
+
       this.agregarMarcador(
         recurso.latitud,
         recurso.longitud,
@@ -459,6 +558,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
         'Recurso',
         recurso.titulo,
         recurso.descripcion,
+        infoAdicional,
       );
     });
 

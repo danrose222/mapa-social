@@ -49,18 +49,6 @@
           }
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Localidad o territorio</mat-label>
-
-          <input matInput type="text" maxlength="120" formControlName="locality" placeholder="Ej.: Rosario Centro" />
-
-          @if (isInvalid('locality')) {
-          <mat-error>
-            La localidad es obligatoria.
-          </mat-error>
-          }
-        </mat-form-field>
-
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Descripción</mat-label>
 
@@ -111,6 +99,21 @@
           </mat-error>
           }
         </mat-form-field>
+
+        <div class="full-width">
+          <p class="field-label">Ubicación en el mapa</p>
+
+          <app-location-picker
+            (locationSelected)="onLocationSelected($event)"
+          ></app-location-picker>
+
+          @if (hasLocation) {
+          <p class="location-hint">
+            Ubicación seleccionada:
+            {{ form.value.latitude }}, {{ form.value.longitude }}
+          </p>
+          }
+        </div>
 
         @if (successMessage) {
         <p class="form-message success-message full-width">

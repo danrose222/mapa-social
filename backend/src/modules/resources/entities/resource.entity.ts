@@ -66,6 +66,26 @@ export class Resource extends BaseEntity {
   })
   status!: string;
 
+  @Column({
+    name: 'contact_info',
+    length: 150,
+    nullable: true,
+  })
+  contactInfo?: string;
+
+  @Column({
+    name: 'resolved_by',
+    nullable: true,
+  })
+  resolvedBy?: number | null;
+
+  @Column({
+    name: 'resolved_at',
+    type: 'datetime',
+    nullable: true,
+  })
+  resolvedAt?: Date | null;
+
   @ManyToOne(() => User, (user) => user.resources)
   @JoinColumn({
     name: 'user_id',

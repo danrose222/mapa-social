@@ -15,6 +15,9 @@ import { MatSelectModule } from '@angular/material/select';
 import {
   PublicationsApiService,
 } from '../../../core/services/publications-api.service';
+import {
+  LocationPickerComponent,
+} from '../../../shared/components/location-picker/location-picker.component';
 
 interface Categoria {
   id: number;
@@ -32,6 +35,7 @@ interface Categoria {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    LocationPickerComponent,
   ],
   templateUrl: './recurso-form.html',
   styleUrl: './recurso-form.scss',
@@ -64,7 +68,7 @@ export class RecursoForm {
         Validators.min(1),
       ],
     ],
-    organization: [
+    organizationName: [
       '',
       [
         Validators.required,
@@ -78,7 +82,7 @@ export class RecursoForm {
         Validators.minLength(10),
       ],
     ],
-    location: [
+    address: [
       '',
       [
         Validators.required,
@@ -99,11 +103,22 @@ export class RecursoForm {
         Validators.maxLength(150),
       ],
     ],
+    latitude: [0],
+    longitude: [0],
   });
 
   isSubmitting = false;
   successMessage = '';
   errorMessage = '';
+  hasLocation = false;
+
+  onLocationSelected(coords: { lat: number; lng: number }): void {
+    this.form.patchValue({
+      latitude: coords.lat,
+      longitude: coords.lng,
+    });
+    this.hasLocation = true;
+  }
 
   onSubmit(): void {
     this.successMessage = '';
@@ -113,6 +128,12 @@ export class RecursoForm {
       this.form.markAllAsTouched();
       this.errorMessage =
         'Revisá los campos obligatorios antes de continuar.';
+      return;
+    }
+
+    if (!this.hasLocation) {
+      this.errorMessage =
+        'Seleccioná una ubicación en el mapa antes de continuar.';
       return;
     }
 

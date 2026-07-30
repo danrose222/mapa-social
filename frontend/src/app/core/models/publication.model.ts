@@ -1,19 +1,22 @@
 export interface CreateNeedPayload {
   title: string;
   categoryId: number;
-  locality: string;
   description: string;
   address: string;
   contactName: string;
   contactInfo: string;
+  latitude: number;
+  longitude: number;
 }
 
 export interface CreateResourcePayload {
   title: string;
   categoryId: number;
-  organization: string;
+  organizationName: string;
   description: string;
-  location: string;
+  address: string;
   schedule: string;
   contactInfo: string;
+  latitude: number;
+  longitude: number;
 }

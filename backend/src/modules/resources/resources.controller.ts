@@ -42,6 +42,16 @@ export class ResourcesController {
     return this.service.findAll();
   }
 
+  @Get('organizations')
+  findOrganizations() {
+    return this.service.findOrganizations();
+  }
+
+  @Get('by-organization/:name')
+  findByOrganization(@Param('name') name: string) {
+    return this.service.findByOrganization(name);
+  }
+
   @Get(':id')
   findOne(
     @Param('id', ParseIntPipe)

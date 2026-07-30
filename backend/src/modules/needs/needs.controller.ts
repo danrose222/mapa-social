@@ -48,6 +48,17 @@ export class NeedsController {
     return this.service.search(dto);
   }
 
+  @Get(':id/matches')
+  findMatches(
+    @Param('id', ParseIntPipe)
+    id: number,
+    @Query('radius') radius?: string,
+  ) {
+    const parsedRadius = radius ? Number(radius) : 10;
+
+    return this.service.findMatches(id, parsedRadius);
+  }
+
   @Get(':id')
   findOne(
     @Param('id', ParseIntPipe)

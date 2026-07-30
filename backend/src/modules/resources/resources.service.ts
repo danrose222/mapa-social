@@ -71,6 +71,26 @@ export class ResourcesService {
     });
   }
 
+  async findOrganizations(): Promise<string[]> {
+    const rows = await this.repository
+      .createQueryBuilder('entity')
+      .select('DISTINCT entity.organizationName', 'organizationName')
+      .where('entity.organizationName IS NOT NULL')
+      .getRawMany<{ organizationName: string }>();
+
+    return rows.map((row) => row.organizationName);
+  }
+
+  findByOrganization(name: string) {
+    return this.repository.find({
+      where: {
+        organizationName: name,
+        status: 'available',
+      },
+      relations: ['user', 'category'],
+    });
+  }
+
   private assertCanModify(resource: Resource, currentUser: AuthUser) {
     const isOwner = resource.userId === currentUser.id;
     const isModerator = currentUser.role === 'moderador';
@@ -101,7 +121,17 @@ export class ResourcesService {
       );
     }
 
+    const previousStatus = resource.status;
+
     Object.assign(resource, dto);
+
+    if (dto.status === 'agotado') {
+      resource.resolvedBy = currentUser.id;
+      resource.resolvedAt = new Date();
+    } else if (dto.status !== undefined && previousStatus === 'agotado') {
+      resource.resolvedBy = null;
+      resource.resolvedAt = null;
+    }
 
     return this.repository.save(resource);
   }

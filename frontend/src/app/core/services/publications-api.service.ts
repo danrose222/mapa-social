@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -19,36 +19,12 @@ export class PublicationsApiService {
   createNeed(
     payload: CreateNeedPayload,
   ): Observable<unknown> {
-    return this.http.post(
-      this.needsUrl,
-      payload,
-      {
-        headers: this.getAuthHeaders(),
-      },
-    );
+    return this.http.post(this.needsUrl, payload);
   }
 
   createResource(
     payload: CreateResourcePayload,
   ): Observable<unknown> {
-    return this.http.post(
-      this.resourcesUrl,
-      payload,
-      {
-        headers: this.getAuthHeaders(),
-      },
-    );
-  }
-
-  private getAuthHeaders(): HttpHeaders {
-    const token = localStorage.getItem('access_token');
-
-    if (!token) {
-      return new HttpHeaders();
-    }
-
-    return new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-    });
+    return this.http.post(this.resourcesUrl, payload);
   }
 }

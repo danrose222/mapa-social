@@ -9,6 +9,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { NeedsModule } from './modules/needs/needs.module';
 import { ResourcesModule } from './modules/resources/resources.module';
+import { StatsModule } from './modules/stats/stats.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -32,7 +33,7 @@ import { ResourcesModule } from './modules/resources/resources.module';
     CategoriesModule,
     NeedsModule,
     ResourcesModule,
-    // MatchesModule
+    StatsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

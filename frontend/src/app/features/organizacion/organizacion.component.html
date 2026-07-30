@@ -1,0 +1,49 @@
+<section class="organizacion-page">
+  <header class="page-heading">
+    <p class="eyebrow">Organización</p>
+
+    <h1>{{ nombre }}</h1>
+
+    <p>Recursos publicados por esta organización.</p>
+  </header>
+
+  @if (isLoading) {
+  <p class="organizacion-message">Cargando recursos...</p>
+  }
+
+  @if (errorMessage) {
+  <p class="organizacion-message error-message">{{ errorMessage }}</p>
+  }
+
+  @if (!isLoading && !errorMessage && !recursos.length) {
+  <p class="organizacion-message">
+    Esta organización todavía no tiene recursos publicados.
+  </p>
+  }
+
+  <div class="organizacion-grid">
+    @for (recurso of recursos; track recurso.id) {
+    <mat-card class="organizacion-card">
+      <mat-card-header>
+        <mat-card-title>{{ recurso.title }}</mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <p>{{ recurso.description }}</p>
+
+        @if (recurso.address) {
+        <p class="organizacion-detail">
+          <strong>Dirección:</strong> {{ recurso.address }}
+        </p>
+        }
+
+        @if (recurso.schedule) {
+        <p class="organizacion-detail">
+          <strong>Horario:</strong> {{ recurso.schedule }}
+        </p>
+        }
+      </mat-card-content>
+    </mat-card>
+    }
+  </div>
+</section>

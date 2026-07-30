@@ -1,0 +1,78 @@
+<section class="stats-page">
+  <header class="page-heading">
+    <p class="eyebrow">Datos de la comunidad</p>
+
+    <h1>Estadísticas</h1>
+
+    <p>
+      Resumen general de las necesidades y recursos registrados
+      en la plataforma.
+    </p>
+  </header>
+
+  @if (isLoading) {
+  <p class="stats-message">Cargando estadísticas...</p>
+  }
+
+  @if (errorMessage) {
+  <p class="stats-message error-message">{{ errorMessage }}</p>
+  }
+
+  @if (overview) {
+  <div class="stats-grid">
+    <mat-card class="stats-card">
+      <mat-card-header>
+        <mat-card-title>Necesidades</mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <p class="stats-total">{{ overview.needsTotal }}</p>
+        <p class="stats-label">Necesidades registradas</p>
+
+        <p class="stats-resolved">
+          {{ overview.needsResolved }} resueltas
+          ({{ overview.needsResolvedPercentage }}%)
+        </p>
+
+        @if (overview.needsByCategory.length) {
+        <ul class="stats-category-list">
+          @for (categoria of overview.needsByCategory; track categoria.categoryId) {
+          <li>
+            <span>{{ categoria.categoryName }}</span>
+            <span>{{ categoria.count }}</span>
+          </li>
+          }
+        </ul>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stats-card">
+      <mat-card-header>
+        <mat-card-title>Recursos</mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <p class="stats-total">{{ overview.resourcesTotal }}</p>
+        <p class="stats-label">Recursos registrados</p>
+
+        <p class="stats-resolved">
+          {{ overview.resourcesResolved }} resueltos
+          ({{ overview.resourcesResolvedPercentage }}%)
+        </p>
+
+        @if (overview.resourcesByCategory.length) {
+        <ul class="stats-category-list">
+          @for (categoria of overview.resourcesByCategory; track categoria.categoryId) {
+          <li>
+            <span>{{ categoria.categoryName }}</span>
+            <span>{{ categoria.count }}</span>
+          </li>
+          }
+        </ul>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+  }
+</section>

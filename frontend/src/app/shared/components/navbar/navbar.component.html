@@ -35,6 +35,15 @@
   <a
     mat-button
     class="nav-link"
+    routerLink="/estadisticas"
+    routerLinkActive="active-link"
+  >
+    Estadísticas
+  </a>
+
+  <a
+    mat-button
+    class="nav-link"
     routerLink="/registrar-necesidad"
     routerLinkActive="active-link"
   >
@@ -96,6 +105,15 @@
       (click)="closeMenu()"
     >
       Mapa
+    </a>
+
+    <a
+      class="mobile-menu-link"
+      routerLink="/estadisticas"
+      routerLinkActive="active-link"
+      (click)="closeMenu()"
+    >
+      Estadísticas
     </a>
 
     <a
