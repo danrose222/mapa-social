@@ -1,10 +1,21 @@
 <mat-toolbar color="primary" class="navbar">
-  <a class="brand" routerLink="/">Mapa Social</a>
+  <button
+    mat-icon-button
+    type="button"
+    class="menu-toggle"
+    aria-label="Abrir menú de navegación"
+    (click)="toggleMenu()"
+  >
+    <mat-icon>{{ isMenuOpen ? 'close' : 'menu' }}</mat-icon>
+  </button>
+
+  <a class="brand" routerLink="/" (click)="closeMenu()">Mapa Social</a>
 
   <span class="spacer"></span>
 
   <a
     mat-button
+    class="nav-link"
     routerLink="/"
     routerLinkActive="active-link"
     [routerLinkActiveOptions]="{ exact: true }"
@@ -14,6 +25,7 @@
 
   <a
     mat-button
+    class="nav-link"
     routerLink="/mapa"
     routerLinkActive="active-link"
   >
@@ -22,6 +34,7 @@
 
   <a
     mat-button
+    class="nav-link"
     routerLink="/registrar-necesidad"
     routerLinkActive="active-link"
   >
@@ -30,6 +43,7 @@
 
   <a
     mat-button
+    class="nav-link"
     routerLink="/ofrecer-recurso"
     routerLinkActive="active-link"
   >
@@ -40,6 +54,7 @@
     <button
       mat-button
       type="button"
+      class="login-link"
       (click)="logout()"
     >
       Cerrar sesión
@@ -47,10 +62,77 @@
   } @else {
     <a
       mat-button
+      class="login-link"
       routerLink="/login"
       routerLinkActive="active-link"
+      (click)="closeMenu()"
     >
       Login
     </a>
   }
 </mat-toolbar>
+
+@if (isMenuOpen) {
+  <div
+    class="mobile-menu-backdrop"
+    (click)="closeMenu()"
+  ></div>
+
+  <nav class="mobile-menu">
+    <a
+      class="mobile-menu-link"
+      routerLink="/"
+      routerLinkActive="active-link"
+      [routerLinkActiveOptions]="{ exact: true }"
+      (click)="closeMenu()"
+    >
+      Inicio
+    </a>
+
+    <a
+      class="mobile-menu-link"
+      routerLink="/mapa"
+      routerLinkActive="active-link"
+      (click)="closeMenu()"
+    >
+      Mapa
+    </a>
+
+    <a
+      class="mobile-menu-link"
+      routerLink="/registrar-necesidad"
+      routerLinkActive="active-link"
+      (click)="closeMenu()"
+    >
+      Registrar necesidad
+    </a>
+
+    <a
+      class="mobile-menu-link"
+      routerLink="/ofrecer-recurso"
+      routerLinkActive="active-link"
+      (click)="closeMenu()"
+    >
+      Ofrecer recurso
+    </a>
+
+    @if (currentUser()) {
+      <button
+        type="button"
+        class="mobile-menu-link mobile-menu-action"
+        (click)="logout()"
+      >
+        Cerrar sesión
+      </button>
+    } @else {
+      <a
+        class="mobile-menu-link"
+        routerLink="/login"
+        routerLinkActive="active-link"
+        (click)="closeMenu()"
+      >
+        Login
+      </a>
+    }
+  </nav>
+}
