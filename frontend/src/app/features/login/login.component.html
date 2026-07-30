@@ -55,8 +55,8 @@
           }
         </mat-form-field>
 
-        @if (errorMessage) {
-          <p class="form-error">{{ errorMessage }}</p>
+        @if (errorMessage()) {
+          <p class="form-error">{{ errorMessage() }}</p>
         }
       </mat-card-content>
 
@@ -66,9 +66,9 @@
           color="primary"
           class="submit-btn"
           type="submit"
-          [disabled]="isSubmitting"
+          [disabled]="isSubmitting()"
         >
-          {{ isSubmitting ? 'Ingresando...' : 'Entrar' }}
+          {{ isSubmitting() ? 'Ingresando...' : 'Entrar' }}
         </button>
       </mat-card-actions>
     </form>

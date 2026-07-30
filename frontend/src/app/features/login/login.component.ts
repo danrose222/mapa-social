@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -35,8 +35,8 @@ export class LoginComponent {
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
-  isSubmitting = false;
-  errorMessage = '';
+  readonly isSubmitting = signal(false);
+  readonly errorMessage = signal('');
   showPassword = false;
 
   togglePasswordVisibility(): void {
@@ -44,26 +44,27 @@ export class LoginComponent {
   }
 
   submit(): void {
-    if (this.form.invalid || this.isSubmitting) {
+    if (this.form.invalid || this.isSubmitting()) {
       this.form.markAllAsTouched();
       return;
     }
 
     const { email, password } = this.form.getRawValue();
-    this.isSubmitting = true;
-    this.errorMessage = '';
+    this.isSubmitting.set(true);
+    this.errorMessage.set('');
 
     this.authService.login(email!, password!).subscribe({
       next: () => {
-        this.isSubmitting = false;
+        this.isSubmitting.set(false);
         this.router.navigateByUrl('/');
       },
       error: (error: HttpErrorResponse) => {
-        this.isSubmitting = false;
-        this.errorMessage =
+        this.isSubmitting.set(false);
+        this.errorMessage.set(
           error.status === 401
-            ? 'Correo o contraseña incorrectos.'
-            : 'No se pudo iniciar sesión. Intentá de nuevo más tarde.';
+            ? 'Los datos ingresados son incorrectos.'
+            : 'No se pudo iniciar sesión. Intentá de nuevo más tarde.',
+        );
       },
     });
   }
