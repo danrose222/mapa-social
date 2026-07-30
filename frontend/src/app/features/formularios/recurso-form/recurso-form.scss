@@ -135,3 +135,19 @@ mat-form-field {
     width: 100%;
   }
 }
+.form-message {
+  margin: 4px 0;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.success-message {
+  background-color: rgba(47, 131, 168, 0.14);
+  color: var(--color-primary);
+}
+
+.error-message {
+  background-color: rgba(230, 95, 50, 0.14);
+  color: #a33215;
+}

@@ -5,97 +5,143 @@
     <h1>Ofrecer un recurso</h1>
 
     <p>
-      Completá los datos para representar cómo una organización o persona
-      podrá publicar un recurso disponible para la comunidad.
+      Completá los datos para publicar un recurso disponible
+      para la comunidad.
     </p>
   </header>
 
   <mat-card class="form-card">
     <mat-card-content>
-      <form class="form-grid">
+      <form class="form-grid" [formGroup]="form" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Nombre del recurso o servicio</mat-label>
 
-          <input
-            matInput
-            type="text"
-            placeholder="Ej.: Apoyo escolar gratuito"
-          />
+          <input matInput type="text" maxlength="255" formControlName="title"
+            placeholder="Ej.: Apoyo escolar gratuito" />
+
+          @if (isInvalid('title')) {
+          <mat-error>
+            El nombre es obligatorio y no puede superar los
+            255 caracteres.
+          </mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Categoría</mat-label>
 
-          <mat-select>
-            @for (categoria of categorias; track categoria) {
-              <mat-option [value]="categoria">
-                {{ categoria }}
-              </mat-option>
+          <mat-select formControlName="categoryId">
+            <mat-option [value]="0">
+              Seleccionar categoría
+            </mat-option>
+
+            @for (categoria of categorias; track categoria.id) {
+            <mat-option [value]="categoria.id">
+              {{ categoria.nombre }}
+            </mat-option>
             }
           </mat-select>
+
+          @if (isInvalid('categoryId')) {
+          <mat-error>
+            Seleccioná una categoría válida.
+          </mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Organización responsable</mat-label>
 
-          <input
-            matInput
-            type="text"
-            placeholder="Nombre de la organización"
-          />
+          <input matInput type="text" maxlength="150" formControlName="organization"
+            placeholder="Nombre de la organización" />
+
+          @if (isInvalid('organization')) {
+          <mat-error>
+            La organización responsable es obligatoria.
+          </mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Descripción</mat-label>
 
-          <textarea
-            matInput
-            rows="5"
-            placeholder="Describí el recurso, servicio o ayuda ofrecida"
-          ></textarea>
+          <textarea matInput rows="5" formControlName="description"
+            placeholder="Describí el recurso, servicio o ayuda ofrecida"></textarea>
+
+          @if (isInvalid('description')) {
+          <mat-error>
+            La descripción es obligatoria y debe tener al menos
+            10 caracteres.
+          </mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Ubicación</mat-label>
 
-          <input
-            matInput
-            type="text"
-            placeholder="Dirección, localidad o punto de referencia"
-          />
+          <input matInput type="text" maxlength="255" formControlName="location"
+            placeholder="Dirección, localidad o punto de referencia" />
+
+          @if (isInvalid('location')) {
+          <mat-error>
+            La ubicación es obligatoria.
+          </mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Días y horarios</mat-label>
 
-          <input
-            matInput
-            type="text"
-            placeholder="Ej.: lunes a viernes de 9 a 17"
-          />
+          <input matInput type="text" maxlength="150" formControlName="schedule"
+            placeholder="Ej.: lunes a viernes de 9 a 17" />
+
+          @if (isInvalid('schedule')) {
+          <mat-error>
+            Los días y horarios son obligatorios.
+          </mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Datos de contacto</mat-label>
 
-          <input
-            matInput
-            type="text"
-            placeholder="Teléfono o correo electrónico"
-          />
+          <input matInput type="text" maxlength="150" formControlName="contactInfo"
+            placeholder="Teléfono o correo electrónico" />
+
+          @if (isInvalid('contactInfo')) {
+          <mat-error>
+            Ingresá un teléfono o correo electrónico.
+          </mat-error>
+          }
         </mat-form-field>
+
+        @if (successMessage) {
+        <p class="form-message success-message full-width">
+          {{ successMessage }}
+        </p>
+        }
+
+        @if (errorMessage) {
+        <p class="form-message error-message full-width">
+          {{ errorMessage }}
+        </p>
+        }
 
         <div class="form-actions full-width">
           <a mat-button routerLink="/">
             Cancelar
           </a>
 
-          <button mat-stroked-button type="button">
+          <button mat-stroked-button type="button" (click)="saveDraft()">
             Guardar borrador
           </button>
 
-          <button mat-flat-button color="primary" type="button">
-            Publicar recurso
+          <button mat-flat-button color="primary" type="submit" [disabled]="isSubmitting">
+            {{
+            isSubmitting
+            ? 'Publicando...'
+            : 'Publicar recurso'
+            }}
           </button>
         </div>
       </form>
