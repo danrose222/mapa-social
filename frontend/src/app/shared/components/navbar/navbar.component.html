@@ -36,11 +36,21 @@
     Ofrecer recurso
   </a>
 
-  <a
-    mat-button
-    routerLink="/login"
-    routerLinkActive="active-link"
-  >
-    Login
-  </a>
+  @if (currentUser()) {
+    <button
+      mat-button
+      type="button"
+      (click)="logout()"
+    >
+      Cerrar sesión
+    </button>
+  } @else {
+    <a
+      mat-button
+      routerLink="/login"
+      routerLinkActive="active-link"
+    >
+      Login
+    </a>
+  }
 </mat-toolbar>
