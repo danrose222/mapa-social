@@ -7,22 +7,22 @@
     <p>Recursos publicados por esta organización.</p>
   </header>
 
-  @if (isLoading) {
+  @if (isLoading()) {
   <p class="organizacion-message">Cargando recursos...</p>
   }
 
-  @if (errorMessage) {
-  <p class="organizacion-message error-message">{{ errorMessage }}</p>
+  @if (errorMessage()) {
+  <p class="organizacion-message error-message">{{ errorMessage() }}</p>
   }
 
-  @if (!isLoading && !errorMessage && !recursos.length) {
+  @if (!isLoading() && !errorMessage() && !recursos().length) {
   <p class="organizacion-message">
     Esta organización todavía no tiene recursos publicados.
   </p>
   }
 
   <div class="organizacion-grid">
-    @for (recurso of recursos; track recurso.id) {
+    @for (recurso of recursos(); track recurso.id) {
     <mat-card class="organizacion-card">
       <mat-card-header>
         <mat-card-title>{{ recurso.title }}</mat-card-title>

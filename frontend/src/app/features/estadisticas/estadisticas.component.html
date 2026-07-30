@@ -10,15 +10,15 @@
     </p>
   </header>
 
-  @if (isLoading) {
+  @if (isLoading()) {
   <p class="stats-message">Cargando estadísticas...</p>
   }
 
-  @if (errorMessage) {
-  <p class="stats-message error-message">{{ errorMessage }}</p>
+  @if (errorMessage()) {
+  <p class="stats-message error-message">{{ errorMessage() }}</p>
   }
 
-  @if (overview) {
+  @if (overview(); as overview) {
   <div class="stats-grid">
     <mat-card class="stats-card">
       <mat-card-header>

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 import { MatCardModule } from '@angular/material/card';
@@ -22,9 +22,9 @@ export class OrganizacionComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
 
   nombre = '';
-  recursos: RecursoOrganizacion[] = [];
-  isLoading = true;
-  errorMessage = '';
+  readonly recursos = signal<RecursoOrganizacion[]>([]);
+  readonly isLoading = signal(true);
+  readonly errorMessage = signal('');
 
   ngOnInit(): void {
     this.nombre = this.route.snapshot.paramMap.get('nombre') ?? '';
@@ -32,8 +32,8 @@ export class OrganizacionComponent implements OnInit {
   }
 
   private async cargarRecursos(): Promise<void> {
-    this.isLoading = true;
-    this.errorMessage = '';
+    this.isLoading.set(true);
+    this.errorMessage.set('');
 
     try {
       const response = await fetch(
@@ -44,12 +44,13 @@ export class OrganizacionComponent implements OnInit {
         throw new Error(`Error al cargar recursos: ${response.status}`);
       }
 
-      this.recursos = await response.json();
+      this.recursos.set(await response.json());
     } catch {
-      this.errorMessage =
-        'No se pudieron cargar los recursos de esta organización.';
+      this.errorMessage.set(
+        'No se pudieron cargar los recursos de esta organización.',
+      );
     } finally {
-      this.isLoading = false;
+      this.isLoading.set(false);
     }
   }
 }

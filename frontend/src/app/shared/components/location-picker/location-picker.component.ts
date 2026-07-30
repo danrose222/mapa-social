@@ -52,11 +52,11 @@ export class LocationPickerComponent implements AfterViewInit, OnDestroy {
     ).addTo(this.map);
 
     this.map.on('click', (event: L.LeafletMouseEvent) => {
-      this.setMarker(event.latlng.lat, event.latlng.lng);
-      this.locationSelected.emit({
-        lat: event.latlng.lat,
-        lng: event.latlng.lng,
-      });
+      const lat = Math.round(event.latlng.lat * 1e6) / 1e6;
+      const lng = Math.round(event.latlng.lng * 1e6) / 1e6;
+
+      this.setMarker(lat, lng);
+      this.locationSelected.emit({ lat, lng });
     });
 
     requestAnimationFrame(() => {

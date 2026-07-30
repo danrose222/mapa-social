@@ -69,6 +69,7 @@ export class Need extends BaseEntity {
 
   @Column({
     name: 'resolved_by',
+    type: 'int',
     nullable: true,
   })
   resolvedBy?: number | null;

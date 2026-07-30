@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 
 import { MatCardModule } from '@angular/material/card';
 
@@ -27,17 +27,17 @@ interface EstadisticasOverview {
   styleUrl: './estadisticas.component.scss',
 })
 export class EstadisticasComponent implements OnInit {
-  overview: EstadisticasOverview | null = null;
-  isLoading = true;
-  errorMessage = '';
+  readonly overview = signal<EstadisticasOverview | null>(null);
+  readonly isLoading = signal(true);
+  readonly errorMessage = signal('');
 
   ngOnInit(): void {
     this.cargarEstadisticas();
   }
 
   private async cargarEstadisticas(): Promise<void> {
-    this.isLoading = true;
-    this.errorMessage = '';
+    this.isLoading.set(true);
+    this.errorMessage.set('');
 
     try {
       const response = await fetch('/api/stats/overview');
@@ -46,12 +46,13 @@ export class EstadisticasComponent implements OnInit {
         throw new Error(`Error al cargar estadísticas: ${response.status}`);
       }
 
-      this.overview = await response.json();
+      this.overview.set(await response.json());
     } catch {
-      this.errorMessage =
-        'No se pudieron cargar las estadísticas. Intentá nuevamente más tarde.';
+      this.errorMessage.set(
+        'No se pudieron cargar las estadísticas. Intentá nuevamente más tarde.',
+      );
     } finally {
-      this.isLoading = false;
+      this.isLoading.set(false);
     }
   }
 }
