@@ -72,6 +72,26 @@ export class CreateResourceDto {
   schedule?: string;
 
   @ApiProperty({
+    example: 'Juan Pérez',
+    description: 'Nombre de contacto (opcional)',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(150)
+  contactName?: string;
+
+  @ApiProperty({
+    example: 'Tel: 351-1234567',
+    description: 'Teléfono, email o forma de contacto (opcional)',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  contactInfo?: string;
+
+  @ApiProperty({
     example: 'available',
     required: false,
   })

@@ -48,6 +48,20 @@ export class Need extends BaseEntity {
   address?: string;
 
   @Column({
+    name: 'contact_name',
+    length: 150,
+    nullable: true,
+  })
+  contactName?: string;
+
+  @Column({
+    name: 'contact_info',
+    length: 255,
+    nullable: true,
+  })
+  contactInfo?: string;
+
+  @Column({
     length: 50,
     default: 'active',
   })
