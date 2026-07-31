@@ -91,15 +91,11 @@ mat-form-field {
   color: var(--color-white);
 }
 
-.form-actions button[mat-stroked-button] {
-  border-color: var(--color-secondary);
-  color: var(--color-secondary);
-}
-
-.form-actions button[mat-stroked-button]:hover {
-  border-color: var(--color-accent);
-  background-color: var(--color-accent);
-  color: var(--color-white);
+.form-error,
+.location-error {
+  margin: 0;
+  color: #d32f2f;
+  font-size: 0.85rem;
 }
 
 .form-actions button[mat-flat-button] {

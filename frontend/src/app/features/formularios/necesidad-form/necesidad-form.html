@@ -5,44 +5,47 @@
     <h1>Registrar una necesidad</h1>
 
     <p>
-      Completá los datos para visualizar cómo se registrará una necesidad
-      comunitaria dentro de la plataforma.
+      Completá los datos para publicar una necesidad comunitaria dentro de
+      la plataforma.
     </p>
   </header>
 
   <mat-card class="form-card">
     <mat-card-content>
-      <form class="form-grid">
+      <form
+        class="form-grid"
+        [formGroup]="form"
+        (ngSubmit)="submit()"
+      >
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Título de la necesidad</mat-label>
 
           <input
             matInput
             type="text"
+            formControlName="title"
             placeholder="Ej.: Alimentos para comedor comunitario"
           />
+
+          @if (form.controls.title.touched && form.controls.title.hasError('required')) {
+            <mat-error>El título es obligatorio</mat-error>
+          }
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="full-width">
           <mat-label>Categoría</mat-label>
 
-          <mat-select>
-            @for (categoria of categorias; track categoria) {
-              <mat-option [value]="categoria">
-                {{ categoria }}
+          <mat-select formControlName="categoryId">
+            @for (categoria of categorias(); track categoria.id) {
+              <mat-option [value]="categoria.id">
+                {{ categoria.name }}
               </mat-option>
             }
           </mat-select>
-        </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Localidad o territorio</mat-label>
-
-          <input
-            matInput
-            type="text"
-            placeholder="Ej.: Rosario Centro"
-          />
+          @if (form.controls.categoryId.touched && form.controls.categoryId.hasError('required')) {
+            <mat-error>Elegí una categoría</mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
@@ -51,39 +54,29 @@
           <textarea
             matInput
             rows="5"
+            formControlName="description"
             placeholder="Describí la situación y qué tipo de ayuda se necesita"
           ></textarea>
+
+          @if (form.controls.description.touched && form.controls.description.hasError('required')) {
+            <mat-error>La descripción es obligatoria</mat-error>
+          }
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Dirección o referencia</mat-label>
+        <div class="full-width">
+          <app-location-picker
+            markerColor="orange"
+            (positionChange)="onPositionChange($event)"
+          ></app-location-picker>
 
-          <input
-            matInput
-            type="text"
-            placeholder="Calle, altura o punto de referencia"
-          />
-        </mat-form-field>
+          @if (!hasLocation() && (form.controls.latitude.touched || form.controls.longitude.touched)) {
+            <p class="location-error">Marcá la ubicación en el mapa</p>
+          }
+        </div>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Nombre de contacto</mat-label>
-
-          <input
-            matInput
-            type="text"
-            placeholder="Nombre y apellido"
-          />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Teléfono o correo electrónico</mat-label>
-
-          <input
-            matInput
-            type="text"
-            placeholder="Datos de contacto"
-          />
-        </mat-form-field>
+        @if (errorMessage()) {
+          <p class="form-error full-width">{{ errorMessage() }}</p>
+        }
 
         <div class="form-actions full-width">
           <a
@@ -94,18 +87,12 @@
           </a>
 
           <button
-            mat-stroked-button
-            type="button"
-          >
-            Guardar borrador
-          </button>
-
-          <button
             mat-flat-button
             color="primary"
-            type="button"
+            type="submit"
+            [disabled]="isSubmitting()"
           >
-            Registrar necesidad
+            {{ isSubmitting() ? 'Registrando...' : 'Registrar necesidad' }}
           </button>
         </div>
       </form>
