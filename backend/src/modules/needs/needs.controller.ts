@@ -8,14 +8,23 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { SearchNeedsDto } from './dto/search-needs.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { NeedsService } from './needs.service';
 
 import { CreateNeedDto } from './dto/create-need.dto';
 import { UpdateNeedDto } from './dto/update-need.dto';
+
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+
+interface AuthUser {
+  id: number;
+  role: string;
+}
 
 @ApiTags('Needs')
 @Controller('needs')
@@ -23,8 +32,10 @@ export class NeedsController {
   constructor(private readonly service: NeedsService) {}
 
   @Post()
-  create(@Body() dto: CreateNeedDto) {
-    return this.service.create(dto);
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  create(@Body() dto: CreateNeedDto, @CurrentUser() user: AuthUser) {
+    return this.service.create(user.id, dto);
   }
 
   @Get()
@@ -46,19 +57,25 @@ export class NeedsController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   update(
     @Param('id', ParseIntPipe)
     id: number,
     @Body() dto: UpdateNeedDto,
+    @CurrentUser() user: AuthUser,
   ) {
-    return this.service.update(id, dto);
+    return this.service.update(id, dto, user);
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   remove(
     @Param('id', ParseIntPipe)
     id: number,
+    @CurrentUser() user: AuthUser,
   ) {
-    return this.service.remove(id);
+    return this.service.remove(id, user);
   }
 }

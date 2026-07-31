@@ -1,8 +1,10 @@
-import { Component, HostListener, OnDestroy } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, HostListener, inject, OnDestroy } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
+
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-navbar',
@@ -18,6 +20,11 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrl: './navbar.component.scss'
 })
 export class NavbarComponent implements OnDestroy {
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
+  readonly currentUser = this.authService.currentUser;
+
   isMenuOpen = false;
 
   toggleMenu(): void {
@@ -31,6 +38,12 @@ export class NavbarComponent implements OnDestroy {
     }
     this.isMenuOpen = false;
     this.syncBodyScrollLock();
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.closeMenu();
+    this.router.navigateByUrl('/');
   }
 
   @HostListener('document:keydown.escape')

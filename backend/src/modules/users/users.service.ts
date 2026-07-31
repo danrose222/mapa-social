@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -9,6 +13,11 @@ import { Role } from '../roles/entities/role.entity';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+
+interface AuthUser {
+  id: number;
+  role: string;
+}
 
 @Injectable()
 export class UsersService {
@@ -58,8 +67,30 @@ export class UsersService {
     return user;
   }
 
-  async update(id: number, dto: UpdateUserDto) {
+  async findByEmail(email: string) {
+    return this.userRepository.findOne({
+      where: { email },
+      relations: ['role'],
+    });
+  }
+
+  async update(id: number, dto: UpdateUserDto, currentUser: AuthUser) {
     const user = await this.findOne(id);
+
+    const isOwner = currentUser.id === id;
+    const isModerator = currentUser.role === 'moderador';
+
+    if (!isOwner && !isModerator) {
+      throw new ForbiddenException(
+        'No podés modificar un usuario que no sos vos',
+      );
+    }
+
+    // Solo un moderador puede cambiar el rol de alguien (incluido el propio).
+    // Si no, cualquier usuario podría auto-ascenderse mandando roleId en el body.
+    if (dto.roleId !== undefined && !isModerator) {
+      throw new ForbiddenException('No podés cambiar tu propio rol');
+    }
 
     if (dto.roleId) {
       const role = await this.roleRepository.findOne({

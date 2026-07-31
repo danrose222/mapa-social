@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { MainLayoutComponent } from './core/layout/main-layout/main-layout.component';
+import { authGuard } from './core/guards/auth.guard';
 import { NecesidadForm } from './features/formularios/necesidad-form/necesidad-form';
 import { RecursoForm } from './features/formularios/recurso-form/recurso-form';
 import { Inicio } from './features/inicio/inicio/inicio';
@@ -23,10 +24,12 @@ export const routes: Routes = [
       {
         path: 'registrar-necesidad',
         component: NecesidadForm,
+        canActivate: [authGuard],
       },
       {
         path: 'ofrecer-recurso',
         component: RecursoForm,
+        canActivate: [authGuard],
       },
       {
         path: 'login',

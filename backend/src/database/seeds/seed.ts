@@ -1,4 +1,9 @@
+import * as bcrypt from 'bcrypt';
+
 import datasource from '../datasource';
+
+const SEED_PASSWORD = 'seed-password';
+const MODERATOR_PASSWORD = 'moderador123';
 
 async function seed(): Promise<void> {
   await datasource.initialize();
@@ -14,7 +19,21 @@ async function seed(): Promise<void> {
     );
 
     await queryRunner.query(
-      `INSERT IGNORE INTO users (id, first_name, last_name, email, password, active, role_id, created_at, updated_at) VALUES (1, 'Seed', 'User', 'seed@example.com', 'seed-password', 1, 1, NOW(), NOW())`,
+      `INSERT IGNORE INTO roles (id, name, description, created_at, updated_at) VALUES (2, 'moderador', 'Moderador de contenido', NOW(), NOW())`,
+    );
+
+    const hashedPassword = await bcrypt.hash(SEED_PASSWORD, 10);
+
+    await queryRunner.query(
+      `INSERT IGNORE INTO users (id, first_name, last_name, email, password, active, role_id, created_at, updated_at) VALUES (1, 'Seed', 'User', 'seed@example.com', ?, 1, 1, NOW(), NOW())`,
+      [hashedPassword],
+    );
+
+    const hashedModeratorPassword = await bcrypt.hash(MODERATOR_PASSWORD, 10);
+
+    await queryRunner.query(
+      `INSERT IGNORE INTO users (id, first_name, last_name, email, password, active, role_id, created_at, updated_at) VALUES (2, 'Mod', 'Erator', 'moderador@example.com', ?, 1, 2, NOW(), NOW())`,
+      [hashedModeratorPassword],
     );
 
     await queryRunner.query(
