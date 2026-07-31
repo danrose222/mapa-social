@@ -42,6 +42,56 @@ export class CreateResourceDto {
   longitude!: number;
 
   @ApiProperty({
+    example: 'Barrio Alberdi, cerca de la plaza',
+    description:
+      'Referencia legible de la ubicación (opcional, no reemplaza a latitude/longitude)',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  address?: string;
+
+  @ApiProperty({
+    example: 'Comedor Los Pinos',
+    description: 'Organización responsable del recurso, si corresponde',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(150)
+  organizationName?: string;
+
+  @ApiProperty({
+    example: 'Lunes a viernes de 9 a 17',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  schedule?: string;
+
+  @ApiProperty({
+    example: 'Juan Pérez',
+    description: 'Nombre de contacto (opcional)',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(150)
+  contactName?: string;
+
+  @ApiProperty({
+    example: 'Tel: 351-1234567',
+    description: 'Teléfono, email o forma de contacto (opcional)',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  contactInfo?: string;
+
+  @ApiProperty({
     example: 'available',
     required: false,
   })

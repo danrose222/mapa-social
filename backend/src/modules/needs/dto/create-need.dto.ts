@@ -40,6 +40,47 @@ export class CreateNeedDto {
   })
   longitude!: number;
   @ApiProperty({
+    example: 'Barrio Alberdi, cerca de la plaza',
+    description:
+      'Referencia legible de la ubicación (opcional, no reemplaza a latitude/longitude)',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  address?: string;
+
+  @ApiProperty({
+    example: 'Alberdi',
+    description: 'Barrio o localidad (opcional)',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(150)
+  locality?: string;
+
+  @ApiProperty({
+    example: 'Juan Pérez',
+    description: 'Nombre de contacto (opcional)',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(150)
+  contactName?: string;
+
+  @ApiProperty({
+    example: 'Tel: 351-1234567',
+    description: 'Teléfono, email o forma de contacto (opcional)',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  contactInfo?: string;
+
+  @ApiProperty({
     example: 'active',
     required: false,
   })
