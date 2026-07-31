@@ -36,12 +36,14 @@
   flex: 1 1 auto;
 }
 
-.navbar a[mat-button] {
+.navbar a[mat-button],
+.navbar button[mat-button] {
   color: var(--color-white);
   border-radius: 8px;
 }
 
-.navbar a[mat-button]:hover {
+.navbar a[mat-button]:hover,
+.navbar button[mat-button]:hover {
   background-color: var(--color-accent);
   color: var(--color-white);
 }
@@ -61,12 +63,13 @@
   font-weight: 500;
 }
 
-.navbar a.login-link:hover {
+.navbar a.login-link:hover,
+.navbar button.login-link:hover {
   background-color: var(--color-white);
   color: var(--color-primary);
 }
 
-.login-link.active-link {
+.navbar a.login-link.active-link {
   background-color: var(--color-white);
   color: var(--color-primary);
   border-color: var(--color-white);

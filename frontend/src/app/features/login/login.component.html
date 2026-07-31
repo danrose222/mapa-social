@@ -5,6 +5,10 @@
       <p>Bienvenido de nuevo a Mapa Social</p>
     </div>
 
+    @if (authRequiredMessage()) {
+      <p class="info-message">{{ authRequiredMessage() }}</p>
+    }
+
     <form [formGroup]="form" (ngSubmit)="submit()">
       <mat-card-content>
         <mat-form-field appearance="outline" class="full-width">
