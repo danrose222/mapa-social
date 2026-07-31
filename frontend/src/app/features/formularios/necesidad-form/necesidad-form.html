@@ -112,15 +112,30 @@
           }
         </mat-form-field>
 
-        @if (successMessage) {
+        <div class="full-width">
+          <p class="field-label">Ubicación en el mapa</p>
+
+          <app-location-picker
+            (locationSelected)="onLocationSelected($event)"
+          ></app-location-picker>
+
+          @if (hasLocation) {
+          <p class="location-hint">
+            Ubicación seleccionada:
+            {{ form.value.latitude }}, {{ form.value.longitude }}
+          </p>
+          }
+        </div>
+
+        @if (successMessage()) {
         <p class="form-message success-message full-width">
-          {{ successMessage }}
+          {{ successMessage() }}
         </p>
         }
 
-        @if (errorMessage) {
+        @if (errorMessage()) {
         <p class="form-message error-message full-width">
-          {{ errorMessage }}
+          {{ errorMessage() }}
         </p>
         }
 
@@ -133,8 +148,8 @@
             Guardar borrador
           </button>
 
-          <button mat-flat-button color="primary" type="submit" [disabled]="isSubmitting">
-            {{ isSubmitting
+          <button mat-flat-button color="primary" type="submit" [disabled]="isSubmitting()">
+            {{ isSubmitting()
             ? 'Registrando...'
             : 'Registrar necesidad'
             }}

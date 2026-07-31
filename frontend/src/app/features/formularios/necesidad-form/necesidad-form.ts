@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -15,6 +15,9 @@ import { MatSelectModule } from '@angular/material/select';
 import {
   PublicationsApiService,
 } from '../../../core/services/publications-api.service';
+import {
+  LocationPickerComponent,
+} from '../../../shared/components/location-picker/location-picker.component';
 
 interface Categoria {
   id: number;
@@ -32,6 +35,7 @@ interface Categoria {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    LocationPickerComponent,
   ],
   templateUrl: './necesidad-form.html',
   styleUrl: './necesidad-form.scss',
@@ -99,58 +103,80 @@ export class NecesidadForm {
         Validators.maxLength(150),
       ],
     ],
+    latitude: [0],
+    longitude: [0],
   });
 
-  isSubmitting = false;
-  successMessage = '';
-  errorMessage = '';
+  readonly isSubmitting = signal(false);
+  readonly successMessage = signal('');
+  readonly errorMessage = signal('');
+  hasLocation = false;
+
+  onLocationSelected(coords: { lat: number; lng: number }): void {
+    this.form.patchValue({
+      latitude: coords.lat,
+      longitude: coords.lng,
+    });
+    this.hasLocation = true;
+  }
 
   onSubmit(): void {
-    this.successMessage = '';
-    this.errorMessage = '';
+    this.successMessage.set('');
+    this.errorMessage.set('');
 
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.errorMessage =
-        'Revisá los campos obligatorios antes de continuar.';
+      this.errorMessage.set(
+        'Revisá los campos obligatorios antes de continuar.',
+      );
+      return;
+    }
+
+    if (!this.hasLocation) {
+      this.errorMessage.set(
+        'Seleccioná una ubicación en el mapa antes de continuar.',
+      );
       return;
     }
 
     const payload = this.form.getRawValue();
 
-    this.isSubmitting = true;
+    this.isSubmitting.set(true);
 
     this.publicationsApi.createNeed(payload).subscribe({
       next: () => {
-        this.isSubmitting = false;
-        this.successMessage =
-          'La necesidad se registró correctamente.';
+        this.isSubmitting.set(false);
+        this.successMessage.set('La necesidad se registró correctamente.');
 
         localStorage.removeItem('need_draft');
       },
       error: (error) => {
-        this.isSubmitting = false;
+        this.isSubmitting.set(false);
 
         if (error.status === 401) {
-          this.errorMessage =
-            'Necesitás iniciar sesión para registrar una necesidad.';
+          this.errorMessage.set(
+            'Necesitás iniciar sesión para registrar una necesidad.',
+          );
           return;
         }
 
         if (error.status === 403) {
-          this.errorMessage =
-            'No tenés permisos para registrar una necesidad.';
+          this.errorMessage.set(
+            'No tenés permisos para registrar una necesidad.',
+          );
           return;
         }
 
         if (error.status === 400) {
-          this.errorMessage =
-            'La API rechazó los datos enviados. El backend todavía debe aceptar los campos del formulario.';
+          this.errorMessage.set(
+            'La API rechazó los datos enviados. El backend todavía debe aceptar los campos del formulario.',
+          );
           return;
         }
 
-        this.errorMessage =
-          'No se pudo registrar la necesidad. Intentá nuevamente.';
+        this.errorMessage.set(
+          'No se pudo registrar la necesidad. Intentá nuevamente.',
+        );
       },
     });
   }
@@ -161,9 +187,10 @@ export class NecesidadForm {
       JSON.stringify(this.form.getRawValue()),
     );
 
-    this.errorMessage = '';
-    this.successMessage =
-      'El borrador se guardó correctamente en este dispositivo.';
+    this.errorMessage.set('');
+    this.successMessage.set(
+      'El borrador se guardó correctamente en este dispositivo.',
+    );
   }
 
   isInvalid(controlName: string): boolean {

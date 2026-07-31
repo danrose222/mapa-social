@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -15,6 +15,9 @@ import { MatSelectModule } from '@angular/material/select';
 import {
   PublicationsApiService,
 } from '../../../core/services/publications-api.service';
+import {
+  LocationPickerComponent,
+} from '../../../shared/components/location-picker/location-picker.component';
 
 interface Categoria {
   id: number;
@@ -32,6 +35,7 @@ interface Categoria {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    LocationPickerComponent,
   ],
   templateUrl: './recurso-form.html',
   styleUrl: './recurso-form.scss',
@@ -64,7 +68,7 @@ export class RecursoForm {
         Validators.min(1),
       ],
     ],
-    organization: [
+    organizationName: [
       '',
       [
         Validators.required,
@@ -78,7 +82,7 @@ export class RecursoForm {
         Validators.minLength(10),
       ],
     ],
-    location: [
+    address: [
       '',
       [
         Validators.required,
@@ -99,58 +103,80 @@ export class RecursoForm {
         Validators.maxLength(150),
       ],
     ],
+    latitude: [0],
+    longitude: [0],
   });
 
-  isSubmitting = false;
-  successMessage = '';
-  errorMessage = '';
+  readonly isSubmitting = signal(false);
+  readonly successMessage = signal('');
+  readonly errorMessage = signal('');
+  hasLocation = false;
+
+  onLocationSelected(coords: { lat: number; lng: number }): void {
+    this.form.patchValue({
+      latitude: coords.lat,
+      longitude: coords.lng,
+    });
+    this.hasLocation = true;
+  }
 
   onSubmit(): void {
-    this.successMessage = '';
-    this.errorMessage = '';
+    this.successMessage.set('');
+    this.errorMessage.set('');
 
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.errorMessage =
-        'Revisá los campos obligatorios antes de continuar.';
+      this.errorMessage.set(
+        'Revisá los campos obligatorios antes de continuar.',
+      );
+      return;
+    }
+
+    if (!this.hasLocation) {
+      this.errorMessage.set(
+        'Seleccioná una ubicación en el mapa antes de continuar.',
+      );
       return;
     }
 
     const payload = this.form.getRawValue();
 
-    this.isSubmitting = true;
+    this.isSubmitting.set(true);
 
     this.publicationsApi.createResource(payload).subscribe({
       next: () => {
-        this.isSubmitting = false;
-        this.successMessage =
-          'El recurso se publicó correctamente.';
+        this.isSubmitting.set(false);
+        this.successMessage.set('El recurso se publicó correctamente.');
 
         localStorage.removeItem('resource_draft');
       },
       error: (error) => {
-        this.isSubmitting = false;
+        this.isSubmitting.set(false);
 
         if (error.status === 401) {
-          this.errorMessage =
-            'Necesitás iniciar sesión para publicar un recurso.';
+          this.errorMessage.set(
+            'Necesitás iniciar sesión para publicar un recurso.',
+          );
           return;
         }
 
         if (error.status === 403) {
-          this.errorMessage =
-            'No tenés permisos para publicar un recurso.';
+          this.errorMessage.set(
+            'No tenés permisos para publicar un recurso.',
+          );
           return;
         }
 
         if (error.status === 400) {
-          this.errorMessage =
-            'La API rechazó los datos enviados. El backend todavía debe aceptar los campos del formulario.';
+          this.errorMessage.set(
+            'La API rechazó los datos enviados. El backend todavía debe aceptar los campos del formulario.',
+          );
           return;
         }
 
-        this.errorMessage =
-          'No se pudo publicar el recurso. Intentá nuevamente.';
+        this.errorMessage.set(
+          'No se pudo publicar el recurso. Intentá nuevamente.',
+        );
       },
     });
   }
@@ -161,9 +187,10 @@ export class RecursoForm {
       JSON.stringify(this.form.getRawValue()),
     );
 
-    this.errorMessage = '';
-    this.successMessage =
-      'El borrador se guardó correctamente en este dispositivo.';
+    this.errorMessage.set('');
+    this.successMessage.set(
+      'El borrador se guardó correctamente en este dispositivo.',
+    );
   }
 
   isInvalid(controlName: string): boolean {
