@@ -299,12 +299,9 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
   private map?: L.Map;
 
   private readonly needIcon = L.icon({
-    iconUrl:
-      'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
-    iconRetinaUrl:
-      'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange-2x.png',
-    shadowUrl:
-      'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+    iconUrl: 'map-icons/marker-icon-orange.png',
+    iconRetinaUrl: 'map-icons/marker-icon-2x-orange.png',
+    shadowUrl: 'map-icons/marker-shadow.png',
     iconSize: [25, 41],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
@@ -312,12 +309,9 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
   });
 
   private readonly resourceIcon = L.icon({
-    iconUrl:
-      'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
-    iconRetinaUrl:
-      'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue-2x.png',
-    shadowUrl:
-      'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+    iconUrl: 'map-icons/marker-icon-blue.png',
+    iconRetinaUrl: 'map-icons/marker-icon-2x-blue.png',
+    shadowUrl: 'map-icons/marker-shadow.png',
     iconSize: [25, 41],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
