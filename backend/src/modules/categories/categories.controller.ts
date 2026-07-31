@@ -7,14 +7,19 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { CategoriesService } from './categories.service';
 
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @ApiTags('Categories')
 @Controller('categories')
@@ -22,6 +27,9 @@ export class CategoriesController {
   constructor(private readonly service: CategoriesService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('moderador')
+  @ApiBearerAuth()
   create(@Body() dto: CreateCategoryDto) {
     return this.service.create(dto);
   }
@@ -40,6 +48,9 @@ export class CategoriesController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('moderador')
+  @ApiBearerAuth()
   update(
     @Param('id', ParseIntPipe)
     id: number,
@@ -49,6 +60,9 @@ export class CategoriesController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('moderador')
+  @ApiBearerAuth()
   remove(
     @Param('id', ParseIntPipe)
     id: number,

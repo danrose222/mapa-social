@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -10,6 +14,11 @@ import { Category } from '../categories/entities/category.entity';
 
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
+
+interface AuthUser {
+  id: number;
+  role: string;
+}
 
 @Injectable()
 export class ResourcesService {
@@ -24,9 +33,9 @@ export class ResourcesService {
     private readonly categoryRepository: Repository<Category>,
   ) {}
 
-  async create(dto: CreateResourceDto) {
+  async create(userId: number, dto: CreateResourceDto) {
     const user = await this.userRepository.findOne({
-      where: { id: dto.userId },
+      where: { id: userId },
     });
 
     if (!user) {
@@ -41,7 +50,9 @@ export class ResourcesService {
       throw new NotFoundException('Categoría inexistente');
     }
 
-    return this.repository.save(this.repository.create(dto));
+    return this.repository.save(
+      this.repository.create({ ...dto, userId }),
+    );
   }
 
   findAll() {
@@ -60,13 +71,34 @@ export class ResourcesService {
     });
   }
 
-  async update(id: number, dto: UpdateResourceDto) {
+  private assertCanModify(resource: Resource, currentUser: AuthUser) {
+    const isOwner = resource.userId === currentUser.id;
+    const isModerator = currentUser.role === 'moderador';
+
+    if (!isOwner && !isModerator) {
+      throw new ForbiddenException(
+        'No podés modificar un recurso que no es tuyo',
+      );
+    }
+  }
+
+  async update(id: number, dto: UpdateResourceDto, currentUser: AuthUser) {
     const resource = await this.repository.findOne({
       where: { id },
     });
 
     if (!resource) {
-      throw new NotFoundException('Necesidad inexistente');
+      throw new NotFoundException('Recurso inexistente');
+    }
+
+    this.assertCanModify(resource, currentUser);
+
+    const isModerator = currentUser.role === 'moderador';
+
+    if (dto.status !== undefined && !isModerator) {
+      throw new ForbiddenException(
+        'Solo un moderador puede cambiar el estado del recurso',
+      );
     }
 
     Object.assign(resource, dto);
@@ -74,19 +106,21 @@ export class ResourcesService {
     return this.repository.save(resource);
   }
 
-  async remove(id: number) {
+  async remove(id: number, currentUser: AuthUser) {
     const resource = await this.repository.findOne({
       where: { id },
     });
 
     if (!resource) {
-      throw new NotFoundException('Necesidad inexistente');
+      throw new NotFoundException('Recurso inexistente');
     }
+
+    this.assertCanModify(resource, currentUser);
 
     await this.repository.remove(resource);
 
     return {
-      message: 'Necesidad eliminada',
+      message: 'Recurso eliminado',
     };
   }
 }

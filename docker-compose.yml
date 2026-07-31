@@ -27,6 +27,8 @@ services:
       - DB_USER=${DB_USER:-mapa_user}
       - DB_PASS=${DB_PASS:-mapa_password}
       - DB_NAME=mapa_social
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES=${JWT_EXPIRES:-7d}
     depends_on:
       - db
     restart: unless-stopped

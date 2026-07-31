@@ -1,5 +1,15 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
-
+import {
+  AfterLoad,
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
+import { Exclude } from 'class-transformer';
+import * as bcrypt from 'bcrypt';
 import { BaseEntity } from '../../../common/entities/base.entity';
 import { Role } from '../../roles/entities/role.entity';
 import { Need } from '../../needs/entities/need.entity';
@@ -25,6 +35,7 @@ export class User extends BaseEntity {
   })
   email!: string;
 
+  @Exclude()
   @Column({
     length: 255,
   })
@@ -57,4 +68,26 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Resource, (resource) => resource.user)
   resources!: Resource[];
+
+  // Guarda el hash que ya estaba en la base antes de un update,
+  // para saber si el password realmente cambió (y no volver a hashear un hash).
+  @Exclude()
+  private previousPasswordHash?: string;
+
+  @AfterLoad()
+  private captureCurrentPasswordHash(): void {
+    this.previousPasswordHash = this.password;
+  }
+
+  @BeforeInsert()
+  private async hashPasswordOnInsert(): Promise<void> {
+    this.password = await bcrypt.hash(this.password, 10);
+  }
+
+  @BeforeUpdate()
+  private async hashPasswordOnUpdate(): Promise<void> {
+    if (this.password !== this.previousPasswordHash) {
+      this.password = await bcrypt.hash(this.password, 10);
+    }
+  }
 }
