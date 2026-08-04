@@ -117,6 +117,14 @@ export class UsersService {
 
     Object.assign(user, dto);
 
+    // Importante: user.role y user.organization ya vienen cargados como
+    // objetos (relaciones) desde el findOne() de arriba. Si los dejamos
+    // así, TypeORM los usa para escribir la FK al guardar, pisando el
+    // roleId/organizationId que acabamos de actualizar con Object.assign.
+    // Los borramos para que use directamente las columnas nuevas.
+    delete (user as { role?: unknown }).role;
+    delete (user as { organization?: unknown }).organization;
+
     return this.userRepository.save(user);
   }
 

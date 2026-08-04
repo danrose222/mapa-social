@@ -53,16 +53,6 @@ export class CreateResourceDto {
   address?: string;
 
   @ApiProperty({
-    example: 'Comedor Los Pinos',
-    description: 'Organización responsable del recurso, si corresponde',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  @MaxLength(150)
-  organizationName?: string;
-
-  @ApiProperty({
     example: 'Lunes a viernes de 9 a 17',
     required: false,
   })

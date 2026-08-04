@@ -4,6 +4,7 @@ import { BaseEntity } from '../../../common/entities/base.entity';
 
 import { User } from '../../users/entities/user.entity';
 import { Category } from '../../categories/entities/category.entity';
+import { Organization } from '../../organizations/entities/organization.entity';
 
 @Entity('needs')
 export class Need extends BaseEntity {
@@ -16,6 +17,12 @@ export class Need extends BaseEntity {
     name: 'category_id',
   })
   categoryId!: number;
+
+  @Column({
+    name: 'organization_id',
+    nullable: true,
+  })
+  organizationId?: number;
 
   @Column({
     length: 255,
@@ -84,4 +91,10 @@ export class Need extends BaseEntity {
     name: 'category_id',
   })
   category!: Category;
+
+  @ManyToOne(() => Organization, (organization) => organization.needs)
+  @JoinColumn({
+    name: 'organization_id',
+  })
+  organization?: Organization;
 }

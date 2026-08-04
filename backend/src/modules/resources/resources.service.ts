@@ -51,13 +51,17 @@ export class ResourcesService {
     }
 
     return this.repository.save(
-      this.repository.create({ ...dto, userId }),
+      this.repository.create({
+        ...dto,
+        userId,
+        organizationId: user.organizationId,
+      }),
     );
   }
 
   findAll() {
     return this.repository.find({
-      relations: ['user', 'category'],
+      relations: ['user', 'category', 'organization'],
       order: {
         id: 'ASC',
       },
@@ -67,7 +71,7 @@ export class ResourcesService {
   findOne(id: number) {
     return this.repository.findOne({
       where: { id },
-      relations: ['user', 'category'],
+      relations: ['user', 'category', 'organization'],
     });
   }
 
