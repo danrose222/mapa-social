@@ -14,11 +14,13 @@ import { SearchNeedsDto } from './dto/search-needs.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { NeedsService } from './needs.service';
+import { Need } from './entities/need.entity';
 
 import { CreateNeedDto } from './dto/create-need.dto';
 import { UpdateNeedDto } from './dto/update-need.dto';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 interface AuthUser {
@@ -31,6 +33,17 @@ interface AuthUser {
 export class NeedsController {
   constructor(private readonly service: NeedsService) {}
 
+  private hideContactIfNotModerator(
+    item: Need,
+    user: AuthUser | null,
+  ): Need {
+    if (user?.role === 'moderador') {
+      return item;
+    }
+
+    return { ...item, contactName: undefined, contactInfo: undefined };
+  }
+
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -39,21 +52,34 @@ export class NeedsController {
   }
 
   @Get()
-  findAll() {
-    return this.service.findAll();
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  async findAll(@CurrentUser() user: AuthUser | null) {
+    const needs = await this.service.findAll();
+    return needs.map((n) => this.hideContactIfNotModerator(n, user));
   }
 
   @Get('search')
-  search(@Query() dto: SearchNeedsDto) {
-    return this.service.search(dto);
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  async search(
+    @Query() dto: SearchNeedsDto,
+    @CurrentUser() user: AuthUser | null,
+  ) {
+    const needs = await this.service.search(dto);
+    return needs.map((n) => this.hideContactIfNotModerator(n, user));
   }
 
   @Get(':id')
-  findOne(
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  async findOne(
     @Param('id', ParseIntPipe)
     id: number,
+    @CurrentUser() user: AuthUser | null,
   ) {
-    return this.service.findOne(id);
+    const need = await this.service.findOne(id);
+    return need ? this.hideContactIfNotModerator(need, user) : need;
   }
 
   @Patch(':id')

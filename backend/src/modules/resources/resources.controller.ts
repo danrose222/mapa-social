@@ -13,11 +13,13 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { ResourcesService } from './resources.service';
+import { Resource } from './entities/resource.entity';
 
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 interface AuthUser {
@@ -30,6 +32,17 @@ interface AuthUser {
 export class ResourcesController {
   constructor(private readonly service: ResourcesService) {}
 
+  private hideContactIfNotModerator(
+    item: Resource,
+    user: AuthUser | null,
+  ): Resource {
+    if (user?.role === 'moderador') {
+      return item;
+    }
+
+    return { ...item, contactName: undefined, contactInfo: undefined };
+  }
+
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -38,16 +51,25 @@ export class ResourcesController {
   }
 
   @Get()
-  findAll() {
-    return this.service.findAll();
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  async findAll(@CurrentUser() user: AuthUser | null) {
+    const resources = await this.service.findAll();
+    return resources.map((r) => this.hideContactIfNotModerator(r, user));
   }
 
   @Get(':id')
-  findOne(
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  async findOne(
     @Param('id', ParseIntPipe)
     id: number,
+    @CurrentUser() user: AuthUser | null,
   ) {
-    return this.service.findOne(id);
+    const resource = await this.service.findOne(id);
+    return resource
+      ? this.hideContactIfNotModerator(resource, user)
+      : resource;
   }
 
   @Patch(':id')
