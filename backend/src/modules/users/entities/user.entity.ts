@@ -64,6 +64,12 @@ export class User extends BaseEntity {
   })
   organizationId?: number;
 
+  @Column({
+    nullable: true,
+    length: 100,
+  })
+  ciudad?: string;
+
   @ManyToOne(() => Role, (role) => role.users)
   @JoinColumn({
     name: 'role_id',

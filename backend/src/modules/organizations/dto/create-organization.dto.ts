@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateOrganizationDto {
   @ApiProperty({
@@ -8,6 +8,22 @@ export class CreateOrganizationDto {
   @IsString()
   @MaxLength(150)
   name!: string;
+
+  @ApiProperty({
+    example: 'comunidad',
+    description: "Tipo de organización: 'comunidad' o 'ong'",
+    enum: ['comunidad', 'ong'],
+  })
+  @IsIn(['comunidad', 'ong'])
+  type!: string;
+
+  @ApiProperty({
+    example: 'Córdoba',
+    description: 'Jurisdicción/ciudad de la organización',
+  })
+  @IsString()
+  @MaxLength(100)
+  ciudad!: string;
 
   @ApiProperty({
     example: 'Comedor comunitario que asiste a familias del barrio Alberdi.',

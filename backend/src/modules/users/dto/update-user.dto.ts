@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { PartialType } from '@nestjs/mapped-types';
-import { IsInt, IsOptional } from 'class-validator';
+import { IsInt, IsOptional, IsString, MaxLength } from 'class-validator';
 
 import { CreateUserDto } from './create-user.dto';
 
@@ -23,4 +23,15 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsOptional()
   @IsInt()
   organizationId?: number;
+
+  @ApiProperty({
+    example: 'Córdoba',
+    description:
+      'Ciudad que puede administrar (solo relevante para moderadores). Solo otro moderador puede cambiar este campo.',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  ciudad?: string;
 }

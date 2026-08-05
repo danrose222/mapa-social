@@ -18,6 +18,12 @@ import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+
+interface AuthUser {
+  id: number;
+  role: string;
+}
 
 @ApiTags('Organizations')
 @Controller('organizations')
@@ -53,8 +59,9 @@ export class OrganizationsController {
     @Param('id', ParseIntPipe)
     id: number,
     @Body() dto: UpdateOrganizationDto,
+    @CurrentUser() user: AuthUser,
   ) {
-    return this.service.update(id, dto);
+    return this.service.update(id, dto, user);
   }
 
   @Delete(':id')

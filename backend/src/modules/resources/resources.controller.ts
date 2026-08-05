@@ -47,7 +47,7 @@ export class ResourcesController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   create(@Body() dto: CreateResourceDto, @CurrentUser() user: AuthUser) {
-    return this.service.create(user.id, dto);
+    return this.service.create(user, dto);
   }
 
   @Get()

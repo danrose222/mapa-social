@@ -32,6 +32,16 @@ export class Organization extends BaseEntity {
   address?: string;
 
   @Column({
+    length: 20,
+  })
+  type!: string;
+
+  @Column({
+    length: 100,
+  })
+  ciudad!: string;
+
+  @Column({
     default: false,
   })
   verified!: boolean;

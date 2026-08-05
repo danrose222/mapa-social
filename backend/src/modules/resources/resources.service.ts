@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import { Resource } from './entities/resource.entity';
 import { User } from '../users/entities/user.entity';
 import { Category } from '../categories/entities/category.entity';
+import { OrganizationsService } from '../organizations/organizations.service';
 
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
@@ -31,15 +32,33 @@ export class ResourcesService {
 
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
+
+    private readonly organizationsService: OrganizationsService,
   ) {}
 
-  async create(userId: number, dto: CreateResourceDto) {
+  async create(currentUser: AuthUser, dto: CreateResourceDto) {
     const user = await this.userRepository.findOne({
-      where: { id: userId },
+      where: { id: currentUser.id },
     });
 
     if (!user) {
       throw new NotFoundException('Usuario inexistente');
+    }
+
+    const isModerator = currentUser.role === 'moderador';
+    let organizationVerified = false;
+
+    if (user.organizationId) {
+      const organization = await this.organizationsService.findOne(
+        user.organizationId,
+      );
+      organizationVerified = organization.verified;
+    }
+
+    if (!isModerator && !organizationVerified) {
+      throw new ForbiddenException(
+        'Solo un moderador o un usuario de una organización avalada puede publicar un recurso',
+      );
     }
 
     const category = await this.categoryRepository.findOne({
@@ -53,7 +72,7 @@ export class ResourcesService {
     return this.repository.save(
       this.repository.create({
         ...dto,
-        userId,
+        userId: user.id,
         organizationId: user.organizationId,
       }),
     );
