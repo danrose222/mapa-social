@@ -68,13 +68,6 @@ export class RecursoForm {
         Validators.min(1),
       ],
     ],
-    organizationName: [
-      '',
-      [
-        Validators.required,
-        Validators.maxLength(150),
-      ],
-    ],
     description: [
       '',
       [

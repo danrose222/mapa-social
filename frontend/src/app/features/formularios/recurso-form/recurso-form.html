@@ -49,19 +49,6 @@
           }
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Organización responsable</mat-label>
-
-          <input matInput type="text" maxlength="150" formControlName="organizationName"
-            placeholder="Nombre de la organización" />
-
-          @if (isInvalid('organizationName')) {
-          <mat-error>
-            La organización responsable es obligatoria.
-          </mat-error>
-          }
-        </mat-form-field>
-
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Descripción</mat-label>
 

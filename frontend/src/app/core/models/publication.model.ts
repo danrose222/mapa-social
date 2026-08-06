@@ -13,7 +13,6 @@ export interface CreateNeedPayload {
 export interface CreateResourcePayload {
   title: string;
   categoryId: number;
-  organizationName: string;
   description: string;
   address: string;
   schedule: string;
