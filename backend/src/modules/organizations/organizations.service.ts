@@ -26,8 +26,18 @@ export class OrganizationsService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  create(dto: CreateOrganizationDto) {
-    return this.repository.save(this.repository.create(dto));
+  async create(dto: CreateOrganizationDto, currentUser: AuthUser) {
+    const organization = await this.repository.save(
+      this.repository.create(dto),
+    );
+
+    if (currentUser.role !== 'moderador') {
+      await this.userRepository.update(currentUser.id, {
+        organizationId: organization.id,
+      });
+    }
+
+    return organization;
   }
 
   findAll() {

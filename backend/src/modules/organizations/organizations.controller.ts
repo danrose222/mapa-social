@@ -31,11 +31,10 @@ export class OrganizationsController {
   constructor(private readonly service: OrganizationsService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('moderador')
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  create(@Body() dto: CreateOrganizationDto) {
-    return this.service.create(dto);
+  create(@Body() dto: CreateOrganizationDto, @CurrentUser() user: AuthUser) {
+    return this.service.create(dto, user);
   }
 
   @Get()
