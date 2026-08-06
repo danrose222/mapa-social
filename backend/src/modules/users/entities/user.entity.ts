@@ -14,6 +14,7 @@ import { BaseEntity } from '../../../common/entities/base.entity';
 import { Role } from '../../roles/entities/role.entity';
 import { Need } from '../../needs/entities/need.entity';
 import { Resource } from '../../resources/entities/resource.entity';
+import { Organization } from '../../organizations/entities/organization.entity';
 
 @Entity('users')
 export class User extends BaseEntity {
@@ -57,11 +58,29 @@ export class User extends BaseEntity {
   })
   roleId!: number;
 
+  @Column({
+    name: 'organization_id',
+    nullable: true,
+  })
+  organizationId?: number;
+
+  @Column({
+    nullable: true,
+    length: 100,
+  })
+  ciudad?: string;
+
   @ManyToOne(() => Role, (role) => role.users)
   @JoinColumn({
     name: 'role_id',
   })
   role!: Role;
+
+  @ManyToOne(() => Organization, (organization) => organization.users)
+  @JoinColumn({
+    name: 'organization_id',
+  })
+  organization?: Organization;
 
   @OneToMany(() => Need, (need: Need): User => need.user)
   needs!: Need[];
@@ -69,8 +88,6 @@ export class User extends BaseEntity {
   @OneToMany(() => Resource, (resource) => resource.user)
   resources!: Resource[];
 
-  // Guarda el hash que ya estaba en la base antes de un update,
-  // para saber si el password realmente cambió (y no volver a hashear un hash).
   @Exclude()
   private previousPasswordHash?: string;
 

@@ -19,6 +19,8 @@ interface AuthUser {
   role: string;
 }
 
+const DEFAULT_ROLE_NAME = 'seed-role';
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -30,24 +32,29 @@ export class UsersService {
   ) {}
 
   async create(dto: CreateUserDto) {
-    const role = await this.roleRepository.findOne({
+    const defaultRole = await this.roleRepository.findOne({
       where: {
-        id: dto.roleId,
+        name: DEFAULT_ROLE_NAME,
       },
     });
 
-    if (!role) {
-      throw new NotFoundException('Rol inexistente');
+    if (!defaultRole) {
+      throw new NotFoundException(
+        `No existe el rol por defecto ('${DEFAULT_ROLE_NAME}'). Contactar a un administrador.`,
+      );
     }
 
-    const user = this.userRepository.create(dto);
+    const user = this.userRepository.create({
+      ...dto,
+      roleId: defaultRole.id,
+    });
 
     return this.userRepository.save(user);
   }
 
   findAll() {
     return this.userRepository.find({
-      relations: ['role'],
+      relations: ['role', 'organization'],
       order: {
         id: 'ASC',
       },
@@ -57,7 +64,7 @@ export class UsersService {
   async findOne(id: number) {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['role'],
+      relations: ['role', 'organization'],
     });
 
     if (!user) {
@@ -86,10 +93,20 @@ export class UsersService {
       );
     }
 
-    // Solo un moderador puede cambiar el rol de alguien (incluido el propio).
-    // Si no, cualquier usuario podría auto-ascenderse mandando roleId en el body.
     if (dto.roleId !== undefined && !isModerator) {
       throw new ForbiddenException('No podés cambiar tu propio rol');
+    }
+
+    if (dto.organizationId !== undefined && !isModerator) {
+      throw new ForbiddenException(
+        'No podés vincularte vos mismo a una organización',
+      );
+    }
+
+    if (dto.ciudad !== undefined && !isModerator) {
+      throw new ForbiddenException(
+        'No podés asignarte vos mismo una ciudad a administrar',
+      );
     }
 
     if (dto.roleId) {
@@ -105,6 +122,9 @@ export class UsersService {
     }
 
     Object.assign(user, dto);
+
+    delete (user as { role?: unknown }).role;
+    delete (user as { organization?: unknown }).organization;
 
     return this.userRepository.save(user);
   }
