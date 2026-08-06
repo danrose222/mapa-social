@@ -71,7 +71,8 @@ export class OrganizationsController {
   remove(
     @Param('id', ParseIntPipe)
     id: number,
+    @CurrentUser() user: AuthUser,
   ) {
-    return this.service.remove(id);
+    return this.service.remove(id, user);
   }
 }

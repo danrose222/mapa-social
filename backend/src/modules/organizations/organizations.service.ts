@@ -50,28 +50,35 @@ export class OrganizationsService {
     return organization;
   }
 
+  private async assertSameCity(
+    organization: Organization,
+    currentUser: AuthUser,
+  ): Promise<void> {
+    const moderator = await this.userRepository.findOne({
+      where: { id: currentUser.id },
+    });
+
+    if (!moderator?.ciudad || moderator.ciudad !== organization.ciudad) {
+      throw new ForbiddenException(
+        'Solo podés administrar organizaciones de tu misma ciudad',
+      );
+    }
+  }
+
   async update(id: number, dto: UpdateOrganizationDto, currentUser: AuthUser) {
     const organization = await this.findOne(id);
 
-    if (dto.verified !== undefined) {
-      const moderator = await this.userRepository.findOne({
-        where: { id: currentUser.id },
-      });
-
-      if (!moderator?.ciudad || moderator.ciudad !== organization.ciudad) {
-        throw new ForbiddenException(
-          'Solo podés avalar organizaciones de tu misma ciudad',
-        );
-      }
-    }
+    await this.assertSameCity(organization, currentUser);
 
     Object.assign(organization, dto);
 
     return this.repository.save(organization);
   }
 
-  async remove(id: number) {
+  async remove(id: number, currentUser: AuthUser) {
     const organization = await this.findOne(id);
+
+    await this.assertSameCity(organization, currentUser);
 
     await this.repository.remove(organization);
 
