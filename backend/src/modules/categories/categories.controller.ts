@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { CategoriesService } from './categories.service';
 
@@ -30,16 +30,25 @@ export class CategoriesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('moderador')
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Crear una categoría (solo moderador)' })
+  @ApiResponse({ status: 201, description: 'Categoría creada' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({ status: 403, description: 'No tiene rol moderador' })
   create(@Body() dto: CreateCategoryDto) {
     return this.service.create(dto);
   }
 
   @Get()
+  @ApiOperation({ summary: 'Listar todas las categorías (público)' })
+  @ApiResponse({ status: 200, description: 'Listado de categorías' })
   findAll() {
     return this.service.findAll();
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Ver el detalle de una categoría (público)' })
+  @ApiResponse({ status: 200, description: 'Categoría encontrada' })
+  @ApiResponse({ status: 404, description: 'Categoría inexistente' })
   findOne(
     @Param('id', ParseIntPipe)
     id: number,
@@ -51,6 +60,11 @@ export class CategoriesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('moderador')
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Editar una categoría (solo moderador)' })
+  @ApiResponse({ status: 200, description: 'Categoría actualizada' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({ status: 403, description: 'No tiene rol moderador' })
+  @ApiResponse({ status: 404, description: 'Categoría inexistente' })
   update(
     @Param('id', ParseIntPipe)
     id: number,
@@ -63,6 +77,11 @@ export class CategoriesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('moderador')
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Eliminar una categoría (solo moderador)' })
+  @ApiResponse({ status: 200, description: 'Categoría eliminada' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({ status: 403, description: 'No tiene rol moderador' })
+  @ApiResponse({ status: 404, description: 'Categoría inexistente' })
   remove(
     @Param('id', ParseIntPipe)
     id: number,

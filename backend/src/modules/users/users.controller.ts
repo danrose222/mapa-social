@@ -9,13 +9,10 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -32,6 +29,8 @@ export class UsersController {
   constructor(private readonly service: UsersService) {}
 
   @Post()
+  @ApiOperation({ summary: 'Registrar un usuario nuevo (público, sin login)' })
+  @ApiResponse({ status: 201, description: 'Usuario creado (rol por defecto)' })
   create(@Body() dto: CreateUserDto) {
     return this.service.create(dto);
   }
@@ -40,6 +39,10 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('moderador')
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Listar todos los usuarios (solo moderador)' })
+  @ApiResponse({ status: 200, description: 'Listado de usuarios' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({ status: 403, description: 'No tiene rol moderador' })
   findAll() {
     return this.service.findAll();
   }
@@ -48,6 +51,11 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('moderador')
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Ver el detalle de un usuario (solo moderador)' })
+  @ApiResponse({ status: 200, description: 'Usuario encontrado' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({ status: 403, description: 'No tiene rol moderador' })
+  @ApiResponse({ status: 404, description: 'Usuario inexistente' })
   findOne(
     @Param('id', ParseIntPipe)
     id: number,
@@ -58,6 +66,17 @@ export class UsersController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Editar el propio perfil, o el de otro usuario si sos moderador. roleId/organizationId/ciudad solo los puede cambiar un moderador',
+  })
+  @ApiResponse({ status: 200, description: 'Usuario actualizado' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({
+    status: 403,
+    description: 'No es el propio usuario ni moderador, o intenta cambiar un campo protegido',
+  })
+  @ApiResponse({ status: 404, description: 'Usuario inexistente' })
   update(
     @Param('id', ParseIntPipe)
     id: number,
@@ -72,6 +91,11 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('moderador')
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Eliminar un usuario (solo moderador)' })
+  @ApiResponse({ status: 200, description: 'Usuario eliminado' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({ status: 403, description: 'No tiene rol moderador' })
+  @ApiResponse({ status: 404, description: 'Usuario inexistente' })
   remove(
     @Param('id', ParseIntPipe)
     id: number,
