@@ -25,6 +25,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 interface AuthUser {
   id: number;
   role: string;
+  organizationId?: number | null;
 }
 
 @ApiTags('Resources')
@@ -32,11 +33,17 @@ interface AuthUser {
 export class ResourcesController {
   constructor(private readonly service: ResourcesService) {}
 
-  private hideContactIfNotModerator(
+  private hideContactUnlessAuthorized(
     item: Resource,
     user: AuthUser | null,
   ): Resource {
-    if (user?.role === 'moderador') {
+    const isModerator = user?.role === 'moderador';
+    const isOwner = user?.id === item.userId;
+    const isSameOrganization =
+      user?.organizationId != null &&
+      user.organizationId === item.organizationId;
+
+    if (isModerator || isOwner || isSameOrganization) {
       return item;
     }
 
@@ -55,7 +62,7 @@ export class ResourcesController {
   @ApiBearerAuth()
   async findAll(@CurrentUser() user: AuthUser | null) {
     const resources = await this.service.findAll();
-    return resources.map((r) => this.hideContactIfNotModerator(r, user));
+    return resources.map((r) => this.hideContactUnlessAuthorized(r, user));
   }
 
   @Get(':id')
@@ -68,7 +75,7 @@ export class ResourcesController {
   ) {
     const resource = await this.service.findOne(id);
     return resource
-      ? this.hideContactIfNotModerator(resource, user)
+      ? this.hideContactUnlessAuthorized(resource, user)
       : resource;
   }
 

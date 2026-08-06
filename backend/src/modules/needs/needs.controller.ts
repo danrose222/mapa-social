@@ -26,6 +26,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 interface AuthUser {
   id: number;
   role: string;
+  organizationId?: number | null;
 }
 
 @ApiTags('Needs')
@@ -33,11 +34,22 @@ interface AuthUser {
 export class NeedsController {
   constructor(private readonly service: NeedsService) {}
 
-  private hideContactIfNotModerator(
+  // Muestra contactName/contactInfo a: moderador, el dueño individual
+  // de la publicación, o cualquier miembro de la organización dueña.
+  // Al público general y a otros ciudadanos logueados se les oculta
+  // (decisión del equipo: para eso está el canal de Solicitudes, no
+  // hace falta exponer el contacto en el mapa abierto).
+  private hideContactUnlessAuthorized(
     item: Need,
     user: AuthUser | null,
   ): Need {
-    if (user?.role === 'moderador') {
+    const isModerator = user?.role === 'moderador';
+    const isOwner = user?.id === item.userId;
+    const isSameOrganization =
+      user?.organizationId != null &&
+      user.organizationId === item.organizationId;
+
+    if (isModerator || isOwner || isSameOrganization) {
       return item;
     }
 
@@ -56,7 +68,7 @@ export class NeedsController {
   @ApiBearerAuth()
   async findAll(@CurrentUser() user: AuthUser | null) {
     const needs = await this.service.findAll();
-    return needs.map((n) => this.hideContactIfNotModerator(n, user));
+    return needs.map((n) => this.hideContactUnlessAuthorized(n, user));
   }
 
   @Get('search')
@@ -67,7 +79,7 @@ export class NeedsController {
     @CurrentUser() user: AuthUser | null,
   ) {
     const needs = await this.service.search(dto);
-    return needs.map((n) => this.hideContactIfNotModerator(n, user));
+    return needs.map((n) => this.hideContactUnlessAuthorized(n, user));
   }
 
   @Get(':id')
@@ -79,7 +91,7 @@ export class NeedsController {
     @CurrentUser() user: AuthUser | null,
   ) {
     const need = await this.service.findOne(id);
-    return need ? this.hideContactIfNotModerator(need, user) : need;
+    return need ? this.hideContactUnlessAuthorized(need, user) : need;
   }
 
   @Patch(':id')
