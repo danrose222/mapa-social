@@ -1,10 +1,21 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ViewChild, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormBuilder,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import {
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  filter,
+  map,
+  of,
+  switchMap,
+} from 'rxjs';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -22,6 +33,11 @@ import {
 interface Categoria {
   id: number;
   nombre: string;
+}
+
+interface ResultadoNominatim {
+  lat: string;
+  lon: string;
 }
 
 @Component({
@@ -43,6 +59,11 @@ interface Categoria {
 export class NecesidadForm {
   private readonly formBuilder = inject(FormBuilder);
   private readonly publicationsApi = inject(PublicationsApiService);
+  private readonly http = inject(HttpClient);
+  private readonly destroyRef = inject(DestroyRef);
+
+  @ViewChild(LocationPickerComponent)
+  private readonly locationPicker?: LocationPickerComponent;
 
   readonly categorias: Categoria[] = [
     { id: 1, nombre: 'Salud' },
@@ -105,6 +126,67 @@ export class NecesidadForm {
   readonly errorMessage = signal('');
   hasLocation = false;
 
+  // Estado de la ubicacion automatica en el mapa: se busca sola a partir de
+  // lo que se escribe en "Ubicación" (mismo patrón que "Registrar
+  // organización" y "Ofrecer un recurso"). El mapa queda para ajustar el
+  // pin a mano si la busqueda automatica no encontro el punto exacto.
+  readonly buscandoUbicacion = signal(false);
+  readonly ubicacionEncontrada = signal(false);
+  readonly ubicacionSinResultado = signal(false);
+
+  constructor() {
+    this.form.controls.address.valueChanges
+      .pipe(
+        debounceTime(800),
+        distinctUntilChanged(),
+        filter((direccion) => direccion.trim().length > 5),
+        switchMap((direccion) => this.geocodificar(direccion)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((resultado) => {
+        this.buscandoUbicacion.set(false);
+
+        if (!resultado) {
+          this.ubicacionSinResultado.set(true);
+          this.ubicacionEncontrada.set(false);
+          return;
+        }
+
+        this.ubicacionSinResultado.set(false);
+        this.ubicacionEncontrada.set(true);
+        this.locationPicker?.centrarEn(resultado.lat, resultado.lng);
+      });
+  }
+
+  private geocodificar(direccion: string) {
+    this.buscandoUbicacion.set(true);
+    this.ubicacionSinResultado.set(false);
+
+    return this.http
+      .get<ResultadoNominatim[]>(
+        'https://nominatim.openstreetmap.org/search',
+        {
+          params: {
+            format: 'json',
+            q: `${direccion}, Argentina`,
+            limit: '1',
+            countrycodes: 'ar',
+          },
+        },
+      )
+      .pipe(
+        map((resultados) =>
+          resultados.length
+            ? {
+                lat: Number(resultados[0].lat),
+                lng: Number(resultados[0].lon),
+              }
+            : null,
+        ),
+        catchError(() => of(null)),
+      );
+  }
+
   onLocationSelected(coords: { lat: number; lng: number }): void {
     this.form.patchValue({
       latitude: coords.lat,
@@ -155,7 +237,7 @@ export class NecesidadForm {
 
         if (error.status === 403) {
           this.errorMessage.set(
-            'No tenés permisos para registrar una necesidad.',
+            'Solo una comunidad u ONG puede registrar una necesidad. Si necesitás ayuda, pedila desde el mapa con "Solicitar ayuda".',
           );
           return;
         }

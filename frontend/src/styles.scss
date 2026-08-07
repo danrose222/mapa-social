@@ -2,23 +2,34 @@
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
 
 :root {
-  --color-primary: #183f52;
-  --color-secondary: #2f83a8;
-  --color-accent: #e65f32;
+  // Paleta "colaborativa": terracota cálida (confianza cercana, no
+  // institucional) + verde esperanza (ayuda disponible) + ámbar acogedor
+  // (llamado a la acción), sobre fondos cálidos tipo hogar en vez de
+  // fríos tipo oficina.
+  --color-primary: #8f3a2d;
+  --color-secondary: #4c8b5e;
+  --color-accent: #d98c2b;
 
-  --color-background: #dfeaf0;
-  --color-background-dark: #c9dce5;
-  --color-surface: #edf4f7;
-  --color-surface-secondary: #d5e5ec;
+  --color-background: #f7ece2;
+  --color-background-dark: #ecd9c8;
+  --color-surface: #fbf3ec;
+  --color-surface-secondary: #f3e4d7;
 
-  --color-text: #183f52;
-  --color-text-secondary: #45616f;
-  --color-border: #aac4d0;
+  --color-text: #5a3226;
+  --color-text-secondary: #7a6155;
+  --color-border: #ddc3ab;
 
   --color-white: #ffffff;
 
-  --shadow-soft: 0 8px 22px rgb(24 63 82 / 12%);
-  --shadow-hover: 0 12px 28px rgb(230 95 50 / 22%);
+  --color-danger: #c0392b;
+  --color-danger-bg: rgb(192 57 43 / 14%);
+  --color-danger-text: #8a2a1f;
+  --color-success-bg: rgb(76 139 94 / 16%);
+  --color-warning-bg: rgb(230 165 30 / 16%);
+  --color-warning-text: #a3720f;
+
+  --shadow-soft: 0 8px 22px rgb(90 50 38 / 14%);
+  --shadow-hover: 0 12px 28px rgb(217 140 43 / 24%);
 }
 
 html,
@@ -87,4 +98,59 @@ button[mat-stroked-button]:hover {
 
 mat-card {
   background-color: var(--color-surface);
+}
+
+// El tema prebuilt de Material (indigo-pink) pinta color="primary" en indigo
+// por defecto. Angular Material (M3/MDC) lee el color real de tokens
+// --mat-button-*-color, no de los --mdc-* viejos; hay que pisar esos tokens
+// (con el mismo listado de selectores que usa el propio tema) y reforzar
+// con !important porque los estilos de Material se inyectan despues del
+// styles.css global y ganan el cascade en igualdad de especificidad.
+.mat-toolbar.mat-primary {
+  background-color: var(--color-primary) !important;
+  color: var(--color-white) !important;
+}
+
+.mat-mdc-button.mat-primary,
+.mat-mdc-unelevated-button.mat-primary,
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-outlined-button.mat-primary,
+.mat-tonal-button.mat-primary {
+  --mat-button-filled-container-color: var(--color-accent);
+  --mat-button-filled-label-text-color: var(--color-white);
+  --mat-button-protected-container-color: var(--color-accent);
+  --mat-button-protected-label-text-color: var(--color-white);
+  --mat-button-tonal-container-color: var(--color-accent);
+  --mat-button-tonal-label-text-color: var(--color-white);
+  --mat-button-text-label-text-color: var(--color-primary);
+  --mat-button-outlined-label-text-color: var(--color-primary);
+  --mat-button-outlined-outline-color: var(--color-border);
+}
+
+.mat-mdc-unelevated-button.mat-primary,
+.mat-mdc-raised-button.mat-primary,
+.mat-tonal-button.mat-primary {
+  background-color: var(--color-accent) !important;
+  color: var(--color-white) !important;
+}
+
+.mat-mdc-outlined-button.mat-primary {
+  border-color: var(--color-border) !important;
+  color: var(--color-primary) !important;
+}
+
+.mat-mdc-button.mat-primary,
+.mat-mdc-icon-button.mat-primary {
+  color: var(--color-primary) !important;
+}
+
+.mdc-checkbox__background,
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
+  border-color: var(--color-secondary) !important;
+}
+
+.mat-mdc-form-field.mat-focused .mat-mdc-floating-label {
+  color: var(--color-secondary) !important;
 }

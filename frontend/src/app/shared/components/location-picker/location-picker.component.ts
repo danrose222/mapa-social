@@ -73,6 +73,19 @@ export class LocationPickerComponent implements AfterViewInit, OnDestroy {
     this.marker = L.marker([lat, lng]).addTo(this.map!);
   }
 
+  // Permite ubicar el pin desde afuera (ej.: al geocodificar una direccion
+  // escrita), sin esperar a que el usuario haga clic en el mapa. Emite el
+  // mismo evento que un clic manual para que el padre reuse un solo flujo.
+  centrarEn(lat: number, lng: number, zoom = 16): void {
+    if (!this.map) {
+      return;
+    }
+
+    this.setMarker(lat, lng);
+    this.map.setView([lat, lng], zoom);
+    this.locationSelected.emit({ lat, lng });
+  }
+
   ngOnDestroy(): void {
     this.map?.remove();
     this.map = undefined;

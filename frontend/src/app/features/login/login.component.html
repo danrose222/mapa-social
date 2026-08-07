@@ -1,8 +1,9 @@
 <div class="login-shell">
   <mat-card class="login-card" appearance="outlined">
     <div class="login-header">
-      <h2>Iniciar sesión</h2>
-      <p>Bienvenido de nuevo a Mapa Social</p>
+      <mat-icon class="login-header-icon" [attr.aria-hidden]="true">{{ copiaPerfil().icono }}</mat-icon>
+      <h2>{{ copiaPerfil().titulo }}</h2>
+      <p>Bienvenido de nuevo a Corazones Unidos</p>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="submit()">
@@ -72,5 +73,19 @@
         </button>
       </mat-card-actions>
     </form>
+
+    @if (copiaPerfil().registro) {
+      <p class="login-register-hint">
+        ¿Todavía no tenés cuenta?
+        <a [routerLink]="'/registrar-organizacion'" [queryParams]="{ tipo: copiaPerfil().registro }">
+          Registrala acá
+        </a>
+      </p>
+    } @else if (perfil() === 'persona') {
+      <p class="login-register-hint">
+        ¿Todavía no tenés cuenta? Se crea sola la primera vez que pedís ayuda desde el
+        <a routerLink="/mapa">mapa</a>.
+      </p>
+    }
   </mat-card>
 </div>

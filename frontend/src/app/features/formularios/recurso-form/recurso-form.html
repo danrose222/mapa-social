@@ -118,6 +118,30 @@
         <div class="full-width">
           <p class="field-label">Ubicación en el mapa</p>
 
+          <p class="location-hint">
+            Con lo que escribas en "Ubicación" intentamos ubicar el pin
+            automáticamente. Si no quedó en el lugar exacto, hacé clic en el
+            mapa para ajustarlo.
+          </p>
+
+          @if (buscandoUbicacion()) {
+          <p class="location-status">Buscando la ubicación...</p>
+          }
+
+          @if (ubicacionEncontrada() && !buscandoUbicacion()) {
+          <p class="location-status location-status--ok">
+            Ubicación encontrada automáticamente. Podés ajustarla haciendo
+            clic en el mapa si no es exacta.
+          </p>
+          }
+
+          @if (ubicacionSinResultado() && !buscandoUbicacion()) {
+          <p class="location-status location-status--error">
+            No pudimos ubicar esa dirección automáticamente. Marcá el punto
+            exacto haciendo clic en el mapa.
+          </p>
+          }
+
           <app-location-picker
             (locationSelected)="onLocationSelected($event)"
           ></app-location-picker>

@@ -11,7 +11,7 @@
   max-width: 430px;
   padding: 8px 4px 4px;
   border-radius: 16px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 12px 32px rgb(90 50 38 / 14%);
 }
 
 .login-header {
@@ -27,7 +27,21 @@
 
 .login-header p {
   margin: 0;
-  color: #6b7280;
+  color: #8a7568;
+}
+
+.login-header-icon {
+  color: var(--color-primary);
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+}
+
+.login-register-hint {
+  margin: 4px 20px 16px;
+  color: #8a7568;
+  font-size: 0.85rem;
+  text-align: center;
 }
 
 .full-width {
@@ -43,7 +57,7 @@
 
 .form-error {
   margin: 12px 4px 0;
-  color: #d32f2f;
+  color: #8a2a1f;
   font-size: 0.85rem;
   text-align: center;
 }

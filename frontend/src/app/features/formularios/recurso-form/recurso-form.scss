@@ -148,6 +148,20 @@ mat-form-field {
   font-size: 0.85rem;
 }
 
+.location-status {
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.location-status--ok {
+  color: var(--color-secondary);
+}
+
+.location-status--error {
+  color: #8a2a1f;
+}
+
 .form-message {
   margin: 4px 0;
   padding: 12px 16px;
@@ -156,11 +170,11 @@ mat-form-field {
 }
 
 .success-message {
-  background-color: rgba(47, 131, 168, 0.14);
+  background-color: rgba(76, 139, 94, 0.14);
   color: var(--color-primary);
 }
 
 .error-message {
-  background-color: rgba(230, 95, 50, 0.14);
-  color: #a33215;
+  background-color: rgba(192, 57, 43, 0.14);
+  color: #8a2a1f;
 }
