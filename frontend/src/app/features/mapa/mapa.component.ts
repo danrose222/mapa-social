@@ -1670,15 +1670,37 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
     return this.categoriasActivas().includes(categoriaId);
   }
 
-  // Los pines de recurso ya existen todos en resourceMarkers (se crean una
-  // sola vez en initializeMap): filtrar solo agrega o saca la capa del
-  // mapa, no recrea ni destruye marcadores.
+  // AND estricto, no OR: con 2+ categorías activas (ej. Alimentos y
+  // Salud), el usuario quiere un establecimiento que cubra TODAS, no
+  // cualquier recurso que tenga una de las dos — un traslado, no dos.
+  //
+  // Ojo con la unidad del filtro: un Recurso individual tiene una sola
+  // categoria_id (Resource.category es @ManyToOne en el backend, no
+  // @ManyToMany), así que ningún recurso puntual puede "cumplir" dos
+  // categorías a la vez. El AND se evalúa por ORGANIZACIÓN (agrupando
+  // sus recursos por usuario_id): una organización cumple el filtro si,
+  // entre TODOS sus recursos publicados, cubre cada categoría activa
+  // aunque sea con recursos distintos. Sin esto, seleccionar 2+
+  // categorías vaciaría el mapa siempre.
+  //
+  // Los pines de recurso ya existen todos en resourceMarkers (se crean
+  // una sola vez en initializeMap): filtrar solo agrega o saca la capa
+  // del mapa, no recrea ni destruye marcadores.
   private aplicarFiltroCategorias(): void {
     if (!this.map) {
       return;
     }
 
     const activas = this.categoriasActivas();
+
+    const categoriasPorOrganizacion = new Map<number, Set<number>>();
+
+    this.recursos.forEach((recurso) => {
+      const categorias =
+        categoriasPorOrganizacion.get(recurso.usuario_id) ?? new Set<number>();
+      categorias.add(recurso.categoria_id);
+      categoriasPorOrganizacion.set(recurso.usuario_id, categorias);
+    });
 
     this.recursos.forEach((recurso) => {
       const marker = this.resourceMarkers.get(recurso.id);
@@ -1687,7 +1709,16 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
         return;
       }
 
-      const visible = !activas.length || activas.includes(recurso.categoria_id);
+      const categoriasOrganizacion = categoriasPorOrganizacion.get(
+        recurso.usuario_id,
+      );
+
+      const visible =
+        !activas.length ||
+        (categoriasOrganizacion != null &&
+          activas.every((categoriaId) =>
+            categoriasOrganizacion.has(categoriaId),
+          ));
 
       if (visible) {
         if (!this.map!.hasLayer(marker)) {
