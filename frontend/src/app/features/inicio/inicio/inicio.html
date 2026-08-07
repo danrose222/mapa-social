@@ -1,12 +1,14 @@
 <section class="hero">
+  <app-hero-network></app-hero-network>
+
   <div class="hero-content">
     <p class="eyebrow">Plataforma colaborativa territorial</p>
 
     <h1>Conectamos necesidades comunitarias con recursos disponibles</h1>
 
     <p class="hero-description">
-      Explorá el territorio, registrá necesidades sociales y compartí
-      recursos que puedan ayudar a la comunidad.
+      Explorá el mapa, pedí ayuda si la necesitás y descubrí las comunidades
+      y ONGs que están para ayudarte.
     </p>
 
     <div class="hero-actions">
@@ -14,19 +16,245 @@
         Explorar mapa
       </a>
 
-      <a mat-stroked-button routerLink="/registrar-necesidad">
-        Registrar necesidad
-      </a>
-
-      <a mat-stroked-button routerLink="/ofrecer-recurso">
-        Ofrecer recurso
-      </a>
+      @if (puedePublicar()) {
+        <a mat-stroked-button routerLink="/ofrecer-recurso">
+          Ofrecer recurso
+        </a>
+      }
     </div>
   </div>
 </section>
 
+@if (currentUser()) {
+  <section class="dashboard-bienvenida">
+    <div class="dashboard-header">
+      <h2>
+        <mat-icon class="dashboard-header-icon" [attr.aria-hidden]="true">{{ iconoRolActual() }}</mat-icon>
+        Hola, {{ nombreMostrado() }}
+      </h2>
+
+      @if (esOrganizacion()) {
+        <p>
+          Así te ven en la plataforma las comunidades, ONGs y personas que
+          necesitan ayuda.
+        </p>
+      } @else if (esCiudadano()) {
+        <p>Este es el estado de las solicitudes que hiciste.</p>
+      } @else if (esModerador()) {
+        <p>Así está tu gestión: quién te pidió ayuda y a quién ya aprobaste.</p>
+      }
+    </div>
+
+    @if (esCiudadano()) {
+      <div class="dashboard-panel">
+        @if (cargandoSolicitudes()) {
+          <p class="dashboard-status">Cargando tus solicitudes...</p>
+        } @else if (!misSolicitudes().length) {
+          <p class="dashboard-status">
+            Todavía no pediste ayuda. Buscá un recurso en el mapa cuando lo
+            necesites.
+          </p>
+        } @else {
+          <ul class="solicitudes-tarjetas">
+            @for (solicitud of misSolicitudes(); track solicitud.id) {
+              <li class="solicitud-tarjeta">
+                <div class="solicitud-tarjeta-fila">
+                  <span class="solicitud-titulo">{{ solicitud.resource.title }}</span>
+
+                  <span
+                    class="estado-badge"
+                    [class.estado-badge--pendiente]="solicitud.status === 'pendiente'"
+                    [class.estado-badge--aprobada]="solicitud.status === 'aprobada'"
+                    [class.estado-badge--atendida]="solicitud.status === 'atendida'"
+                    [class.estado-badge--rechazada]="solicitud.status === 'rechazada'"
+                    [class.estado-badge--derivada]="solicitud.status === 'derivada'"
+                  >
+                    {{ etiquetaEstado(solicitud.status) }}
+                  </span>
+                </div>
+
+                <div class="solicitud-tarjeta-meta">
+                  <span>{{ formatearFechaSolicitud(solicitud.createdAt) }}</span>
+
+                  @if (solicitud.resource.organizationName) {
+                    <span class="solicitud-org">{{ solicitud.resource.organizationName }}</span>
+                  }
+                </div>
+
+                @if (solicitud.status === 'atendida') {
+                  <button
+                    type="button"
+                    class="solicitud-puntuar-btn"
+                    (click)="abrirValoracion(solicitud)"
+                  >
+                    <mat-icon aria-hidden="true">star_outline</mat-icon>
+                    Agradecer
+                  </button>
+                }
+              </li>
+            }
+          </ul>
+
+          <a mat-button color="primary" routerLink="/mis-solicitudes">
+            Ver todas mis solicitudes
+          </a>
+        }
+
+        <div class="dashboard-cta-fila">
+          <a mat-flat-button color="primary" routerLink="/mapa">
+            Pedir ayuda nuevamente
+          </a>
+
+          <a
+            mat-stroked-button
+            routerLink="/mapa"
+            [queryParams]="{ filtro: 'necesidades' }"
+          >
+            Quiero Donar
+          </a>
+        </div>
+      </div>
+    }
+
+    @if (esOrganizacion()) {
+      <div class="dashboard-panel">
+        @if (cargandoSolicitudes()) {
+          <p class="dashboard-status">Cargando solicitudes recibidas...</p>
+        } @else if (!solicitudesRecibidas().length) {
+          <p class="dashboard-status">
+            Todavía no recibiste solicitudes de usuarios comunes.
+          </p>
+        } @else {
+          <ul class="solicitudes-resumen">
+            @for (solicitud of solicitudesRecibidas(); track solicitud.id) {
+              <li>
+                <span class="solicitud-titulo">{{ tituloRecibida(solicitud) }}</span>
+
+                <span class="solicitud-org">
+                  {{ subtituloRecibida(solicitud) }}
+                </span>
+
+                <span
+                  class="estado-badge"
+                  [class.estado-badge--pendiente]="solicitud.status === 'pendiente'"
+                  [class.estado-badge--aprobada]="solicitud.status === 'aprobada'"
+                  [class.estado-badge--atendida]="solicitud.status === 'atendida'"
+                  [class.estado-badge--rechazada]="solicitud.status === 'rechazada'"
+                  [class.estado-badge--derivada]="solicitud.status === 'derivada'"
+                >
+                  {{ etiquetaEstado(solicitud.status) }}
+                </span>
+              </li>
+            }
+          </ul>
+        }
+
+        <div class="dashboard-cta-fila">
+          @if (esOng()) {
+            @if (solicitudesRecibidas().length) {
+              <a mat-flat-button color="primary" routerLink="/solicitudes-recibidas">
+                Ver todas las solicitudes recibidas
+              </a>
+            }
+
+            <a mat-stroked-button routerLink="/mapa">
+              Pedir recursos a otra ONG
+            </a>
+          } @else {
+            <a mat-flat-button color="primary" routerLink="/mapa">
+              Pedir recursos a una ONG o al municipio
+            </a>
+
+            @if (solicitudesRecibidas().length) {
+              <a mat-stroked-button routerLink="/solicitudes-recibidas">
+                Ver todas las solicitudes recibidas
+              </a>
+            }
+          }
+        </div>
+      </div>
+    }
+
+    @if (esModerador()) {
+      <div class="dashboard-panel">
+        @if (cargandoEstadisticasMunicipio()) {
+          <p class="dashboard-status">Cargando estadísticas de tu gestión...</p>
+        } @else {
+          <div class="municipio-stats-grid">
+            <mat-card class="municipio-stat-card">
+              <mat-card-content>
+                <p class="municipio-stat-numero">{{ comunidadesAsistidas() }}</p>
+                <p class="municipio-stat-label">Comunidades asistidas</p>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="municipio-stat-card municipio-stat-card--pendiente">
+              <mat-card-content>
+                <p class="municipio-stat-numero">{{ solicitudesPendientesMunicipio() }}</p>
+                <p class="municipio-stat-label">Solicitudes pendientes</p>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="municipio-stat-card">
+              <mat-card-content>
+                <p class="municipio-stat-numero">{{ ongsEnJurisdiccion() }}</p>
+                <p class="municipio-stat-label">ONGs en tu jurisdicción</p>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        }
+
+        <div class="dashboard-cta-fila">
+          <a mat-flat-button color="primary" routerLink="/solicitudes-recibidas">
+            Revisar solicitudes pendientes
+          </a>
+
+          <a mat-stroked-button routerLink="/organizaciones-pendientes">
+            Aprobar comunidades y ONGs
+          </a>
+        </div>
+      </div>
+    }
+  </section>
+}
+
+@if (!currentUser()) {
+<section class="mapa-preview">
+  <p class="mapa-preview-eyebrow">Una red que te cuida</p>
+  <h2>Acá siempre hay alguien cerca</h2>
+  <p class="mapa-preview-desc">
+    Vecinos, comunidades y organizaciones que ya se están ayudando entre
+    sí — y vos también podés sumarte.
+  </p>
+
+  <div
+    class="latidos-grid"
+    #latidosSection
+    [class.latidos-grid--visible]="latidosVisibles()"
+  >
+    @for (latido of latidos; track latido.icon) {
+      <div class="latido-card" [class]="'latido-card--' + latido.tinte">
+        <div class="latido-icono">
+          <mat-icon aria-hidden="true">{{ latido.icon }}</mat-icon>
+        </div>
+        <p
+          class="latido-mensaje"
+          [class.latido-mensaje--oculto]="!latido.visible()"
+        >
+          {{ latido.mensajeActual() }}
+        </p>
+      </div>
+    }
+  </div>
+
+  <a mat-flat-button color="primary" class="latidos-cta" routerLink="/mapa">
+    <mat-icon aria-hidden="true">favorite</mat-icon>
+    Pedir ayuda a una ONG o Comunidad
+  </a>
+</section>
+
 <section class="options">
-  <h2>¿Qué podés hacer en Mapa Social?</h2>
+  <h2>¿Qué podés hacer en Corazones Unidos?</h2>
 
   <div class="card-grid">
     <mat-card>
@@ -51,42 +279,91 @@
 
     <mat-card>
       <mat-card-header>
-        <mat-icon mat-card-avatar>campaign</mat-icon>
-        <mat-card-title>Registrar una necesidad</mat-card-title>
+        <mat-icon mat-card-avatar>front_hand</mat-icon>
+        <mat-card-title>Pedir ayuda</mat-card-title>
       </mat-card-header>
 
       <mat-card-content>
         <p>
-          Informá una situación comunitaria que necesite acompañamiento
-          o recursos.
+          Elegí el tipo de ayuda que necesitás y te llevamos al lugar
+          disponible más cercano.
         </p>
       </mat-card-content>
 
       <mat-card-actions>
-        <a mat-button color="primary" routerLink="/registrar-necesidad">
-          Cargar necesidad
+        <a mat-button color="primary" routerLink="/mapa">
+          Pedir ayuda
         </a>
       </mat-card-actions>
     </mat-card>
 
     <mat-card>
       <mat-card-header>
-        <mat-icon mat-card-avatar>volunteer_activism</mat-icon>
-        <mat-card-title>Compartir un recurso</mat-card-title>
+        <mat-icon mat-card-avatar>diversity_3</mat-icon>
+        <mat-card-title>¿Sos una comunidad u ONG?</mat-card-title>
       </mat-card-header>
 
       <mat-card-content>
         <p>
-          Publicá servicios, espacios o recursos que estén disponibles
-          para la comunidad.
+          Registrate para ofrecer recursos y ayudar a tu comunidad, con
+          tu propio usuario.
         </p>
       </mat-card-content>
 
       <mat-card-actions>
-        <a mat-button color="primary" routerLink="/ofrecer-recurso">
-          Cargar recurso
+        <a mat-button color="primary" routerLink="/registrar-organizacion">
+          Registrar comunidad/ONG
         </a>
       </mat-card-actions>
     </mat-card>
   </div>
 </section>
+}
+
+@if (mostrarModalAgradecimiento()) {
+  <div class="modal-backdrop" (click)="cerrarModalAgradecimiento()">
+    <div
+      class="modal-agradecimiento"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="agradecimiento-titulo"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="agradecimiento-titulo">Agradecer por la ayuda</h2>
+
+      <p class="modal-agradecimiento-desc">
+        Si querés, dejale un mensaje a quien te ayudó. Es opcional.
+      </p>
+
+      <textarea
+        #mensajeAgradecimiento
+        class="modal-agradecimiento-textarea"
+        rows="4"
+        placeholder="Escribí tu mensaje (opcional)..."
+      ></textarea>
+
+      <div class="modal-agradecimiento-acciones">
+        <button
+          type="button"
+          class="modal-agradecimiento-cancelar"
+          (click)="cerrarModalAgradecimiento()"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          mat-flat-button
+          color="primary"
+          (click)="enviarAgradecimiento(mensajeAgradecimiento.value)"
+        >
+          Enviar agradecimiento
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (toastAgradecimiento(); as mensaje) {
+  <p class="toast-agradecimiento" role="status">{{ mensaje }}</p>
+}

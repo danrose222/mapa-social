@@ -11,10 +11,10 @@
     linear-gradient(
       90deg,
       var(--color-primary),
-      #20576f
+      #a8503b
     );
   color: var(--color-white);
-  box-shadow: 0 4px 14px rgb(24 63 82 / 28%);
+  box-shadow: 0 4px 14px rgb(90 50 38 / 28%);
 }
 
 .brand {
@@ -55,6 +55,36 @@
   background-color: var(--color-accent);
 }
 
+.user-greeting {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin-right: 8px;
+  color: var(--color-white);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.user-greeting-icon {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  color: var(--color-accent);
+}
+
+// El nombre de una organizacion (o "Municipalidad de ...") puede ser largo
+// y con el listado de links del moderador (hasta 10) se pisaba contra el
+// resto del navbar. Se trunca aca; el nombre completo esta siempre visible
+// en el dashboard de Inicio y como title/tooltip.
+.user-greeting-text {
+  overflow: hidden;
+  max-width: 170px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .login-link {
   background-color: transparent;
   border: 1.5px solid #ffffff91;
@@ -85,7 +115,7 @@
   bottom: 0;
   left: 0;
   background-color: rgb(0 0 0 / 45%);
-  z-index: 999;
+  z-index: 2000;
 }
 
 .mobile-menu {
@@ -94,7 +124,7 @@
   top: 64px;
   left: 0;
   right: 0;
-  z-index: 1000;
+  z-index: 2001;
   max-height: calc(100vh - 64px);
   overflow-y: auto;
   flex-direction: column;
@@ -136,7 +166,35 @@
   cursor: pointer;
 }
 
-@media (max-width: 850px) {
+.mobile-menu-greeting {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 20px;
+  color: rgb(255 255 255 / 80%);
+  font-size: 13px;
+  font-weight: 500;
+  border-bottom: 1px solid rgb(255 255 255 / 12%);
+  background-color: rgb(0 0 0 / 12%);
+}
+
+.mobile-menu-heading {
+  display: block;
+  padding: 14px 20px 4px;
+  color: rgb(255 255 255 / 80%);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+// El listado de links crecio bastante (roles ciudadano/comunidad/ong/moderador
+// suman hasta 10 items) y con el saludo con nombre agregado no entra en una
+// sola fila incluso en pantallas medianas: pasamos al menu hamburguesa antes
+// para evitar que se superpongan. Probado visualmente con Playwright: a
+// 1600px el moderador (el caso con mas links) todavia se pisa un poco, a
+// 1650px ya no.
+@media (max-width: 1650px) {
   .navbar {
     height: auto;
     min-height: 64px;
@@ -166,6 +224,13 @@
     display: none;
   }
 
+  // Ya se repite (con el icono) arriba de "Cerrar sesion" dentro del menu
+  // hamburguesa: en la barra angosta solo dejamos icono + brand + logout,
+  // igual que antes de agregar el saludo.
+  .user-greeting {
+    display: none;
+  }
+
   .login-link {
     order: 3;
     flex: 0 0 auto;
@@ -177,5 +242,116 @@
 
   .mobile-menu {
     display: flex;
+  }
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: rgb(0 0 0 / 55%);
+  animation: modal-login-backdrop 160ms ease;
+}
+
+.modal-login {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  max-height: calc(100vh - 40px);
+  padding: 24px 20px 20px;
+  overflow-y: auto;
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  border-radius: 18px;
+  box-shadow: 0 20px 40px rgb(0 0 0 / 25%);
+  animation: modal-login-entrada 200ms ease;
+}
+
+.modal-login h2 {
+  margin: 0 0 14px;
+  color: var(--color-primary);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.modal-login-cerrar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.modal-login-cerrar:hover {
+  color: var(--color-primary);
+  background-color: var(--color-background-dark);
+}
+
+.modal-login-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.perfil-fila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  color: var(--color-text);
+  text-decoration: none;
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+
+.perfil-fila:hover,
+.perfil-fila:focus-visible {
+  background-color: var(--color-background);
+  border-color: var(--color-secondary);
+  outline: none;
+}
+
+.perfil-fila-icono {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  color: var(--color-primary);
+  font-size: 20px;
+}
+
+.perfil-fila-titulo {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+@keyframes modal-login-backdrop {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-login-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
   }
 }

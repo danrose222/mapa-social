@@ -9,7 +9,7 @@
     <mat-icon>{{ isMenuOpen ? 'close' : 'menu' }}</mat-icon>
   </button>
 
-  <a class="brand" routerLink="/" (click)="closeMenu()">Mapa Social</a>
+  <a class="brand" routerLink="/" (click)="closeMenu()">Corazones Unidos</a>
 
   <span class="spacer"></span>
 
@@ -41,25 +41,76 @@
     Estadísticas
   </a>
 
-  <a
-    mat-button
-    class="nav-link"
-    routerLink="/registrar-necesidad"
-    routerLinkActive="active-link"
-  >
-    Registrar necesidad
-  </a>
+  @if (currentUser()?.role === 'moderador') {
+    <a
+      mat-button
+      class="nav-link"
+      routerLink="/ofrecer-recurso"
+      routerLinkActive="active-link"
+    >
+      Ofrecer recurso
+    </a>
+  }
 
-  <a
-    mat-button
-    class="nav-link"
-    routerLink="/ofrecer-recurso"
-    routerLinkActive="active-link"
-  >
-    Ofrecer recurso
-  </a>
+  @if (currentUser()?.role !== 'comunidad' && currentUser()?.role !== 'ong' && !esCiudadano()) {
+    <a
+      mat-button
+      class="nav-link"
+      routerLink="/registrar-organizacion"
+      routerLinkActive="active-link"
+    >
+      Registrar comunidad/ONG
+    </a>
+  }
 
   @if (currentUser()) {
+    <a
+      mat-button
+      class="nav-link"
+      routerLink="/mis-solicitudes"
+      routerLinkActive="active-link"
+    >
+      Solicitudes enviadas
+    </a>
+  }
+
+  @if (currentUser()?.role === 'comunidad' || currentUser()?.role === 'ong' || currentUser()?.role === 'moderador') {
+    <a
+      mat-button
+      class="nav-link"
+      routerLink="/solicitudes-recibidas"
+      routerLinkActive="active-link"
+    >
+      Solicitudes recibidas
+    </a>
+  }
+
+  @if (currentUser()?.role === 'moderador') {
+    <a
+      mat-button
+      class="nav-link"
+      routerLink="/organizaciones-pendientes"
+      routerLinkActive="active-link"
+    >
+      Pendientes de aprobar
+    </a>
+
+    <a
+      mat-button
+      class="nav-link"
+      routerLink="/panel-municipio"
+      routerLinkActive="active-link"
+    >
+      Panel municipio
+    </a>
+  }
+
+  @if (currentUser()) {
+    <span class="user-greeting" [title]="'Hola, ' + nombreMostrado()">
+      <mat-icon class="user-greeting-icon" [attr.aria-hidden]="true">{{ iconoRolActual() }}</mat-icon>
+      <span class="user-greeting-text">Hola, {{ nombreMostrado() }}</span>
+    </span>
+
     <button
       mat-button
       type="button"
@@ -69,15 +120,14 @@
       Cerrar sesión
     </button>
   } @else {
-    <a
+    <button
       mat-button
+      type="button"
       class="login-link"
-      routerLink="/login"
-      routerLinkActive="active-link"
-      (click)="closeMenu()"
+      (click)="abrirModalLogin()"
     >
-      Login
-    </a>
+      Ingresar
+    </button>
   }
 </mat-toolbar>
 
@@ -88,6 +138,13 @@
   ></div>
 
   <nav class="mobile-menu">
+    @if (currentUser()) {
+      <span class="mobile-menu-greeting">
+        <mat-icon class="user-greeting-icon" [attr.aria-hidden]="true">{{ iconoRolActual() }}</mat-icon>
+        Hola, {{ nombreMostrado() }}
+      </span>
+    }
+
     <a
       class="mobile-menu-link"
       routerLink="/"
@@ -116,23 +173,69 @@
       Estadísticas
     </a>
 
-    <a
-      class="mobile-menu-link"
-      routerLink="/registrar-necesidad"
-      routerLinkActive="active-link"
-      (click)="closeMenu()"
-    >
-      Registrar necesidad
-    </a>
+    @if (currentUser()?.role === 'moderador') {
+      <a
+        class="mobile-menu-link"
+        routerLink="/ofrecer-recurso"
+        routerLinkActive="active-link"
+        (click)="closeMenu()"
+      >
+        Ofrecer recurso
+      </a>
+    }
 
-    <a
-      class="mobile-menu-link"
-      routerLink="/ofrecer-recurso"
-      routerLinkActive="active-link"
-      (click)="closeMenu()"
-    >
-      Ofrecer recurso
-    </a>
+    @if (currentUser()?.role !== 'comunidad' && currentUser()?.role !== 'ong' && !esCiudadano()) {
+      <a
+        class="mobile-menu-link"
+        routerLink="/registrar-organizacion"
+        routerLinkActive="active-link"
+        (click)="closeMenu()"
+      >
+        Registrar comunidad/ONG
+      </a>
+    }
+
+    @if (currentUser()) {
+      <a
+        class="mobile-menu-link"
+        routerLink="/mis-solicitudes"
+        routerLinkActive="active-link"
+        (click)="closeMenu()"
+      >
+        Solicitudes enviadas
+      </a>
+    }
+
+    @if (currentUser()?.role === 'comunidad' || currentUser()?.role === 'ong' || currentUser()?.role === 'moderador') {
+      <a
+        class="mobile-menu-link"
+        routerLink="/solicitudes-recibidas"
+        routerLinkActive="active-link"
+        (click)="closeMenu()"
+      >
+        Solicitudes recibidas
+      </a>
+    }
+
+    @if (currentUser()?.role === 'moderador') {
+      <a
+        class="mobile-menu-link"
+        routerLink="/organizaciones-pendientes"
+        routerLinkActive="active-link"
+        (click)="closeMenu()"
+      >
+        Pendientes de aprobar
+      </a>
+
+      <a
+        class="mobile-menu-link"
+        routerLink="/panel-municipio"
+        routerLinkActive="active-link"
+        (click)="closeMenu()"
+      >
+        Panel municipio
+      </a>
+    }
 
     @if (currentUser()) {
       <button
@@ -143,14 +246,50 @@
         Cerrar sesión
       </button>
     } @else {
-      <a
-        class="mobile-menu-link"
-        routerLink="/login"
-        routerLinkActive="active-link"
-        (click)="closeMenu()"
+      <button
+        type="button"
+        class="mobile-menu-link mobile-menu-action"
+        (click)="abrirModalLogin()"
       >
-        Login
-      </a>
+        Ingresar
+      </button>
     }
   </nav>
+}
+
+@if (mostrarModalLogin()) {
+  <div class="modal-backdrop" (click)="cerrarModalLogin()">
+    <div
+      class="modal-login"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="login-modal-titulo"
+      (click)="$event.stopPropagation()"
+    >
+      <button
+        type="button"
+        class="modal-login-cerrar"
+        aria-label="Cerrar"
+        (click)="cerrarModalLogin()"
+      >
+        <mat-icon aria-hidden="true">close</mat-icon>
+      </button>
+
+      <h2 id="login-modal-titulo">¡Hola! ¿Cómo querés ingresar hoy?</h2>
+
+      <div class="modal-login-lista">
+        @for (perfil of perfilesLogin; track perfil.tipo) {
+          <a
+            class="perfil-fila"
+            routerLink="/login"
+            [queryParams]="{ tipo: perfil.tipo }"
+            (click)="cerrarModalLogin()"
+          >
+            <mat-icon class="perfil-fila-icono" aria-hidden="true">{{ perfil.icono }}</mat-icon>
+            <span class="perfil-fila-titulo">{{ perfil.titulo }}</span>
+          </a>
+        }
+      </div>
+    </div>
+  </div>
 }

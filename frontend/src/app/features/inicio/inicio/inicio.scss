@@ -4,11 +4,13 @@
 }
 
 .hero {
+  position: relative;
   display: grid;
   width: calc(100% - 32px);
   min-height: 420px;
   margin: 16px auto 0;
   padding: 64px 24px;
+  overflow: hidden;
   place-items: center;
   border-radius: 14px;
   background: linear-gradient(
@@ -22,12 +24,14 @@
 }
 
 .hero-content {
+  position: relative;
+  z-index: 1;
   width: min(820px, 100%);
 }
 
 .eyebrow {
   margin: 0 0 12px;
-  color: #cfe8f1;
+  color: #f6dcc2;
   font-size: 0.9rem;
   font-weight: 700;
   letter-spacing: 1px;
@@ -43,7 +47,7 @@ h1 {
 .hero-description {
   max-width: 680px;
   margin: 24px auto;
-  color: #e8f3f7;
+  color: #f9ebdd;
   font-size: 1.15rem;
   line-height: 1.6;
 }
@@ -61,12 +65,12 @@ h1 {
 }
 
 .hero-actions a[mat-flat-button]:hover {
-  background-color: #c94c25;
+  background-color: #b8721f;
   box-shadow: var(--shadow-hover);
 }
 
 .hero-actions a[mat-stroked-button] {
-  border-color: #b9d9e6;
+  border-color: #e0b98f;
   background-color: rgb(255 255 255 / 8%);
   color: var(--color-white);
 }
@@ -75,6 +79,386 @@ h1 {
   border-color: var(--color-accent);
   background-color: var(--color-accent);
   color: var(--color-white);
+}
+
+.dashboard-bienvenida {
+  width: calc(100% - 32px);
+  max-width: 900px;
+  margin: 24px auto 0;
+  padding: 24px 28px;
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-secondary);
+  border-radius: 14px;
+  background: linear-gradient(
+    180deg,
+    var(--color-surface),
+    var(--color-surface-secondary)
+  );
+  box-shadow: var(--shadow-soft);
+}
+
+.dashboard-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  color: var(--color-primary);
+}
+
+.dashboard-header-icon {
+  width: 26px;
+  height: 26px;
+  font-size: 26px;
+  color: var(--color-accent);
+}
+
+.dashboard-header p {
+  margin: 0 0 18px;
+  color: var(--color-text-secondary);
+}
+
+.dashboard-panel + .dashboard-panel {
+  margin-top: 18px;
+}
+
+.dashboard-status {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.solicitudes-resumen {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.solicitudes-resumen li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background-color: var(--color-background);
+}
+
+.solicitud-titulo {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.solicitud-org {
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
+.estado-badge {
+  margin-left: auto;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.estado-badge--pendiente {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+
+.estado-badge--aprobada {
+  background-color: var(--color-success-bg);
+  color: var(--color-primary);
+}
+
+.estado-badge--atendida {
+  background-color: var(--color-success-bg);
+  color: var(--color-primary);
+}
+
+.estado-badge--rechazada {
+  background-color: var(--color-danger-bg);
+  color: var(--color-danger-text);
+}
+
+.estado-badge--derivada {
+  background-color: rgba(90, 50, 38, 0.12);
+  color: var(--color-text-secondary);
+}
+
+// --- Panel de "Mis Solicitudes" del ciudadano (tarjetas apiladas) --------
+// Clases propias, separadas de .solicitudes-resumen (que sigue usando el
+// panel de organización sin cambios): así este rediseño no le pega al
+// otro panel sin querer.
+
+.solicitudes-tarjetas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.solicitud-tarjeta {
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background-color: var(--color-background);
+}
+
+.solicitud-tarjeta-fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 10px;
+}
+
+.solicitud-tarjeta-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 4px;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
+.solicitud-puntuar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 4px 10px;
+  color: var(--color-accent);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--color-accent);
+  border-radius: 999px;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.solicitud-puntuar-btn mat-icon {
+  width: 15px;
+  height: 15px;
+  font-size: 15px;
+}
+
+.solicitud-puntuar-btn:hover {
+  color: var(--color-white);
+  background-color: var(--color-accent);
+}
+
+.dashboard-cta-fila {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--color-border);
+}
+
+.dashboard-cta-fila a[mat-flat-button] {
+  background-color: var(--color-accent);
+  color: var(--color-white);
+}
+
+.dashboard-cta-fila a[mat-flat-button]:hover {
+  background-color: #b8721f;
+}
+
+.dashboard-cta-fila a[mat-stroked-button] {
+  border-color: var(--color-secondary);
+  color: var(--color-secondary);
+}
+
+.dashboard-cta-fila a[mat-stroked-button]:hover {
+  background-color: var(--color-secondary);
+  color: var(--color-white);
+}
+
+.mapa-preview {
+  padding: 56px 24px 64px;
+  background:
+    radial-gradient(120% 140% at 50% 0%, rgb(76 139 94 / 7%), transparent 60%),
+    var(--color-background);
+  text-align: center;
+}
+
+.mapa-preview-eyebrow {
+  margin: 0 0 8px;
+  color: var(--color-accent);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.mapa-preview h2 {
+  margin: 0 0 10px;
+  color: var(--color-primary);
+}
+
+.mapa-preview-desc {
+  max-width: 560px;
+  margin: 0 auto;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.latidos-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  max-width: 940px;
+  margin: 40px auto 0;
+}
+
+.latido-card {
+  display: flex;
+  flex: 1;
+  min-width: 220px;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 24px;
+  border-radius: 28px;
+  box-shadow: 0 16px 34px rgb(143 58 45 / 10%);
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 520ms ease,
+    transform 520ms ease;
+}
+
+.latidos-grid--visible .latido-card {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.latidos-grid--visible .latido-card:nth-child(2) {
+  transition-delay: 120ms;
+}
+
+.latidos-grid--visible .latido-card:nth-child(3) {
+  transition-delay: 240ms;
+}
+
+.latido-card--terracota {
+  background: rgb(143 58 45 / 9%);
+}
+
+.latido-card--salvia {
+  background: rgb(76 139 94 / 10%);
+}
+
+.latido-card--dorado {
+  background: rgb(217 140 43 / 12%);
+}
+
+.latido-icono {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 18px;
+  border-radius: 50%;
+  animation: latido-pulso 2.6s ease-in-out infinite;
+}
+
+.latido-icono mat-icon {
+  width: 30px;
+  height: 30px;
+  font-size: 30px;
+}
+
+.latido-card--terracota .latido-icono {
+  background: rgb(143 58 45 / 16%);
+  color: var(--color-primary);
+}
+
+.latido-card--salvia .latido-icono {
+  background: rgb(76 139 94 / 18%);
+  color: var(--color-secondary);
+}
+
+.latido-card--dorado .latido-icono {
+  background: rgb(217 140 43 / 20%);
+  color: var(--color-accent);
+}
+
+@keyframes latido-pulso {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+// Cada tarjeta rota su propio pool de mensajes con un crossfade suave
+// (ver iniciarCicloDeMensajes() en el componente). min-height evita que
+// la tarjeta salte de tamaño entre mensajes de distinto largo.
+.latido-mensaje {
+  min-height: 3.2em;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.98rem;
+  line-height: 1.5;
+  transition:
+    opacity 400ms ease,
+    transform 400ms ease;
+}
+
+.latido-mensaje--oculto {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .latido-card,
+  .latido-icono,
+  .latido-mensaje {
+    animation: none;
+    transition: none;
+  }
+}
+
+.latidos-cta {
+  height: auto !important;
+  margin-top: 36px;
+  padding: 14px 30px !important;
+  color: var(--color-white) !important;
+  font-size: 1rem;
+  background-color: var(--color-accent) !important;
+  border-radius: 999px !important;
+}
+
+.latidos-cta mat-icon {
+  margin-right: 6px;
+}
+
+.latidos-cta:hover {
+  background-color: #b8721f !important;
+}
+
+@media (max-width: 800px) {
+  .latidos-grid {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 .options {
@@ -106,11 +490,8 @@ mat-card {
   border: 1px solid var(--color-border);
   border-top: 4px solid var(--color-secondary);
   border-radius: 14px;
-  background: linear-gradient(
-    180deg,
-    var(--color-surface),
-    var(--color-surface-secondary)
-  );
+  // Mismo degradado exacto del Hero Banner principal (.hero).
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
   box-shadow: var(--shadow-soft);
   transition:
     border-color 180ms ease,
@@ -130,7 +511,7 @@ mat-card:hover {
 }
 
 mat-card-title {
-  color: var(--color-primary);
+  color: var(--color-white);
   transition: color 180ms ease;
 }
 
@@ -141,15 +522,19 @@ mat-card:hover mat-card-title {
 mat-card-content {
   flex: 1;
   padding-top: 16px;
-  color: var(--color-text-secondary);
+  // Mismo tono claro que ya usa la descripción del Hero (.hero-description)
+  // sobre este mismo degradado, en vez de blanco puro.
+  color: #f9ebdd;
   line-height: 1.6;
 }
 
+// Fondo blanco translúcido en vez del tinte verde/naranja de antes: sobre
+// el degradado oscuro del hero, esos tonos quedaban casi invisibles.
 mat-icon[mat-card-avatar] {
   display: grid;
   place-items: center;
-  background-color: rgb(47 131 168 / 16%);
-  color: var(--color-secondary);
+  background-color: rgb(255 255 255 / 18%);
+  color: var(--color-white);
   transition:
     background-color 180ms ease,
     color 180ms ease,
@@ -163,17 +548,27 @@ mat-card:hover mat-icon[mat-card-avatar] {
 }
 
 .card-grid mat-card:nth-child(2) mat-icon {
-  background-color: rgb(230 95 50 / 16%);
-  color: var(--color-accent);
+  background-color: rgb(255 255 255 / 22%);
+  color: var(--color-white);
 }
 
+mat-card-actions {
+  display: flex;
+  justify-content: center;
+}
+
+// El color real de un mat-button no lo pisa un `color:` en el <a>: lo
+// controla el token --mat-button-text-label-text-color (seteado global
+// en styles.scss a --color-primary), así que hay que pisar el token acá.
 mat-card-actions a {
-  color: var(--color-secondary);
+  --mat-button-text-label-text-color: var(--color-white);
+  color: var(--color-white) !important;
 }
 
 mat-card-actions a:hover {
+  --mat-button-text-label-text-color: var(--color-white);
   background-color: var(--color-accent);
-  color: var(--color-white);
+  color: var(--color-white) !important;
 }
 
 @media (max-width: 800px) {
@@ -196,5 +591,164 @@ mat-card-actions a:hover {
 
   .hero-actions a {
     width: 100%;
+  }
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: rgb(90 50 38 / 55%);
+  animation: modal-agradecimiento-backdrop 160ms ease;
+}
+
+.modal-agradecimiento {
+  width: 100%;
+  max-width: 420px;
+  padding: 28px 26px;
+  background-color: var(--color-surface);
+  border-radius: 20px;
+  box-shadow: 0 20px 45px rgb(90 50 38 / 25%);
+  animation: modal-agradecimiento-entrada 200ms ease;
+}
+
+.modal-agradecimiento h2 {
+  margin: 0 0 6px;
+  color: var(--color-primary);
+  font-size: 1.3rem;
+}
+
+.modal-agradecimiento-desc {
+  margin: 0 0 16px;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.modal-agradecimiento-textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px 14px;
+  color: var(--color-text);
+  font: inherit;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  resize: vertical;
+}
+
+.modal-agradecimiento-textarea:focus {
+  outline: 2px solid var(--color-secondary);
+  outline-offset: 1px;
+}
+
+.modal-agradecimiento-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.modal-agradecimiento-cancelar {
+  padding: 8px 14px;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+}
+
+.modal-agradecimiento-cancelar:hover {
+  background-color: var(--color-background-dark);
+}
+
+@keyframes modal-agradecimiento-backdrop {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-agradecimiento-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+}
+
+.toast-agradecimiento {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  z-index: 1001;
+  margin: 0;
+  padding: 12px 20px;
+  color: var(--color-white);
+  font-size: 0.88rem;
+  font-weight: 600;
+  background-color: var(--color-secondary);
+  border-radius: 999px;
+  box-shadow: 0 10px 25px rgb(76 139 94 / 35%);
+  transform: translateX(-50%);
+  animation: toast-agradecimiento-entrada 200ms ease;
+}
+
+@keyframes toast-agradecimiento-entrada {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+}
+
+@media (max-width: 520px) {
+  .modal-agradecimiento {
+    padding: 24px 20px;
+  }
+}
+
+.municipio-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.municipio-stat-card {
+  border: 1px solid var(--color-border);
+  border-top: 4px solid var(--color-secondary);
+  border-radius: 14px;
+  background: linear-gradient(
+    180deg,
+    var(--color-surface),
+    var(--color-surface-secondary)
+  );
+  box-shadow: var(--shadow-soft);
+  text-align: center;
+}
+
+.municipio-stat-card--pendiente {
+  border-top-color: var(--color-accent);
+}
+
+.municipio-stat-numero {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.municipio-stat-label {
+  margin: 4px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 0.88rem;
+}
+
+@media (max-width: 700px) {
+  .municipio-stats-grid {
+    grid-template-columns: 1fr;
   }
 }
