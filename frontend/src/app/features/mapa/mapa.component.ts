@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { NgClass } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import * as L from 'leaflet';
@@ -163,7 +164,7 @@ interface SolicitudRecibidaConUbicacion {
 @Component({
   selector: 'app-mapa',
   standalone: true,
-  imports: [MatCardModule, RouterLink],
+  imports: [MatCardModule, NgClass, RouterLink],
   encapsulation: ViewEncapsulation.None,
   template: `
     <mat-card class="map-card">
@@ -288,91 +289,6 @@ interface SolicitudRecibidaConUbicacion {
         </header>
       }
 
-      <div class="filtro-recursos">
-        <button
-          type="button"
-          class="filtro-recursos-toggle"
-          (click)="mostrarFiltroRecursos.set(!mostrarFiltroRecursos())"
-        >
-          {{ mostrarFiltroRecursos() ? 'Ocultar filtros' : 'Filtrar recursos' }}
-
-          @if (cantidadFiltrosActivos() > 0) {
-            <span class="filtro-recursos-badge">{{ cantidadFiltrosActivos() }}</span>
-          }
-        </button>
-
-        @if (mostrarFiltroRecursos()) {
-          <div class="filtro-recursos-panel">
-            <div class="filtro-grupo">
-              <p class="filtro-grupo-label">Categoría</p>
-
-              <div class="filtro-categorias-grid">
-                @for (categoria of categoriasAyuda; track categoria.id) {
-                  <label
-                    class="filtro-categoria-chip"
-                    [class.filtro-categoria-chip--activo]="categoriaFiltroActiva(categoria.id)"
-                  >
-                    <input
-                      type="checkbox"
-                      [checked]="categoriaFiltroActiva(categoria.id)"
-                      (change)="toggleCategoriaFiltro(categoria.id)"
-                    />
-                    {{ categoria.nombre }}
-                  </label>
-                }
-              </div>
-            </div>
-
-            <div class="filtro-grupo">
-              <p class="filtro-grupo-label">Distancia</p>
-
-              <select
-                class="filtro-select"
-                [value]="radioFiltro() ?? ''"
-                (change)="setRadioFiltro($any($event.target).value)"
-              >
-                <option value="">Sin límite</option>
-                <option value="1">Hasta 1 km</option>
-                <option value="5">Hasta 5 km</option>
-                <option value="10">Hasta 10 km</option>
-                <option value="25">Hasta 25 km</option>
-              </select>
-
-              @if (!tengoUbicacion()) {
-                <p class="filtro-hint">
-                  Se calcula desde Córdoba Capital hasta que compartas tu ubicación.
-                </p>
-              }
-            </div>
-
-            <label class="filtro-checkbox">
-              <input
-                type="checkbox"
-                [checked]="soloDisponibles()"
-                (change)="toggleSoloDisponibles()"
-              />
-              Solo recursos disponibles
-            </label>
-
-            <div class="filtro-recursos-pie">
-              <p class="filtro-resultado">
-                {{ recursosVisibles() }} de {{ totalRecursos() }} recursos visibles
-              </p>
-
-              @if (cantidadFiltrosActivos() > 0) {
-                <button
-                  type="button"
-                  class="filtro-limpiar"
-                  (click)="limpiarFiltrosRecursos()"
-                >
-                  Limpiar filtros
-                </button>
-              }
-            </div>
-          </div>
-        }
-      </div>
-
       @if (!esModerador() && !tengoUbicacion()) {
         <div class="usar-ubicacion">
           @if (obteniendoUbicacion()) {
@@ -417,30 +333,21 @@ interface SolicitudRecibidaConUbicacion {
 
           @if (mostrarSelectorAyuda()) {
             <div class="categorias-ayuda">
-              <p class="categorias-ayuda-label">¿Qué tipo de ayuda necesitás?</p>
+              <p class="categorias-ayuda-label">Filtrar por tipo de ayuda</p>
 
               <div class="categorias-ayuda-grid">
                 @for (categoria of categoriasAyuda; track categoria.id) {
                   <button
                     type="button"
                     class="categoria-btn"
-                    [disabled]="buscandoAyuda()"
-                    (click)="solicitarAyudaPorCategoria(categoria.id)"
+                    [ngClass]="categoriaActiva(categoria.id) ? 'categoria-btn--activo' : 'categoria-btn--inactivo'"
+                    [attr.aria-pressed]="categoriaActiva(categoria.id)"
+                    (click)="toggleCategoriaActiva(categoria.id)"
                   >
                     {{ categoria.nombre }}
                   </button>
                 }
               </div>
-
-              @if (buscandoAyuda()) {
-                <p class="categorias-ayuda-status">Buscando el lugar más cercano...</p>
-              }
-
-              @if (sinResultadosCategoria() !== null) {
-                <p class="categorias-ayuda-status categorias-ayuda-status--vacio">
-                  Por ahora no hay recursos disponibles de este tipo. Probá con otro tipo de ayuda.
-                </p>
-              }
             </div>
           }
         </div>
@@ -1212,206 +1119,44 @@ interface SolicitudRecibidaConUbicacion {
         gap: 8px;
       }
 
+      // Base compartida por los dos estados (toggle de filtro por
+      // categoría, ver categoriaActiva()/toggleCategoriaActiva()): el
+      // color sale de los modificadores de abajo, no de acá.
       app-mapa .categoria-btn {
         padding: 8px 14px;
-        border: 1px solid rgb(255 255 255 / 35%);
         border-radius: 999px;
+        font-family: Roboto, "Helvetica Neue", sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+          background-color 150ms ease,
+          border-color 150ms ease,
+          color 150ms ease;
+      }
+
+      // Inactiva: outline, más clara — invita a activarla.
+      app-mapa .categoria-btn--inactivo {
         background-color: transparent;
-        color: #ffffff;
-        font-family: Roboto, "Helvetica Neue", sans-serif;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition:
-          background-color 150ms ease,
-          border-color 150ms ease;
-      }
-
-      app-mapa .categoria-btn:hover {
-        border-color: var(--color-accent);
-        background-color: var(--color-accent);
-      }
-
-      app-mapa .categoria-btn:disabled {
-        cursor: not-allowed;
-        opacity: 0.6;
-      }
-
-      app-mapa .categorias-ayuda-status {
-        margin: 12px 0 0;
-        color: rgb(255 255 255 / 82%);
-        font-family: Roboto, "Helvetica Neue", sans-serif;
-        font-size: 0.85rem;
-      }
-
-      app-mapa .categorias-ayuda-status--vacio {
-        color: #ffcdb8;
-      }
-
-      app-mapa .filtro-recursos {
-        padding: 14px 18px;
-        background-color: var(--color-primary);
-        border-top: 1px solid rgb(255 255 255 / 12%);
-      }
-
-      app-mapa .filtro-recursos-toggle {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 16px;
-        color: #ffffff;
-        font: inherit;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-        background-color: rgb(255 255 255 / 14%);
-        border: 1px solid rgb(255 255 255 / 30%);
-        border-radius: 999px;
-        transition:
-          background-color 160ms ease,
-          border-color 160ms ease;
-      }
-
-      app-mapa .filtro-recursos-toggle:hover {
-        background-color: var(--color-accent);
-        border-color: var(--color-accent);
-      }
-
-      app-mapa .filtro-recursos-badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 18px;
-        height: 18px;
-        padding: 0 5px;
-        background-color: var(--color-accent);
-        color: #ffffff;
-        font-size: 0.72rem;
-        font-weight: 700;
-        border-radius: 999px;
-      }
-
-      app-mapa .filtro-recursos-panel {
-        margin-top: 14px;
-        padding: 14px 16px;
-        border-radius: 10px;
-        background-color: rgb(255 255 255 / 8%);
-      }
-
-      app-mapa .filtro-grupo {
-        margin-bottom: 14px;
-      }
-
-      app-mapa .filtro-grupo-label {
-        margin: 0 0 10px;
-        color: #ffffff;
-        font-family: Roboto, "Helvetica Neue", sans-serif;
-        font-size: 0.9rem;
-        font-weight: 600;
-      }
-
-      app-mapa .filtro-categorias-grid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-
-      app-mapa .filtro-categoria-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 7px 14px;
         border: 1px solid rgb(255 255 255 / 35%);
-        border-radius: 999px;
-        color: rgb(255 255 255 / 90%);
-        font-family: Roboto, "Helvetica Neue", sans-serif;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition:
-          background-color 150ms ease,
-          border-color 150ms ease;
+        color: #ffffff;
       }
 
-      app-mapa .filtro-categoria-chip input {
-        accent-color: var(--color-accent);
-      }
-
-      app-mapa .filtro-categoria-chip:hover {
+      app-mapa .categoria-btn--inactivo:hover {
         border-color: var(--color-accent);
+        background-color: rgb(255 255 255 / 12%);
       }
 
-      app-mapa .filtro-categoria-chip--activo {
+      // Activa: relleno sólido, más oscura — ya está filtrando el mapa.
+      app-mapa .categoria-btn--activo {
         background-color: var(--color-accent);
-        border-color: var(--color-accent);
+        border: 1px solid var(--color-accent);
         color: #ffffff;
       }
 
-      app-mapa .filtro-select {
-        padding: 8px 12px;
-        color: var(--color-text);
-        font: inherit;
-        font-size: 0.85rem;
-        background-color: #ffffff;
-        border: 1px solid rgb(255 255 255 / 35%);
-        border-radius: 8px;
-      }
-
-      app-mapa .filtro-hint {
-        margin: 6px 0 0;
-        color: rgb(255 255 255 / 75%);
-        font-size: 0.78rem;
-      }
-
-      app-mapa .filtro-checkbox {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        color: #ffffff;
-        font-family: Roboto, "Helvetica Neue", sans-serif;
-        font-size: 0.88rem;
-        font-weight: 500;
-        cursor: pointer;
-      }
-
-      app-mapa .filtro-checkbox input {
-        accent-color: var(--color-accent);
-      }
-
-      app-mapa .filtro-recursos-pie {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px 16px;
-        margin-top: 14px;
-        padding-top: 12px;
-        border-top: 1px dashed rgb(255 255 255 / 20%);
-      }
-
-      app-mapa .filtro-resultado {
-        margin: 0;
-        color: rgb(255 255 255 / 82%);
-        font-family: Roboto, "Helvetica Neue", sans-serif;
-        font-size: 0.82rem;
-      }
-
-      app-mapa .filtro-limpiar {
-        padding: 6px 12px;
-        color: #ffffff;
-        font: inherit;
-        font-size: 0.8rem;
-        font-weight: 600;
-        cursor: pointer;
-        background: transparent;
-        border: 1px solid rgb(255 255 255 / 35%);
-        border-radius: 999px;
-        transition: border-color 150ms ease;
-      }
-
-      app-mapa .filtro-limpiar:hover {
-        border-color: var(--color-accent);
-        color: var(--color-accent);
+      app-mapa .categoria-btn--activo:hover {
+        background-color: #b8721f;
+        border-color: #b8721f;
       }
 
       app-mapa .ayuda-cercana-banner {
@@ -1811,11 +1556,9 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
   readonly cargandoDatos = signal(true);
 
   // Una sola promesa de geolocalización compartida por todo el
-  // componente: calcularAyudaMasCercana(), solicitarAyudaPorCategoria() y
-  // el marcador "vos estás acá" reusan el mismo resultado en vez de
-  // volver a pedirle GPS/permiso al dispositivo cada vez — eso era lo
-  // que generaba un salto brusco adicional cada vez que se buscaba ayuda
-  // por categoría.
+  // componente: calcularAyudaMasCercana() y el marcador "vos estás acá"
+  // reusan el mismo resultado en vez de volver a pedirle GPS/permiso al
+  // dispositivo cada vez.
   private ubicacionRealPromise?: Promise<{ lat: number; lng: number } | null>;
 
   private estaSeleccionado(id: number): boolean {
@@ -1904,105 +1647,38 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
 
   readonly categoriasAyuda = CATEGORIAS_AYUDA;
   readonly mostrarSelectorAyuda = signal(false);
-  readonly buscandoAyuda = signal(false);
-  readonly sinResultadosCategoria = signal<number | null>(null);
 
-  // Filtro de recursos visibles en el mapa: a diferencia del selector de
-  // arriba (que busca el recurso más cercano de UNA categoría y salta a
-  // él), esto combina categoría + distancia + disponibilidad a la vez y
-  // muestra/oculta los pines que ya existen, sin recrearlos (ver
-  // aplicarFiltrosRecursos()).
-  readonly mostrarFiltroRecursos = signal(false);
-  readonly categoriasFiltro = signal<Set<number>>(new Set());
-  readonly radioFiltro = signal<number | null>(null);
-  readonly soloDisponibles = signal(false);
-  readonly recursosVisibles = signal(0);
-  readonly totalRecursos = signal(0);
+  // Filtro de recursos por categoría, de selección múltiple: los mismos
+  // botones que antes buscaban el más cercano de UNA categoría y saltaban
+  // a él ahora togglean su propia categoría dentro y fuera de este array.
+  // Sin categorías activas, no filtra (se ve todo).
+  readonly categoriasActivas = signal<number[]>([]);
 
-  toggleCategoriaFiltro(categoriaId: number): void {
-    const actual = new Set(this.categoriasFiltro());
+  toggleCategoriaActiva(categoriaId: number): void {
+    const actuales = this.categoriasActivas();
 
-    if (actual.has(categoriaId)) {
-      actual.delete(categoriaId);
-    } else {
-      actual.add(categoriaId);
-    }
-
-    this.categoriasFiltro.set(actual);
-    this.aplicarFiltrosRecursos();
-  }
-
-  categoriaFiltroActiva(categoriaId: number): boolean {
-    return this.categoriasFiltro().has(categoriaId);
-  }
-
-  setRadioFiltro(valor: string): void {
-    this.radioFiltro.set(valor ? Number(valor) : null);
-    this.aplicarFiltrosRecursos();
-  }
-
-  toggleSoloDisponibles(): void {
-    this.soloDisponibles.update((valor) => !valor);
-    this.aplicarFiltrosRecursos();
-  }
-
-  cantidadFiltrosActivos(): number {
-    return (
-      this.categoriasFiltro().size +
-      (this.radioFiltro() != null ? 1 : 0) +
-      (this.soloDisponibles() ? 1 : 0)
+    this.categoriasActivas.set(
+      actuales.includes(categoriaId)
+        ? actuales.filter((id) => id !== categoriaId)
+        : [...actuales, categoriaId],
     );
+
+    this.aplicarFiltroCategorias();
   }
 
-  limpiarFiltrosRecursos(): void {
-    this.categoriasFiltro.set(new Set());
-    this.radioFiltro.set(null);
-    this.soloDisponibles.set(false);
-    this.aplicarFiltrosRecursos();
-  }
-
-  // Sin categoría marcada, no filtra por categoría (se ve todo): marcar
-  // una o más categorías las combina con AND contra distancia y
-  // disponibilidad, no OR entre grupos de filtro distintos.
-  private recursoPasaFiltros(recurso: Recurso): boolean {
-    const categorias = this.categoriasFiltro();
-
-    if (categorias.size > 0 && !categorias.has(recurso.categoria_id)) {
-      return false;
-    }
-
-    if (this.soloDisponibles() && recurso.estado !== 'available') {
-      return false;
-    }
-
-    const radio = this.radioFiltro();
-
-    if (radio != null) {
-      const ubicacion = this.ubicacionParaCalculos();
-      const distancia = this.distanciaKm(
-        ubicacion.lat,
-        ubicacion.lng,
-        recurso.latitud,
-        recurso.longitud,
-      );
-
-      if (distancia > radio) {
-        return false;
-      }
-    }
-
-    return true;
+  categoriaActiva(categoriaId: number): boolean {
+    return this.categoriasActivas().includes(categoriaId);
   }
 
   // Los pines de recurso ya existen todos en resourceMarkers (se crean una
   // sola vez en initializeMap): filtrar solo agrega o saca la capa del
   // mapa, no recrea ni destruye marcadores.
-  private aplicarFiltrosRecursos(): void {
+  private aplicarFiltroCategorias(): void {
     if (!this.map) {
       return;
     }
 
-    let visibles = 0;
+    const activas = this.categoriasActivas();
 
     this.recursos.forEach((recurso) => {
       const marker = this.resourceMarkers.get(recurso.id);
@@ -2011,9 +1687,9 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
         return;
       }
 
-      if (this.recursoPasaFiltros(recurso)) {
-        visibles += 1;
+      const visible = !activas.length || activas.includes(recurso.categoria_id);
 
+      if (visible) {
         if (!this.map!.hasLayer(marker)) {
           marker.addTo(this.map!);
         }
@@ -2021,8 +1697,6 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
         this.map!.removeLayer(marker);
       }
     });
-
-    this.recursosVisibles.set(visibles);
   }
 
   readonly ayudaCercana = signal<{
@@ -2150,12 +1824,6 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
         );
 
         this.map.panTo([ubicacion.lat, ubicacion.lng]);
-
-        // Si ya había un filtro de distancia activo, recalcula contra la
-        // ubicación real en vez de seguir usando el centro de Córdoba.
-        if (this.radioFiltro() != null) {
-          this.aplicarFiltrosRecursos();
-        }
       }
 
       void this.calcularAyudaMasCercana();
@@ -2166,56 +1834,14 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
   // de permiso por su cuenta: solo usa la ubicación real si el usuario ya
   // la pidió con el botón, y si no, cae al centro de Córdoba — igual que
   // antes, pero sin pedir geolocalización a escondidas mientras se busca
-  // "ayuda más cercana" o se filtra por categoría.
+  // "ayuda más cercana".
   private ubicacionParaCalculos(): { lat: number; lng: number } {
     return this.miUbicacion ?? CORDOBA_COORDS;
   }
 
-  async solicitarAyudaPorCategoria(categoriaId: number): Promise<void> {
-    this.sinResultadosCategoria.set(null);
-    this.buscandoAyuda.set(true);
-
-    const candidatos = this.recursos.filter(
-      (recurso) =>
-        recurso.categoria_id === categoriaId && recurso.estado === 'available',
-    );
-
-    if (!candidatos.length) {
-      this.buscandoAyuda.set(false);
-      this.sinResultadosCategoria.set(categoriaId);
-      return;
-    }
-
-    const ubicacion = this.ubicacionParaCalculos();
-
-    const masCercano = candidatos.reduce((cercano, actual) => {
-      const distanciaActual = this.distanciaKm(
-        ubicacion.lat,
-        ubicacion.lng,
-        actual.latitud,
-        actual.longitud,
-      );
-      const distanciaCercano = this.distanciaKm(
-        ubicacion.lat,
-        ubicacion.lng,
-        cercano.latitud,
-        cercano.longitud,
-      );
-
-      return distanciaActual < distanciaCercano ? actual : cercano;
-    });
-
-    this.buscandoAyuda.set(false);
-    this.mostrarSelectorAyuda.set(false);
-
-    this.map?.setView([masCercano.latitud, masCercano.longitud], 16);
-    this.resourceMarkers.get(masCercano.id)?.openPopup();
-  }
-
-  // A diferencia de solicitarAyudaPorCategoria (que arranca cuando el
-  // usuario elige un tipo de ayuda), esto se calcula solo al cargar el
-  // mapa, sin filtrar por categoria, para mostrar de entrada cual es la
-  // ayuda disponible mas cerca del usuario comun.
+  // Se calcula solo al cargar el mapa (y de nuevo si se comparte la
+  // ubicación real), sin filtrar por categoría, para mostrar de entrada
+  // cuál es la ayuda disponible más cerca del usuario común.
   private async calcularAyudaMasCercana(): Promise<void> {
     const disponibles = this.recursos.filter(
       (recurso) => recurso.estado === 'available',
@@ -3191,9 +2817,6 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
       this.resourceMarkers.set(recurso.id, marker);
       bounds.extend([recurso.latitud, recurso.longitud]);
     });
-
-    this.totalRecursos.set(this.recursos.length);
-    this.recursosVisibles.set(this.recursos.length);
 
     this.comunidadesConSolicitudPendiente.forEach((comunidad) => {
       this.agregarMarcador(
