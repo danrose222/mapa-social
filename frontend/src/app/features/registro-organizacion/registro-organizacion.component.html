@@ -86,11 +86,25 @@
             placeholder="Ej.: 1234" />
         </mat-form-field>
 
+        @if (tipoSeleccionado() === 'moderador') {
         <mat-form-field appearance="outline">
           <mat-label>Ciudad</mat-label>
           <input matInput type="text" maxlength="100" formControlName="ciudad"
             placeholder="Ej.: La Falda" />
         </mat-form-field>
+        } @else {
+        <mat-form-field appearance="outline">
+          <mat-label>Ciudad (jurisdicción)</mat-label>
+          <mat-select formControlName="ciudad">
+            @for (municipio of municipios(); track municipio.ciudad) {
+            <mat-option [value]="municipio.ciudad">{{ municipio.ciudad }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint>
+            El municipio de esa ciudad va a ser quien te apruebe.
+          </mat-hint>
+        </mat-form-field>
+        }
 
         <mat-form-field appearance="outline">
           <mat-label>Código postal</mat-label>

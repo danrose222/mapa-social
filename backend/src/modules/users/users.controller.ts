@@ -79,6 +79,17 @@ export class UsersController {
     return this.service.findComunidadesCriticasPublico();
   }
 
+  // Público, sin login: la lista de municipios reales para que el
+  // formulario de registro de comunidad/ong ofrezca un <select> en vez de
+  // texto libre. La jurisdicción se resuelve comparando la ciudad por
+  // igualdad exacta (ver findAll/findPendingApprovals): un error de tipeo
+  // (acentos, mayúsculas, un "Capital" de más o de menos) deja a la
+  // organización sin ningún moderador que la vea nunca.
+  @Get('municipios-publico')
+  findMunicipiosPublico() {
+    return this.service.findMunicipiosPublico();
+  }
+
   // Cualquier usuario logueado (comunidad u ong) necesita ver a quien le
   // puede pedir ayuda directamente. No requiere ser moderador.
   @Get('directorio-ayuda')

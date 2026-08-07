@@ -25,6 +25,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
+import { MatSelectModule } from '@angular/material/select';
 
 import {
   LocationPickerComponent,
@@ -35,6 +36,11 @@ type TipoOrganizacion = 'comunidad' | 'ong' | 'moderador';
 
 interface Categoria {
   id: number;
+  nombre: string;
+}
+
+interface Municipio {
+  ciudad: string;
   nombre: string;
 }
 
@@ -61,6 +67,7 @@ const ROLE_ID_POR_TIPO: Record<TipoOrganizacion, number> = {
     MatFormFieldModule,
     MatInputModule,
     MatRadioModule,
+    MatSelectModule,
     LocationPickerComponent,
   ],
   templateUrl: './registro-organizacion.component.html',
@@ -94,6 +101,13 @@ export class RegistroOrganizacionComponent {
     { id: 5, nombre: 'Vivienda' },
     { id: 6, nombre: 'Asistencia comunitaria' },
   ];
+
+  // Solo para comunidad/ong: la jurisdicción se resuelve comparando la
+  // ciudad por igualdad exacta contra la del moderador (ver
+  // users.service.ts), así que acá se elige de una lista real en vez de
+  // texto libre — un municipio "Cordoba" vs "Córdoba Capital" nunca iba a
+  // matchear, y esa organización quedaba sin ningún moderador que la vea.
+  readonly municipios = signal<Municipio[]>([]);
 
   readonly form = this.formBuilder.nonNullable.group({
     tipo: [this.tipoInicial(), [Validators.required]],
@@ -156,6 +170,15 @@ export class RegistroOrganizacionComponent {
   hasLocation = false;
 
   constructor() {
+    this.http.get<Municipio[]>('/api/users/municipios-publico').subscribe({
+      next: (municipios) => this.municipios.set(municipios),
+      error: () => {
+        // Si falla, el select de ciudad queda vacío y no se puede enviar
+        // el formulario como comunidad/ong (el control sigue siendo
+        // required): mejor eso que dejar tipear texto libre de nuevo.
+      },
+    });
+
     this.form.valueChanges
       .pipe(
         map((valores) => ({

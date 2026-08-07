@@ -229,6 +229,21 @@ export class UsersService {
       }));
   }
 
+  async findMunicipiosPublico() {
+    const municipios = await this.userRepository.find({
+      where: { role: { name: 'moderador' } },
+      relations: ['role'],
+      order: { ciudad: 'ASC' },
+    });
+
+    return municipios
+      .filter((municipio) => !!municipio.ciudad)
+      .map((municipio) => ({
+        ciudad: municipio.ciudad,
+        nombre: municipio.organizationName ?? `Municipio de ${municipio.ciudad}`,
+      }));
+  }
+
   findPendingApprovals(moderadorCiudad?: string) {
     return this.userRepository.find({
       where: {
