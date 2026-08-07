@@ -1,0 +1,67 @@
+<section class="stats-page">
+  <header class="page-heading">
+    <p class="eyebrow">Moderación</p>
+    <h1>Comunidades y ONGs pendientes</h1>
+    <p>Aprobá a las comunidades y ONGs antes de que puedan publicar recursos.</p>
+  </header>
+
+  @if (isLoading()) {
+  <p class="stats-message">Cargando pendientes...</p>
+  }
+
+  @if (errorMessage()) {
+  <p class="stats-message error-message">{{ errorMessage() }}</p>
+  }
+
+  @if (!isLoading() && !organizaciones().length && !errorMessage()) {
+  <p class="stats-message">No hay comunidades ni ONGs pendientes de aprobación.</p>
+  }
+
+  <div class="stats-grid">
+    @for (organizacion of organizaciones(); track organizacion.id) {
+    <mat-card class="stats-card">
+      <mat-card-header>
+        <mat-card-title>{{ organizacion.organizationName || (organizacion.firstName + ' ' + organizacion.lastName) }}</mat-card-title>
+        <mat-card-subtitle>{{ etiquetaRol(organizacion) }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <p class="stats-label">
+          Responsable: {{ organizacion.firstName }} {{ organizacion.lastName }}
+        </p>
+
+        <p class="stats-label">{{ organizacion.email }}</p>
+
+        @if (organizacion.phone) {
+        <p class="stats-label">Tel: {{ organizacion.phone }}</p>
+        }
+
+        @if (organizacion.address) {
+        <p class="stats-label">{{ organizacion.address }}</p>
+        }
+
+        @if (organizacion.schedule) {
+        <p class="stats-label">Horario: {{ organizacion.schedule }}</p>
+        }
+
+        @if (organizacion.offeredCategories?.length) {
+        <p class="stats-label">
+          Ofrece:
+          {{ organizacion.offeredCategories!.map(c => c.name).join(', ') }}
+        </p>
+        }
+
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          [disabled]="approvingId() === organizacion.id"
+          (click)="aprobar(organizacion.id)"
+        >
+          {{ approvingId() === organizacion.id ? 'Aprobando...' : 'Aprobar' }}
+        </button>
+      </mat-card-content>
+    </mat-card>
+    }
+  </div>
+</section>

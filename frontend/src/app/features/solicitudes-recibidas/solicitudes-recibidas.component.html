@@ -1,0 +1,134 @@
+<section class="stats-page">
+  <header class="page-heading">
+    <p class="eyebrow">Mi organización</p>
+    <h1>Solicitudes recibidas</h1>
+    <p>Personas y comunidades que pidieron los recursos que ofrecés.</p>
+  </header>
+
+  @if (isLoading()) {
+  <p class="stats-message">Cargando solicitudes...</p>
+  }
+
+  @if (errorMessage()) {
+  <p class="stats-message error-message">{{ errorMessage() }}</p>
+  }
+
+  @if (!isLoading() && !solicitudes().length && !errorMessage()) {
+  <p class="stats-message">Todavía no recibiste solicitudes por tus recursos.</p>
+  }
+
+  <div class="stats-grid">
+    @for (solicitud of solicitudes(); track solicitud.id) {
+    <mat-card class="stats-card">
+      <mat-card-header>
+        @if (solicitud.resource) {
+        <mat-card-title>{{ solicitud.resource.title }}</mat-card-title>
+        } @else {
+        <mat-card-title>Pedido de ayuda: {{ solicitud.category?.name }}</mat-card-title>
+        }
+        <mat-card-subtitle>
+          {{ solicitud.contactName ?? (solicitud.user.firstName + ' ' + solicitud.user.lastName) }}
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        @if (derivadoPor(solicitud); as institucion) {
+        <p class="stats-label stats-label--derivado">Derivado por: {{ institucion }}</p>
+        }
+
+        @if (solicitud.contactInfo) {
+        <p class="stats-label">Contacto: {{ solicitud.contactInfo }}</p>
+        }
+
+        @if (!solicitud.contactInfo && solicitud.address) {
+        <p class="stats-label">Sin contacto propio — asistencia domiciliaria en: {{ solicitud.address }}</p>
+        }
+
+        <span class="status-badge" [class]="'status-badge--' + solicitud.status">
+          {{ etiquetaEstado(solicitud.status) }}
+        </span>
+
+        @if (solicitud.status === 'pendiente') {
+        <div class="stats-actions">
+          <button
+            mat-flat-button
+            type="button"
+            class="aprobar-btn"
+            [disabled]="actualizandoId() === solicitud.id"
+            (click)="actualizar(solicitud.id, 'aprobada')"
+          >
+            Aprobar (tengo el recurso disponible)
+          </button>
+
+          <button
+            mat-stroked-button
+            type="button"
+            class="rechazar-btn"
+            [disabled]="actualizandoId() === solicitud.id"
+            (click)="actualizar(solicitud.id, 'rechazada')"
+          >
+            Rechazar
+          </button>
+        </div>
+
+        <div class="derivar-fields">
+          <select
+            class="derivar-select"
+            [ngModel]="destinoDerivarSeleccionado(solicitud.id)"
+            (ngModelChange)="setDestinoDerivar(solicitud.id, $event)"
+          >
+            <option [ngValue]="null">¿No la podés cubrir? Derivar a...</option>
+            @for (entidad of entidadesDerivar(); track entidad.id) {
+            <option [ngValue]="entidad.id">
+              {{ entidad.organizationName }}
+              {{ entidad.role === 'ong' ? '(ONG)' : '(Comunidad)' }}
+            </option>
+            }
+          </select>
+
+          <button
+            mat-stroked-button
+            type="button"
+            [disabled]="derivandoId() === solicitud.id"
+            (click)="derivar(solicitud.id)"
+          >
+            Derivar
+          </button>
+        </div>
+
+        @if (derivarMensaje()[solicitud.id]) {
+        <p class="derivar-mensaje">{{ derivarMensaje()[solicitud.id] }}</p>
+        }
+        }
+
+        @if (solicitud.status === 'aprobada') {
+        <div class="stats-actions">
+          @if (contactoHref(solicitud); as href) {
+          <a mat-stroked-button [href]="href">
+            Avisarle que pase a retirarlo
+          </a>
+          }
+
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            [disabled]="actualizandoId() === solicitud.id"
+            (click)="actualizar(solicitud.id, 'atendida')"
+          >
+            Ya retiró el beneficio — marcar atendida
+          </button>
+        </div>
+
+        @if (!contactoHref(solicitud) && solicitud.address) {
+        <p class="stats-hint">
+          No hay un teléfono o correo para avisarle: coordiná la entrega en
+          {{ solicitud.address }}.
+        </p>
+        }
+        }
+      </mat-card-content>
+    </mat-card>
+    }
+  </div>
+</section>

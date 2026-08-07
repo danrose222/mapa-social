@@ -1,0 +1,156 @@
+<section class="stats-page">
+  <header class="page-heading">
+    <p class="eyebrow">Mi cuenta</p>
+    <h1>Solicitudes enviadas</h1>
+    <p>Recursos que pediste, pedidos de ayuda a tu municipio u ONGs, y su estado.</p>
+  </header>
+
+  @if (esComunidad()) {
+    <div class="estado-ayuda-card">
+      <p class="estado-ayuda-title">¿Tu comunidad necesita ayuda urgente del municipio?</p>
+
+      <div class="estado-ayuda-actions">
+        <button
+          type="button"
+          class="estado-btn estado-btn--estable"
+          [class.is-active]="estadoAyuda() === 'estable'"
+          [disabled]="guardandoEstado()"
+          (click)="cambiarEstadoAyuda('estable')"
+        >
+          ● Estable
+        </button>
+
+        <button
+          type="button"
+          class="estado-btn estado-btn--critico"
+          [class.is-active]="estadoAyuda() === 'critico'"
+          [disabled]="guardandoEstado()"
+          (click)="cambiarEstadoAyuda('critico')"
+        >
+          ● Estado crítico
+        </button>
+      </div>
+
+      <p class="estado-ayuda-hint">
+        Estable: no te faltan recursos. Crítico: te faltan alimentos u otros recursos y necesitás
+        que el municipio te priorice. Lo ve en su panel.
+      </p>
+    </div>
+  }
+
+  @if (puedePedirAyudaDirecta()) {
+    <div class="pedir-ayuda-card">
+      <p class="estado-ayuda-title">{{ tituloPedirAyuda() }}</p>
+
+      <div class="pedir-ayuda-fields">
+        <select
+          class="pedir-ayuda-select"
+          [ngModel]="destinatarioSeleccionado()"
+          (ngModelChange)="destinatarioSeleccionado.set($event)"
+        >
+          <option [ngValue]="null">{{ esModerador() ? 'Derivar a' : 'A quién le pedís' }}</option>
+          @for (destinatario of destinatarios(); track destinatario.id) {
+          <option [ngValue]="destinatario.id">
+            {{ destinatario.organizationName }}
+            {{ destinatario.role === 'moderador' ? '(Municipio)' : destinatario.role === 'ong' ? '(ONG)' : '(Comunidad)' }}
+          </option>
+          }
+        </select>
+
+        <select
+          class="pedir-ayuda-select"
+          [ngModel]="categoriaSeleccionada()"
+          (ngModelChange)="categoriaSeleccionada.set($event)"
+        >
+          <option [ngValue]="null">Tipo de ayuda</option>
+          @for (categoria of categorias(); track categoria.id) {
+          <option [ngValue]="categoria.id">{{ categoria.name }}</option>
+          }
+        </select>
+      </div>
+
+      @if (esModerador()) {
+      <div class="pedir-ayuda-fields">
+        <input
+          class="pedir-ayuda-select"
+          type="text"
+          placeholder="Nombre de la persona"
+          [ngModel]="nombrePersona()"
+          (ngModelChange)="nombrePersona.set($event)"
+        />
+
+        <input
+          class="pedir-ayuda-select"
+          type="text"
+          placeholder="Teléfono o email (si tiene)"
+          [ngModel]="contactoPersona()"
+          (ngModelChange)="contactoPersona.set($event)"
+        />
+
+        <input
+          class="pedir-ayuda-select"
+          type="text"
+          placeholder="Dirección o punto de referencia"
+          [ngModel]="direccionPersona()"
+          (ngModelChange)="direccionPersona.set($event)"
+        />
+      </div>
+      }
+
+      <div class="pedir-ayuda-fields">
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          [disabled]="enviandoPedido()"
+          (click)="pedirAyuda()"
+        >
+          {{ esModerador() ? 'Derivar' : 'Pedir ayuda' }}
+        </button>
+      </div>
+
+      @if (mensajePedido()) {
+      <p class="pedir-ayuda-mensaje">{{ mensajePedido() }}</p>
+      }
+
+      <p class="estado-ayuda-hint">
+        @if (esModerador()) {
+        Se deriva con los datos de la persona atendida en el municipio, no con los tuyos.
+        } @else {
+        Se envía con los datos con los que te registraste, tal cual figuran en tu cuenta.
+        }
+      </p>
+    </div>
+  }
+
+  @if (isLoading()) {
+  <p class="stats-message">Cargando solicitudes...</p>
+  }
+
+  @if (errorMessage()) {
+  <p class="stats-message error-message">{{ errorMessage() }}</p>
+  }
+
+  @if (!isLoading() && !solicitudes().length && !errorMessage()) {
+  <p class="stats-message">Todavía no enviaste ninguna solicitud. Pedí un recurso desde el mapa, o un pedido de ayuda arriba.</p>
+  }
+
+  <div class="stats-grid">
+    @for (solicitud of solicitudes(); track solicitud.id) {
+    <mat-card class="stats-card">
+      <mat-card-header>
+        <mat-card-title>{{ tituloDe(solicitud) }}</mat-card-title>
+        @if (subtituloDe(solicitud)) {
+        <mat-card-subtitle>{{ subtituloDe(solicitud) }}</mat-card-subtitle>
+        }
+      </mat-card-header>
+
+      <mat-card-content>
+        <span class="status-badge" [class]="'status-badge--' + solicitud.status">
+          {{ etiquetaEstado(solicitud.status) }}
+        </span>
+      </mat-card-content>
+    </mat-card>
+    }
+  </div>
+</section>

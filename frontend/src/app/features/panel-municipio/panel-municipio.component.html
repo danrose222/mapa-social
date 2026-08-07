@@ -1,0 +1,125 @@
+<section class="stats-page">
+  <header class="page-heading">
+    <p class="eyebrow">Municipio</p>
+    <h1>Panel del municipio</h1>
+    <p>ONGs y comunidades activas en tu jurisdicción y lo que ofrecen.</p>
+  </header>
+
+  @if (isLoading()) {
+  <p class="stats-message">Cargando panel...</p>
+  }
+
+  @if (errorMessage()) {
+  <p class="stats-message error-message">{{ errorMessage() }}</p>
+  }
+
+  @if (!isLoading() && !errorMessage()) {
+    <h2 class="section-title">Comunidades</h2>
+
+    @if (!comunidades().length) {
+    <p class="stats-message">No hay comunidades aprobadas todavía.</p>
+    }
+
+    <div class="stats-grid">
+      @for (comunidad of comunidades(); track comunidad.id) {
+      <mat-card class="stats-card">
+        <mat-card-header>
+          <mat-card-title>
+            <span
+              class="beacon"
+              [class.beacon--critico]="comunidad.estadoAyuda === 'critico'"
+              [class.beacon--estable]="comunidad.estadoAyuda === 'estable'"
+              [attr.aria-label]="comunidad.estadoAyuda === 'critico' ? 'Estado crítico' : 'Estado estable'"
+            ></span>
+            {{ comunidad.organizationName || (comunidad.firstName + ' ' + comunidad.lastName) }}
+          </mat-card-title>
+          <mat-card-subtitle>{{ comunidad.email }}</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <p class="stats-label">
+            {{ comunidad.estadoAyuda === 'critico' ? 'Necesita ayuda urgente del municipio' : 'Estado estable' }}
+          </p>
+
+          <p class="stats-label">
+            Responsable: {{ comunidad.firstName }} {{ comunidad.lastName }}
+            @if (comunidad.phone) { · {{ comunidad.phone }} }
+          </p>
+
+          @if (comunidad.address) {
+          <p class="stats-label">{{ comunidad.address }}</p>
+          }
+
+          @if (comunidad.schedule) {
+          <p class="stats-label">Horario: {{ comunidad.schedule }}</p>
+          }
+
+          @if (comunidad.offeredCategories?.length) {
+          <p class="stats-label">
+            Ofrece: {{ comunidad.offeredCategories!.map(c => c.name).join(', ') }}
+          </p>
+          }
+
+          <p class="stats-label">Recursos publicados: {{ comunidad.recursos.length }}</p>
+
+          @if (comunidad.recursos.length) {
+          <ul class="recursos-lista">
+            @for (recurso of comunidad.recursos; track recurso.id) {
+            <li>{{ recurso.title }}</li>
+            }
+          </ul>
+          }
+        </mat-card-content>
+      </mat-card>
+      }
+    </div>
+
+    <h2 class="section-title">ONGs</h2>
+
+    @if (!ongs().length) {
+    <p class="stats-message">No hay ONGs aprobadas todavía.</p>
+    }
+
+    <div class="stats-grid">
+      @for (ong of ongs(); track ong.id) {
+      <mat-card class="stats-card">
+        <mat-card-header>
+          <mat-card-title>{{ ong.organizationName || (ong.firstName + ' ' + ong.lastName) }}</mat-card-title>
+          <mat-card-subtitle>{{ ong.email }}</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <p class="stats-label">
+            Responsable: {{ ong.firstName }} {{ ong.lastName }}
+            @if (ong.phone) { · {{ ong.phone }} }
+          </p>
+
+          @if (ong.address) {
+          <p class="stats-label">{{ ong.address }}</p>
+          }
+
+          @if (ong.schedule) {
+          <p class="stats-label">Horario: {{ ong.schedule }}</p>
+          }
+
+          @if (ong.offeredCategories?.length) {
+          <p class="stats-label">
+            Ofrece: {{ ong.offeredCategories!.map(c => c.name).join(', ') }}
+          </p>
+          }
+
+          <p class="stats-label">Recursos publicados: {{ ong.recursos.length }}</p>
+
+          @if (ong.recursos.length) {
+          <ul class="recursos-lista">
+            @for (recurso of ong.recursos; track recurso.id) {
+            <li>{{ recurso.title }}</li>
+            }
+          </ul>
+          }
+        </mat-card-content>
+      </mat-card>
+      }
+    </div>
+  }
+</section>

@@ -1,0 +1,180 @@
+<section class="form-page">
+  <header class="page-heading">
+    <p class="eyebrow">Comunidades, ONGs y municipios</p>
+    <h1>Registrar comunidad, ONG o municipio</h1>
+    @if (esRegistroAsistido) {
+    <p>
+      Trámite presencial: completá los datos de la organización que vino a
+      registrarse a la municipalidad. Queda aprobada de inmediato.
+    </p>
+    } @else if (tipoSeleccionado() === 'moderador') {
+    <p>
+      Creá la cuenta de tu municipio: vas a poder aprobar comunidades y ONGs
+      de tu jurisdicción, ofrecerles recursos y ver tu ubicación en el mapa.
+      Tu cuenta queda activa de inmediato.
+    </p>
+    } @else {
+    <p>
+      Creá una cuenta para tu comunidad (comedor, club, centro barrial) o tu
+      ONG. Un moderador del municipio va a validarla antes de que puedas
+      publicar recursos en la plataforma.
+    </p>
+    }
+  </header>
+
+  <mat-card class="form-card">
+    <mat-card-content>
+      <form class="form-grid" [formGroup]="form" (ngSubmit)="submit()">
+        <div class="full-width tipo-selector">
+          <mat-radio-group formControlName="tipo" aria-label="Tipo de organización">
+            <mat-radio-button value="comunidad">
+              Comunidad (comedor, club, centro barrial)
+            </mat-radio-button>
+            <mat-radio-button value="ong">
+              ONG / Fundación (dona o distribuye recursos)
+            </mat-radio-button>
+            @if (!esRegistroAsistido) {
+            <mat-radio-button value="moderador">
+              Municipio (organismo público)
+            </mat-radio-button>
+            }
+          </mat-radio-group>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            {{ tipoSeleccionado() === 'moderador' ? 'Nombre del municipio' : 'Nombre de la comunidad u ONG' }}
+          </mat-label>
+          <input matInput type="text" maxlength="150" formControlName="organizationName"
+            [placeholder]="tipoSeleccionado() === 'moderador' ? 'Ej.: Municipalidad de Alta Gracia' : 'Ej.: Comedor Los Pinos'" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre del responsable/encargado</mat-label>
+          <input matInput type="text" formControlName="firstName" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Apellido del responsable/encargado</mat-label>
+          <input matInput type="text" formControlName="lastName" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Correo</mat-label>
+          <input matInput type="email" formControlName="email" placeholder="organizacion@ejemplo.com" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Contraseña</mat-label>
+          <input matInput type="password" formControlName="password" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Teléfono</mat-label>
+          <input matInput type="text" formControlName="phone" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Calle</mat-label>
+          <input matInput type="text" maxlength="150" formControlName="calle"
+            placeholder="Ej.: San Martín" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Número</mat-label>
+          <input matInput type="text" maxlength="20" formControlName="numero"
+            placeholder="Ej.: 1234" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Ciudad</mat-label>
+          <input matInput type="text" maxlength="100" formControlName="ciudad"
+            placeholder="Ej.: La Falda" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Código postal</mat-label>
+          <input matInput type="text" maxlength="20" formControlName="codigoPostal"
+            placeholder="Ej.: 5172" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Departamento (opcional)</mat-label>
+          <input matInput type="text" maxlength="100" formControlName="departamento"
+            placeholder="Ej.: Punilla" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Provincia</mat-label>
+          <input matInput type="text" maxlength="100" formControlName="provincia" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Horarios de atención</mat-label>
+          <input matInput type="text" maxlength="255" formControlName="schedule"
+            placeholder="Ej.: lunes a viernes de 9 a 18" />
+        </mat-form-field>
+
+        <div class="full-width">
+          <p class="field-label">Ubicación en el mapa</p>
+
+          <p class="location-hint">
+            Con la calle, el número, la ciudad y el código postal ubicamos el
+            pin automáticamente. Si no quedó en el lugar exacto, hacé clic en
+            el mapa para ajustarlo.
+          </p>
+
+          @if (buscandoUbicacion()) {
+          <p class="location-status">Buscando la ubicación...</p>
+          }
+
+          @if (ubicacionEncontrada() && !buscandoUbicacion()) {
+          <p class="location-status location-status--ok">
+            Ubicación encontrada automáticamente. Podés ajustarla haciendo
+            clic en el mapa si no es exacta.
+          </p>
+          }
+
+          @if (ubicacionSinResultado() && !buscandoUbicacion()) {
+          <p class="location-status location-status--error">
+            No pudimos ubicar esa dirección automáticamente. Marcá el punto
+            exacto haciendo clic en el mapa.
+          </p>
+          }
+
+          <app-location-picker
+            (locationSelected)="onLocationSelected($event)"
+          ></app-location-picker>
+        </div>
+
+        <div class="full-width">
+          <p class="field-label">¿Qué tipos de recursos ofrece?</p>
+
+          <div class="categorias-grid" [formGroup]="categoriasForm">
+            @for (categoria of categorias; track categoria.id) {
+            <mat-checkbox [formControlName]="categoria.id">
+              {{ categoria.nombre }}
+            </mat-checkbox>
+            }
+          </div>
+        </div>
+
+        @if (successMessage()) {
+        <p class="form-message success-message full-width">{{ successMessage() }}</p>
+        }
+
+        @if (errorMessage()) {
+        <p class="form-message error-message full-width">{{ errorMessage() }}</p>
+        }
+
+        <div class="form-actions full-width">
+          <a mat-button routerLink="/login">Ya tengo cuenta</a>
+
+          <button mat-flat-button color="primary" type="submit" [disabled]="isSubmitting()">
+            {{ isSubmitting() ? 'Registrando...' : 'Registrar organización' }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</section>
