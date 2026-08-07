@@ -9,6 +9,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { NeedsModule } from './modules/needs/needs.module';
 import { ResourcesModule } from './modules/resources/resources.module';
+import { SolicitudesModule } from './modules/solicitudes/solicitudes.module';
 import { StatsModule } from './modules/stats/stats.module';
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { StatsModule } from './modules/stats/stats.module';
     CategoriesModule,
     NeedsModule,
     ResourcesModule,
+    SolicitudesModule,
     StatsModule,
   ],
   controllers: [AppController],

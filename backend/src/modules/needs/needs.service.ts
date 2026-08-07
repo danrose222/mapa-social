@@ -39,10 +39,26 @@ export class NeedsService {
   async create(userId: number, dto: CreateNeedDto) {
     const user = await this.userRepository.findOne({
       where: { id: userId },
+      relations: ['role'],
     });
 
     if (!user) {
       throw new NotFoundException('Usuario inexistente');
+    }
+
+    // Un ciudadano no publica "necesidades": pide ayuda solicitando un
+    // recurso puntual desde el mapa. Publicar una necesidad institucional es
+    // cosa de comunidades y ONGs. El municipio no registra necesidades
+    // propias (esa responsabilidad es del gobierno provincial, no del
+    // municipio ni de una ONG/comunidad ajena): solo ofrece recursos, y
+    // recibe solicitudes puntuales de las comunidades cuando necesitan algo.
+    const isApprovedOrganization =
+      ['comunidad', 'ong'].includes(user.role.name) && user.approved;
+
+    if (!isApprovedOrganization) {
+      throw new ForbiddenException(
+        'Solo una comunidad u ONG puede registrar una necesidad. Si necesitás ayuda, usá "Solicitar ayuda" desde el mapa.',
+      );
     }
 
     const category = await this.categoryRepository.findOne({

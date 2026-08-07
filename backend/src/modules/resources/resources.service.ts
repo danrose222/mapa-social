@@ -36,10 +36,21 @@ export class ResourcesService {
   async create(userId: number, dto: CreateResourceDto) {
     const user = await this.userRepository.findOne({
       where: { id: userId },
+      relations: ['role'],
     });
 
     if (!user) {
       throw new NotFoundException('Usuario inexistente');
+    }
+
+    const isModerator = user.role.name === 'moderador';
+    const isApprovedOrganization =
+      ['comunidad', 'ong'].includes(user.role.name) && user.approved;
+
+    if (!isModerator && !isApprovedOrganization) {
+      throw new ForbiddenException(
+        'Solo una comunidad u ONG aprobada por un moderador puede publicar recursos',
+      );
     }
 
     const category = await this.categoryRepository.findOne({

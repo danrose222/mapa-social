@@ -6,10 +6,12 @@ import {
 
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 import { User } from './entities/user.entity';
 import { Role } from '../roles/entities/role.entity';
+import { Category } from '../categories/entities/category.entity';
+import { Need } from '../needs/entities/need.entity';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -17,7 +19,14 @@ import { UpdateUserDto } from './dto/update-user.dto';
 interface AuthUser {
   id: number;
   role: string;
+  ciudad?: string;
 }
+
+// Comunidad (comedor/club) y ong (fundacion) son los roles que ofrecen o
+// solicitan recursos a nombre de una organizacion: un moderador (municipio)
+// tiene que aprobarlos antes de que puedan publicar. Ciudadano y moderador
+// quedan aprobados automaticamente.
+const ROLES_QUE_REQUIEREN_APROBACION = ['comunidad', 'ong'];
 
 @Injectable()
 export class UsersService {
@@ -27,9 +36,64 @@ export class UsersService {
 
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
+
+    @InjectRepository(Need)
+    private readonly needRepository: Repository<Need>,
   ) {}
 
-  async create(dto: CreateUserDto) {
+  // Capa pública para donantes: comunidades en estado crítico, visible sin
+  // login. A propósito NO devuelve la ubicación exacta ni la dirección —
+  // redondea lat/lng a ~1km de precisión (zona aproximada, no la puerta de
+  // la casa de una familia vulnerable) — ni expone approved=false (una
+  // comunidad todavía no avalada no debería recibir donaciones directas).
+  // "Qué necesita" no es un campo propio: se deriva de las categorías de
+  // sus propias Necesidades activas, así no hace falta una columna nueva.
+  async findComunidadesCriticasPublico() {
+    const comunidades = await this.userRepository.find({
+      where: { role: { name: 'comunidad' }, estadoAyuda: 'critico', approved: true },
+      relations: ['role'],
+    });
+
+    const conUbicacion = comunidades.filter(
+      (u) => u.latitude != null && u.longitude != null,
+    );
+
+    return Promise.all(
+      conUbicacion.map(async (u) => {
+        const necesidades = await this.needRepository.find({
+          where: { userId: u.id, status: 'active' },
+          relations: ['category'],
+        });
+
+        const necesita = [
+          ...new Set(
+            necesidades
+              .map((n) => n.category?.name)
+              .filter((nombre): nombre is string => !!nombre),
+          ),
+        ];
+
+        return {
+          id: u.id,
+          nombre: u.organizationName ?? `${u.firstName} ${u.lastName}`,
+          ciudad: u.ciudad,
+          // Redondeo a 2 decimales (~1.1km): zona aproximada, no la
+          // ubicación exacta del dispositivo.
+          lat: Math.round(Number(u.latitude) * 100) / 100,
+          lng: Math.round(Number(u.longitude) * 100) / 100,
+          horario: u.schedule,
+          necesita,
+        };
+      }),
+    );
+  }
+
+  async create(dto: CreateUserDto, autoAprobar = false) {
+    const { offeredCategoryIds, ...rest } = dto;
+
     const role = await this.roleRepository.findOne({
       where: {
         id: dto.roleId,
@@ -40,14 +104,141 @@ export class UsersService {
       throw new NotFoundException('Rol inexistente');
     }
 
-    const user = this.userRepository.create(dto);
+    // El perfil institucional (nombre de organizacion, ubicacion, horario,
+    // categorias que ofrece) solo tiene sentido para comunidad/ong.
+    const offeredCategories = offeredCategoryIds?.length
+      ? await this.categoryRepository.find({
+          where: { id: In(offeredCategoryIds) },
+        })
+      : [];
+
+    // Una comunidad u ong nace sin aprobar: no puede publicar recursos hasta
+    // que un moderador la valide. Los demás roles no pasan por este control.
+    // Excepcion: si un moderador la registra el mismo (tramite presencial en
+    // la municipalidad), ya quedo validada en persona y nace aprobada.
+    const user = this.userRepository.create({
+      ...rest,
+      offeredCategories,
+      approved:
+        autoAprobar || !ROLES_QUE_REQUIEREN_APROBACION.includes(role.name),
+    });
 
     return this.userRepository.save(user);
   }
 
-  findAll() {
+  // Un moderador solo administra las comunidades/ongs de su propia
+  // jurisdiccion (su ciudad). Si por algun motivo no tiene ciudad cargada,
+  // no filtramos (TypeORM ignora una condicion undefined) para no dejarlo
+  // sin ver nada.
+  findAll(moderadorCiudad?: string) {
     return this.userRepository.find({
+      where: moderadorCiudad
+        ? { ciudad: moderadorCiudad, role: { name: In(ROLES_QUE_REQUIEREN_APROBACION) } }
+        : {},
+      relations: ['role', 'offeredCategories'],
+      order: {
+        id: 'ASC',
+      },
+    });
+  }
+
+  // A quien le puede pedir ayuda directamente cada rol:
+  // - comunidad: al moderador (municipio) de su propia jurisdiccion, y a
+  //   cualquier ong ya aprobada.
+  // - ong: solo a otra ong ya aprobada (nunca al municipio, que unicamente
+  //   la aprueba pero no le da asistencia directa).
+  // Devuelve solo los campos necesarios para elegir destinatario, sin datos
+  // sensibles de la cuenta.
+  async findDirectorioAyuda(solicitante: {
+    id: number;
+    role: string;
+    ciudad?: string;
+  }) {
+    const where =
+      solicitante.role === 'ong'
+        ? [{ approved: true, role: { name: 'ong' as const } }]
+        : [
+            {
+              approved: true,
+              role: { name: 'moderador' as const },
+              ciudad: solicitante.ciudad,
+            },
+            {
+              approved: true,
+              role: { name: 'ong' as const },
+            },
+          ];
+
+    const destinatarios = await this.userRepository.find({
+      where,
       relations: ['role'],
+      order: { organizationName: 'ASC' },
+    });
+
+    return destinatarios
+      .filter((usuario) => usuario.id !== solicitante.id)
+      .map((usuario) => ({
+        id: usuario.id,
+        organizationName:
+          usuario.organizationName ??
+          `${usuario.firstName} ${usuario.lastName}`,
+        ciudad: usuario.ciudad,
+        role: usuario.role.name,
+        // Se usa tambien para ubicar al Municipio/ONGs en el mapa de una
+        // comunidad logueada (ver mapa.component.ts): son cuentas de
+        // organizacion, no personas, asi que exponer su ubicacion exacta
+        // es el mismo criterio ya usado en findAll() para el moderador.
+        latitude: usuario.latitude,
+        longitude: usuario.longitude,
+      }));
+  }
+
+  // A quien se le puede derivar:
+  // - comunidad/ong: a cualquier otra comunidad u ong aprobada (excluyendo a
+  //   quien deriva), sin importar jurisdiccion, porque lo que importa es
+  //   quien tenga el recurso disponible.
+  // - moderador: solo a las comunidades/ongs aprobadas de su propia
+  //   jurisdiccion (las que el mismo ya avalo), no a todo el listado
+  //   nacional.
+  async findDirectorioDerivar(solicitante: {
+    id: number;
+    role: string;
+    ciudad?: string;
+  }) {
+    const entidades = await this.userRepository.find({
+      where: {
+        approved: true,
+        role: { name: In(['comunidad', 'ong']) },
+        ...(solicitante.role === 'moderador'
+          ? { ciudad: solicitante.ciudad }
+          : {}),
+      },
+      relations: ['role'],
+      order: { organizationName: 'ASC' },
+    });
+
+    return entidades
+      .filter((usuario) => usuario.id !== solicitante.id)
+      .map((usuario) => ({
+        id: usuario.id,
+        organizationName:
+          usuario.organizationName ??
+          `${usuario.firstName} ${usuario.lastName}`,
+        ciudad: usuario.ciudad,
+        role: usuario.role.name,
+      }));
+  }
+
+  findPendingApprovals(moderadorCiudad?: string) {
+    return this.userRepository.find({
+      where: {
+        approved: false,
+        ciudad: moderadorCiudad,
+        role: {
+          name: In(ROLES_QUE_REQUIEREN_APROBACION),
+        },
+      },
+      relations: ['role', 'offeredCategories'],
       order: {
         id: 'ASC',
       },
@@ -57,7 +248,7 @@ export class UsersService {
   async findOne(id: number) {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['role'],
+      relations: ['role', 'offeredCategories'],
     });
 
     if (!user) {
@@ -90,6 +281,13 @@ export class UsersService {
     // Si no, cualquier usuario podría auto-ascenderse mandando roleId en el body.
     if (dto.roleId !== undefined && !isModerator) {
       throw new ForbiddenException('No podés cambiar tu propio rol');
+    }
+
+    // Solo un moderador puede aprobar (o desaprobar) una comunidad u ong.
+    if (dto.approved !== undefined && !isModerator) {
+      throw new ForbiddenException(
+        'Solo un moderador puede aprobar una comunidad u organización',
+      );
     }
 
     if (dto.roleId) {

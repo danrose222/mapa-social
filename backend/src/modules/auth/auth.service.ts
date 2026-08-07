@@ -54,6 +54,11 @@ export class AuthService {
         lastName: user.lastName,
         email: user.email,
         role: user.role.name,
+        estadoAyuda: user.estadoAyuda,
+        organizationName: user.organizationName,
+        ciudad: user.ciudad,
+        latitude: user.latitude,
+        longitude: user.longitude,
       },
     };
   }

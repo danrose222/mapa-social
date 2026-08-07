@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 
@@ -24,6 +25,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 interface AuthUser {
   id: number;
   role: string;
+  ciudad?: string;
 }
 
 @ApiTags('Users')
@@ -36,12 +38,65 @@ export class UsersController {
     return this.service.create(dto);
   }
 
+  // Alta de una comunidad/ong hecha por un moderador (tramite presencial en
+  // la municipalidad, con un asistente): ya quedo validada en persona, asi
+  // que nace aprobada, sin pasar por el paso de "pendientes de aprobar".
+  @Post('registrar-asistida')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('moderador')
+  @ApiBearerAuth()
+  createAsistida(@Body() dto: CreateUserDto) {
+    return this.service.create(dto, true);
+  }
+
+  // Por defecto, solo la propia jurisdiccion (comportamiento historico, del
+  // que dependen panel-municipio y organizaciones-pendientes). El mapa del
+  // moderador pide ?scope=all para ver a toda la red y priorizar la propia
+  // jurisdiccion en el frontend (ver mapa.component.ts), en vez de perderse
+  // las comunidades/ONGs de otras ciudades.
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('moderador')
   @ApiBearerAuth()
-  findAll() {
-    return this.service.findAll();
+  findAll(@CurrentUser() user: AuthUser, @Query('scope') scope?: string) {
+    return this.service.findAll(scope === 'all' ? undefined : user.ciudad);
+  }
+
+  @Get('pending-approvals')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('moderador')
+  @ApiBearerAuth()
+  findPendingApprovals(@CurrentUser() user: AuthUser) {
+    return this.service.findPendingApprovals(user.ciudad);
+  }
+
+  // Capa pública para donantes (mapa, sin login): comunidades en estado
+  // crítico. Sin guard a propósito. Devuelve ubicación aproximada y "qué
+  // necesita" derivado de sus propias Necesidades activas — ver el
+  // comentario en el service para el porqué de cada recorte de datos.
+  @Get('comunidades-criticas-publico')
+  findComunidadesCriticasPublico() {
+    return this.service.findComunidadesCriticasPublico();
+  }
+
+  // Cualquier usuario logueado (comunidad u ong) necesita ver a quien le
+  // puede pedir ayuda directamente. No requiere ser moderador.
+  @Get('directorio-ayuda')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  findDirectorioAyuda(@CurrentUser() user: AuthUser) {
+    return this.service.findDirectorioAyuda(user);
+  }
+
+  // A quien se le puede derivar: una comunidad/ong deriva a cualquier otra
+  // comunidad u ong aprobada (lo que importa es quien tenga el recurso
+  // disponible, sin importar jurisdiccion); un moderador deriva solo a las
+  // comunidades/ongs de su propia jurisdiccion, que ya aprobo el mismo.
+  @Get('directorio-derivar')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  findDirectorioDerivar(@CurrentUser() user: AuthUser) {
+    return this.service.findDirectorioDerivar(user);
   }
 
   @Get(':id')
