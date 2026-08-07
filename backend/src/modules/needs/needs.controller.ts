@@ -26,7 +26,6 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 interface AuthUser {
   id: number;
   role: string;
-  organizationId?: number | null;
 }
 
 @ApiTags('Needs')
@@ -40,11 +39,9 @@ export class NeedsController {
   ): Need {
     const isModerator = user?.role === 'moderador';
     const isOwner = user?.id === item.userId;
-    const isSameOrganization =
-      user?.organizationId != null &&
-      user.organizationId === item.organizationId;
+    const belongsToOrganization = item.organizationId != null;
 
-    if (isModerator || isOwner || isSameOrganization) {
+    if (isModerator || isOwner || belongsToOrganization) {
       return item;
     }
 
@@ -67,7 +64,7 @@ export class NeedsController {
   @ApiBearerAuth()
   @ApiOperation({
     summary:
-      'Listar todas las necesidades (público; el contacto se oculta salvo para el dueño, su organización o un moderador)',
+      'Listar todas las necesidades (público; el contacto es visible si la publicación pertenece a una organización, o para el dueño/moderador)',
   })
   @ApiResponse({ status: 200, description: 'Listado de necesidades' })
   async findAll(@CurrentUser() user: AuthUser | null) {

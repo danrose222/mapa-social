@@ -25,7 +25,6 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 interface AuthUser {
   id: number;
   role: string;
-  organizationId?: number | null;
 }
 
 @ApiTags('Resources')
@@ -39,11 +38,9 @@ export class ResourcesController {
   ): Resource {
     const isModerator = user?.role === 'moderador';
     const isOwner = user?.id === item.userId;
-    const isSameOrganization =
-      user?.organizationId != null &&
-      user.organizationId === item.organizationId;
+    const belongsToOrganization = item.organizationId != null;
 
-    if (isModerator || isOwner || isSameOrganization) {
+    if (isModerator || isOwner || belongsToOrganization) {
       return item;
     }
 
@@ -73,7 +70,7 @@ export class ResourcesController {
   @ApiBearerAuth()
   @ApiOperation({
     summary:
-      'Listar todos los recursos (público; el contacto se oculta salvo para el dueño, su organización o un moderador)',
+      'Listar todos los recursos (público; el contacto es visible si el recurso pertenece a una organización, o para el dueño/moderador)',
   })
   @ApiResponse({ status: 200, description: 'Listado de recursos' })
   async findAll(@CurrentUser() user: AuthUser | null) {
