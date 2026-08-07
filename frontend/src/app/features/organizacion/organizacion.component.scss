@@ -26,6 +26,25 @@
   line-height: 1.6;
 }
 
+.website-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 8px 16px;
+  color: var(--color-white);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  background-color: var(--color-secondary);
+  border-radius: 999px;
+  transition: background-color 160ms ease;
+}
+
+.website-badge:hover {
+  background-color: #3d7350;
+}
+
 .eyebrow {
   margin: 0;
   color: var(--color-accent);

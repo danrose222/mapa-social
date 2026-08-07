@@ -13,6 +13,7 @@ interface UsuarioOrganizacion {
   organizationName?: string;
   address?: string;
   schedule?: string;
+  websiteUrl?: string;
   approved: boolean;
   estadoAyuda: 'estable' | 'critico';
   role: { name: 'comunidad' | 'ong' | string };

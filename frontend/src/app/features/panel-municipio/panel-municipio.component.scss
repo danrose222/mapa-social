@@ -79,6 +79,16 @@
   color: var(--color-text-secondary);
 }
 
+.website-link {
+  color: var(--color-secondary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.website-link:hover {
+  text-decoration: underline;
+}
+
 .beacon {
   display: inline-block;
   width: 10px;

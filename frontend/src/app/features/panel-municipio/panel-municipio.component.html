@@ -102,6 +102,19 @@
           <p class="stats-label">Horario: {{ ong.schedule }}</p>
           }
 
+          @if (ong.websiteUrl) {
+          <p class="stats-label">
+            <a
+              [href]="ong.websiteUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="website-link"
+            >
+              🔗 Ver sitio / red social
+            </a>
+          </p>
+          }
+
           @if (ong.offeredCategories?.length) {
           <p class="stats-label">
             Ofrece: {{ ong.offeredCategories!.map(c => c.name).join(', ') }}

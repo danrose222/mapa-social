@@ -81,6 +81,16 @@
   margin-top: auto;
 }
 
+.website-link {
+  color: var(--color-secondary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.website-link:hover {
+  text-decoration: underline;
+}
+
 .stats-total {
   margin: 0;
   color: var(--color-primary);

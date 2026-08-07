@@ -113,6 +113,7 @@ export class RegistroOrganizacionComponent {
     departamento: ['', [Validators.maxLength(100)]],
     provincia: ['Córdoba', [Validators.required, Validators.maxLength(100)]],
     schedule: ['', [Validators.required, Validators.maxLength(255)]],
+    websiteUrl: ['', [Validators.maxLength(255)]],
     latitude: [0],
     longitude: [0],
   });
@@ -312,6 +313,10 @@ export class RegistroOrganizacionComponent {
       // La jurisdiccion del moderador se define por esta misma ciudad: le
       // permite ver, aprobar y ofrecer recursos a esta organizacion.
       ciudad: ciudad.trim(),
+      // Vacío no es lo mismo que "sin dato": el DTO valida que sea una URL
+      // si viene, así que si el campo quedó en blanco no se manda la clave
+      // (undefined se cae del JSON), en vez de mandar '' y romper la validación.
+      websiteUrl: datosOrganizacion.websiteUrl?.trim() || undefined,
       offeredCategoryIds: this.categoriasSeleccionadas(),
       roleId: ROLE_ID_POR_TIPO[tipo],
     };

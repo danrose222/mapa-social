@@ -13,6 +13,7 @@ interface OrganizacionPendiente {
   organizationName?: string;
   address?: string;
   schedule?: string;
+  websiteUrl?: string;
   role: { name: 'comunidad' | 'ong' };
   offeredCategories?: { id: number; name: string }[];
 }

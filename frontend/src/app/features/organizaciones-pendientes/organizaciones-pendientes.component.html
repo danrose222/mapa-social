@@ -44,6 +44,19 @@
         <p class="stats-label">Horario: {{ organizacion.schedule }}</p>
         }
 
+        @if (organizacion.websiteUrl) {
+        <p class="stats-label">
+          <a
+            [href]="organizacion.websiteUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="website-link"
+          >
+            🔗 Ver sitio / red social
+          </a>
+        </p>
+        }
+
         @if (organizacion.offeredCategories?.length) {
         <p class="stats-label">
           Ofrece:

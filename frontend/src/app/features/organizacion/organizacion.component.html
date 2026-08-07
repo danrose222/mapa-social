@@ -5,6 +5,17 @@
     <h1>{{ nombre }}</h1>
 
     <p>Recursos publicados por esta organización.</p>
+
+    @if (websiteUrl(); as sitio) {
+    <a
+      [href]="sitio"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="website-badge"
+    >
+      🔗 Sitio web / red social de la organización
+    </a>
+    }
   </header>
 
   @if (isLoading()) {

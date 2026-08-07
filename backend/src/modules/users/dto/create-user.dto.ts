@@ -7,6 +7,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUrl,
   MinLength,
 } from 'class-validator';
 
@@ -86,6 +87,16 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   schedule?: string;
+
+  @ApiProperty({
+    example: 'https://fundacionejemplo.org',
+    required: false,
+    description:
+      'Solo aplica a ong: sitio web o red social que avale su autenticidad',
+  })
+  @IsOptional()
+  @IsUrl()
+  websiteUrl?: string;
 
   @ApiProperty({
     example: -31.4201,

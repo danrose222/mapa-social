@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 import { MatCardModule } from '@angular/material/card';
@@ -9,6 +9,11 @@ interface RecursoOrganizacion {
   description: string;
   schedule?: string;
   address?: string;
+  // Solo se usa el de la primera necesidad de la lista para el link de
+  // "avalar autenticidad" en el encabezado (ver websiteUrl()): todos los
+  // recursos de esta respuesta son de la misma organización, así que
+  // cualquiera de ellos trae el mismo dato.
+  user?: { websiteUrl?: string };
 }
 
 @Component({
@@ -25,6 +30,12 @@ export class OrganizacionComponent implements OnInit {
   readonly recursos = signal<RecursoOrganizacion[]>([]);
   readonly isLoading = signal(true);
   readonly errorMessage = signal('');
+
+  // Señal de autenticidad de la organización, no de un recurso puntual: se
+  // muestra en el encabezado de la página, no en cada tarjeta.
+  readonly websiteUrl = computed(
+    () => this.recursos()[0]?.user?.websiteUrl,
+  );
 
   ngOnInit(): void {
     this.nombre = this.route.snapshot.paramMap.get('nombre') ?? '';

@@ -115,6 +115,19 @@
             placeholder="Ej.: lunes a viernes de 9 a 18" />
         </mat-form-field>
 
+        @if (tipoSeleccionado() === 'ong') {
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Sitio web o red social (opcional)</mat-label>
+          <input matInput type="url" maxlength="255" formControlName="websiteUrl"
+            placeholder="https://tuong.org" />
+          <mat-hint>
+            Un link donde se pueda verificar que tu ONG es real: tu sitio,
+            tu página de Facebook/Instagram, o tu perfil en algún registro
+            oficial.
+          </mat-hint>
+        </mat-form-field>
+        }
+
         <div class="full-width">
           <p class="field-label">Ubicación en el mapa</p>
 

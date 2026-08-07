@@ -88,6 +88,16 @@ export class User extends BaseEntity {
   })
   schedule?: string;
 
+  // Solo tiene sentido para el rol 'ong': un link (sitio propio, red social,
+  // página de la fundación) que un donante o el municipio puede visitar
+  // para verificar que la organización es real antes de confiar en ella.
+  @Column({
+    name: 'website_url',
+    nullable: true,
+    length: 255,
+  })
+  websiteUrl?: string;
+
   @Column({
     type: 'decimal',
     precision: 10,
