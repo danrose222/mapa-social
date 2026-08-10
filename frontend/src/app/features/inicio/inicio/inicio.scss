@@ -228,6 +228,55 @@ h1 {
   font-size: 0.85rem;
 }
 
+.solicitud-tarjeta--skeleton {
+  .solicitud-tarjeta-meta {
+    margin-top: 8px;
+  }
+}
+
+.skeleton-line {
+  display: inline-block;
+  height: 14px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--color-background-dark) 25%,
+    var(--color-surface-secondary) 50%,
+    var(--color-background-dark) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-line--titulo {
+  width: 55%;
+}
+
+.skeleton-line--badge {
+  width: 70px;
+  height: 20px;
+  border-radius: 999px;
+}
+
+.skeleton-line--meta {
+  width: 40%;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-line {
+    animation: none;
+  }
+}
+
 .solicitud-puntuar-btn {
   display: inline-flex;
   align-items: center;

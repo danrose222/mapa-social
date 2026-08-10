@@ -22,7 +22,11 @@ interface SolicitudMiaResumen {
   id: number;
   status: string;
   createdAt: string;
-  resource: { id: number; title: string; organizationName?: string };
+  // Ausente cuando la solicitud es un pedido de ayuda directo (a un
+  // municipio u ONG) en vez de sobre un recurso puntual ya publicado.
+  resource?: { id: number; title: string; organizationName?: string };
+  target?: { id: number; organizationName?: string; firstName: string; lastName: string };
+  category?: { id: number; name: string };
 }
 
 interface SolicitudRecibidaResumen {
@@ -325,6 +329,25 @@ export class Inicio implements OnInit, OnDestroy {
       solicitud.contactName ??
       `${solicitud.user.firstName} ${solicitud.user.lastName}`
     );
+  }
+
+  // Mismo caso que tituloRecibida/subtituloRecibida de arriba, pero para
+  // las propias solicitudes del ciudadano: un pedido de ayuda directo (a
+  // un municipio u ONG) tampoco tiene un recurso asociado.
+  tituloMiSolicitud(solicitud: SolicitudMiaResumen): string {
+    if (solicitud.resource) {
+      return solicitud.resource.title;
+    }
+
+    return `Pedido de ayuda: ${solicitud.category?.name ?? ''}`;
+  }
+
+  organizacionMiSolicitud(solicitud: SolicitudMiaResumen): string | undefined {
+    if (solicitud.resource) {
+      return solicitud.resource.organizationName;
+    }
+
+    return solicitud.target?.organizationName;
   }
 
   ngOnInit(): void {

@@ -48,7 +48,19 @@
     @if (esCiudadano()) {
       <div class="dashboard-panel">
         @if (cargandoSolicitudes()) {
-          <p class="dashboard-status">Cargando tus solicitudes...</p>
+          <ul class="solicitudes-tarjetas" aria-hidden="true">
+            @for (i of [1, 2, 3]; track i) {
+              <li class="solicitud-tarjeta solicitud-tarjeta--skeleton">
+                <div class="solicitud-tarjeta-fila">
+                  <span class="skeleton-line skeleton-line--titulo"></span>
+                  <span class="skeleton-line skeleton-line--badge"></span>
+                </div>
+                <div class="solicitud-tarjeta-meta">
+                  <span class="skeleton-line skeleton-line--meta"></span>
+                </div>
+              </li>
+            }
+          </ul>
         } @else if (!misSolicitudes().length) {
           <p class="dashboard-status">
             Todavía no pediste ayuda. Buscá un recurso en el mapa cuando lo
@@ -59,7 +71,7 @@
             @for (solicitud of misSolicitudes(); track solicitud.id) {
               <li class="solicitud-tarjeta">
                 <div class="solicitud-tarjeta-fila">
-                  <span class="solicitud-titulo">{{ solicitud.resource.title }}</span>
+                  <span class="solicitud-titulo">{{ tituloMiSolicitud(solicitud) }}</span>
 
                   <span
                     class="estado-badge"
@@ -76,8 +88,8 @@
                 <div class="solicitud-tarjeta-meta">
                   <span>{{ formatearFechaSolicitud(solicitud.createdAt) }}</span>
 
-                  @if (solicitud.resource.organizationName) {
-                    <span class="solicitud-org">{{ solicitud.resource.organizationName }}</span>
+                  @if (organizacionMiSolicitud(solicitud)) {
+                    <span class="solicitud-org">{{ organizacionMiSolicitud(solicitud) }}</span>
                   }
                 </div>
 
