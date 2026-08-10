@@ -57,16 +57,24 @@ export class UsersService {
       relations: ['role'],
     });
 
-    const conUbicacion = comunidades.filter(
-      (u) => u.latitude != null && u.longitude != null,
-    );
-
-    return Promise.all(
-      conUbicacion.map(async (u) => {
-        const necesidades = await this.needRepository.find({
+    const conNecesidades = await Promise.all(
+      comunidades.map(async (u) => ({
+        usuario: u,
+        necesidades: await this.needRepository.find({
           where: { userId: u.id, status: 'active' },
           relations: ['category'],
-        });
+        }),
+      })),
+    );
+
+    return conNecesidades
+      .map(({ usuario: u, necesidades }) => {
+        // La comunidad no siempre tiene su propia latitud/longitud cargada
+        // (se completa recién si edita su perfil): mientras tanto, se usa
+        // la ubicación de su necesidad activa más reciente como respaldo,
+        // para no perder de la capa a comunidades que sí están publicando.
+        const latitude = u.latitude ?? necesidades[0]?.latitude ?? null;
+        const longitude = u.longitude ?? necesidades[0]?.longitude ?? null;
 
         const necesita = [
           ...new Set(
@@ -82,13 +90,13 @@ export class UsersService {
           ciudad: u.ciudad,
           // Redondeo a 2 decimales (~1.1km): zona aproximada, no la
           // ubicación exacta del dispositivo.
-          lat: Math.round(Number(u.latitude) * 100) / 100,
-          lng: Math.round(Number(u.longitude) * 100) / 100,
+          lat: latitude != null ? Math.round(Number(latitude) * 100) / 100 : null,
+          lng: longitude != null ? Math.round(Number(longitude) * 100) / 100 : null,
           horario: u.schedule,
           necesita,
         };
-      }),
-    );
+      })
+      .filter((c) => c.lat != null && c.lng != null);
   }
 
   async create(dto: CreateUserDto, autoAprobar = false) {
