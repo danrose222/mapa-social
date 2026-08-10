@@ -402,6 +402,15 @@ async function seed(): Promise<void> {
        WHERE NOT EXISTS (SELECT 1 FROM needs WHERE title = 'Busco trabajo o capacitacion')`,
     );
 
+    // Comedor Manitos Unidas tambien ofrece, no solo necesita (ademas de la
+    // necesidad ya cargada mas arriba): sirve viandas con lo que sí tiene.
+    await queryRunner.query(
+      `INSERT INTO resources (user_id, category_id, title, description, latitude, longitude, address, organization_name, schedule, contact_info, status, created_at, updated_at)
+       SELECT 6, 3, 'Viandas y meriendas Manitos Unidas', 'Servimos viandas calientes y meriendas a familias del barrio con lo que tenemos disponible.', -31.4298, -64.1946, 'Barrio Alto Alberdi', 'Comedor Manitos Unidas', 'Lunes a viernes de 12 a 15', 'comedor.manitosunidas@example.com', 'available', NOW(), NOW()
+       FROM DUAL
+       WHERE NOT EXISTS (SELECT 1 FROM resources WHERE title = 'Viandas y meriendas Manitos Unidas')`,
+    );
+
     await queryRunner.commitTransaction();
 
     // eslint-disable-next-line no-console
