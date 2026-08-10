@@ -116,6 +116,11 @@ interface ComunidadCriticaPublica {
 // puntual): así el moderador ve a toda la red en el mapa, incluso a
 // quienes todavía no publicaron nada. enJurisdiccion marca si es de su
 // propia ciudad, para priorizarla visualmente sobre el resto de la red.
+// critico es el estado_ayuda autodeclarado de la comunidad — a diferencia
+// del pin "urgent" (solicitud pendiente dirigida al moderador), este es
+// el único lugar donde el moderador ve el estado crítico de su propia
+// jurisdicción, ya que la capa pública para donantes se le oculta a él
+// a propósito (ver cargarComunidadesCriticasPublico).
 interface OrganizacionJurisdiccion {
   id: number;
   nombre: string;
@@ -123,6 +128,7 @@ interface OrganizacionJurisdiccion {
   lng: number;
   tipo: 'comunidad' | 'ong';
   enJurisdiccion: boolean;
+  critico: boolean;
 }
 
 // Mismo endpoint que ya usa "Mis solicitudes" para armar el selector de
@@ -2676,21 +2682,30 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
 
       this.organizacionesJurisdiccion = (usersJson as any[])
         .filter(
-          (u) =>
-            u.approved &&
-            (u.role?.name === 'comunidad' || u.role?.name === 'ong') &&
-            u.latitude != null &&
-            u.longitude != null,
+          (u) => u.approved && (u.role?.name === 'comunidad' || u.role?.name === 'ong'),
         )
-        .map((u) => ({
-          id: u.id,
-          nombre: u.organizationName ?? `${u.firstName} ${u.lastName}`,
-          lat: Number(u.latitude),
-          lng: Number(u.longitude),
-          tipo: u.role.name as 'comunidad' | 'ong',
-          enJurisdiccion:
-            !!miCiudad && u.ciudad?.trim().toLowerCase() === miCiudad,
-        }));
+        .map((u) => {
+          // La organización no siempre tiene su propia latitud/longitud
+          // cargada (recién se completa si edita su perfil): mientras
+          // tanto, se usa la de su necesidad activa más reciente como
+          // respaldo, para no perderla del mapa del moderador — mismo
+          // criterio que findComunidadesCriticasPublico en el backend.
+          const necesidadPropia = this.necesidades.find(
+            (necesidad) => necesidad.usuario_id === u.id,
+          );
+
+          return {
+            id: u.id,
+            nombre: u.organizationName ?? `${u.firstName} ${u.lastName}`,
+            lat: Number(u.latitude ?? necesidadPropia?.latitud),
+            lng: Number(u.longitude ?? necesidadPropia?.longitud),
+            tipo: u.role.name as 'comunidad' | 'ong',
+            enJurisdiccion:
+              !!miCiudad && u.ciudad?.trim().toLowerCase() === miCiudad,
+            critico: u.estadoAyuda === 'critico',
+          };
+        })
+        .filter((organizacion) => !isNaN(organizacion.lat) && !isNaN(organizacion.lng));
     } catch {
       // Si falla, simplemente no se muestran organizaciones adicionales.
     }
@@ -2898,19 +2913,27 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
     }
 
     this.organizacionesJurisdiccion.forEach((organizacion) => {
+      // El estado crítico solo se resalta dentro de la propia jurisdicción:
+      // fuera de ella es "referencia del resto de la red", no algo que el
+      // moderador tenga que atender él.
+      const esCriticaEnJurisdiccion =
+        organizacion.critico && organizacion.enJurisdiccion;
+
       this.agregarMarcador(
         organizacion.lat,
         organizacion.lng,
         this.crearIconoOrganizacion(
-          'blue',
+          esCriticaEnJurisdiccion ? 'donar' : 'blue',
           organizacion.tipo,
           !organizacion.enJurisdiccion,
         ),
         organizacion.tipo === 'comunidad' ? 'Comunidad' : 'ONG',
         organizacion.nombre,
-        organizacion.enJurisdiccion
-          ? 'Organización de tu jurisdicción.'
-          : 'Organización de otra jurisdicción — se muestra como referencia del resto de la red.',
+        esCriticaEnJurisdiccion
+          ? 'Organización de tu jurisdicción en estado crítico — avisó que necesita ayuda.'
+          : organizacion.enJurisdiccion
+            ? 'Organización de tu jurisdicción.'
+            : 'Organización de otra jurisdicción — se muestra como referencia del resto de la red.',
       );
 
       bounds.extend([organizacion.lat, organizacion.lng]);
