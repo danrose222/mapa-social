@@ -17,22 +17,35 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-
 interface AuthUser {
   id: number;
   role: string;
 }
-
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly service: UsersService) {}
-
   @Post()
   @ApiOperation({ summary: 'Registrar un usuario nuevo (público, sin login)' })
   @ApiResponse({ status: 201, description: 'Usuario creado (rol por defecto)' })
   create(@Body() dto: CreateUserDto) {
     return this.service.create(dto);
+  }
+
+  // IMPORTANTE: esta ruta va ANTES de @Get(':id'). Si estuviera después,
+  // Nest interpretaría "me" como si fuera el :id numérico y rompería con
+  // ParseIntPipe.
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Ver el propio perfil (cualquier usuario logueado, incluye organizationId/ciudad)',
+  })
+  @ApiResponse({ status: 200, description: 'Perfil del usuario logueado' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  getMe(@CurrentUser() user: AuthUser) {
+    return this.service.findOne(user.id);
   }
 
   @Get()
@@ -46,7 +59,6 @@ export class UsersController {
   findAll() {
     return this.service.findAll();
   }
-
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('moderador')
@@ -62,7 +74,6 @@ export class UsersController {
   ) {
     return this.service.findOne(id);
   }
-
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -86,7 +97,6 @@ export class UsersController {
   ) {
     return this.service.update(id, dto, user);
   }
-
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('moderador')
