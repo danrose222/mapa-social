@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -143,7 +144,7 @@ export class RecursoForm {
 
         localStorage.removeItem('resource_draft');
       },
-      error: (error) => {
+      error: (error: HttpErrorResponse) => {
         this.isSubmitting.set(false);
 
         if (error.status === 401) {
@@ -155,7 +156,8 @@ export class RecursoForm {
 
         if (error.status === 403) {
           this.errorMessage.set(
-            'No tenés permisos para publicar un recurso.',
+            error.error?.message ??
+              'No tenés permisos para publicar un recurso.',
           );
           return;
         }
