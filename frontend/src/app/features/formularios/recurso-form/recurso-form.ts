@@ -143,6 +143,18 @@ export class RecursoForm {
         this.successMessage.set('El recurso se publicó correctamente.');
 
         localStorage.removeItem('resource_draft');
+
+        this.form.reset({
+          title: '',
+          categoryId: 0,
+          description: '',
+          address: '',
+          schedule: '',
+          contactInfo: '',
+          latitude: 0,
+          longitude: 0,
+        });
+        this.hasLocation = false;
       },
       error: (error: HttpErrorResponse) => {
         this.isSubmitting.set(false);

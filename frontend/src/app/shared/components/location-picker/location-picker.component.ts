@@ -3,6 +3,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  Input,
   OnDestroy,
   Output,
   ViewChild,
@@ -10,6 +11,29 @@ import {
 } from '@angular/core';
 
 import * as L from 'leaflet';
+
+type MarkerColor = 'orange' | 'blue';
+
+const MARKER_ICONS: Record<MarkerColor, L.Icon> = {
+  orange: L.icon({
+    iconUrl: 'map-icons/marker-icon-orange.png',
+    iconRetinaUrl: 'map-icons/marker-icon-2x-orange.png',
+    shadowUrl: 'map-icons/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
+  }),
+  blue: L.icon({
+    iconUrl: 'map-icons/marker-icon-blue.png',
+    iconRetinaUrl: 'map-icons/marker-icon-2x-blue.png',
+    shadowUrl: 'map-icons/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
+  }),
+};
 
 @Component({
   selector: 'app-location-picker',
@@ -20,6 +44,9 @@ import * as L from 'leaflet';
   styleUrl: './location-picker.component.scss',
 })
 export class LocationPickerComponent implements AfterViewInit, OnDestroy {
+  @Input()
+  markerColor: MarkerColor = 'blue';
+
   @ViewChild('locationPickerContainer', { static: true })
   private mapContainer!: ElementRef<HTMLDivElement>;
 
@@ -70,7 +97,9 @@ export class LocationPickerComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    this.marker = L.marker([lat, lng]).addTo(this.map!);
+    this.marker = L.marker([lat, lng], {
+      icon: MARKER_ICONS[this.markerColor],
+    }).addTo(this.map!);
   }
 
   ngOnDestroy(): void {
