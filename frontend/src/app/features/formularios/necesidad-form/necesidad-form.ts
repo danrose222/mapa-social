@@ -35,6 +35,8 @@ interface Categoria {
   nombre: string;
 }
 
+const CATEGORIA_SALUD_ID = 1;
+
 interface ResultadoNominatim {
   lat: string;
   lon: string;
@@ -134,7 +136,22 @@ export class NecesidadForm {
   readonly ubicacionEncontrada = signal(false);
   readonly ubicacionSinResultado = signal(false);
 
+  // Orientación contextual cuando la necesidad es de categoría Salud: no es
+  // un chat con un modelo (nada de esto se manda a ningún backend de IA),
+  // es contenido fijo que evita afirmar como universal cosas que varían
+  // según la organización o el municipio (qué documentación piden, con qué
+  // banco de medicamentos articulan, etc.) — ver el intercambio con Dani
+  // sobre por qué el texto original venía con demasiado detalle específico
+  // sin poder verificarlo.
+  readonly categoriaSaludSeleccionada = signal(false);
+
   constructor() {
+    this.form.controls.categoryId.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((categoryId) => {
+        this.categoriaSaludSeleccionada.set(categoryId === CATEGORIA_SALUD_ID);
+      });
+
     this.form.controls.address.valueChanges
       .pipe(
         debounceTime(800),

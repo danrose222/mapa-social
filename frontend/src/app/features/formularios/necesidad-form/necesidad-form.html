@@ -49,6 +49,59 @@
           }
         </mat-form-field>
 
+        @if (categoriaSaludSeleccionada()) {
+        <div class="orientacion-salud full-width">
+          <p class="orientacion-salud-titulo">
+            Antes de seguir: así funciona pedir ayuda de salud acá
+          </p>
+
+          <p>
+            Entendemos que esto puede ser una situación difícil. Esta
+            plataforma está para conectarte con la organización correcta
+            — estos son los pasos generales del proceso:
+          </p>
+
+          <ul>
+            <li>
+              <strong>Evaluación inicial:</strong> al contactar a una ONG o
+              institución desde el mapa, lo primero suele ser una breve
+              evaluación social. Llevá tu DNI a mano — cada organización
+              puede pedir alguna documentación adicional según tu
+              situación, así que consultá directamente con ellos qué más
+              necesitás.
+            </li>
+            <li>
+              <strong>Atención primaria:</strong> a través de las ONGs del
+              mapa podés acceder a consultas generales (medicina general,
+              pediatría) o ser derivado a un operativo sanitario en tu
+              zona.
+            </li>
+            <li>
+              <strong>Medicamentos:</strong> algunas organizaciones
+              articulan con bancos solidarios de medicamentos. Para eso
+              vas a necesitar la receta médica correspondiente.
+            </li>
+            <li>
+              <strong>Casos de mayor complejidad:</strong> si se trata de
+              una cirugía, estudios avanzados o internación, la
+              organización actúa como nexo para acompañarte hacia el
+              sistema de salud público o gestionar la ayuda estatal que
+              corresponda.
+            </li>
+          </ul>
+
+          <p>
+            Buscá en el mapa la ONG o el centro de salud más cercano a tu
+            zona o barrio — los filtros te ayudan a acotar por tipo de
+            ayuda.
+          </p>
+
+          <a mat-stroked-button routerLink="/mapa">
+            Buscar en el mapa
+          </a>
+        </div>
+        }
+
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Descripción</mat-label>
 

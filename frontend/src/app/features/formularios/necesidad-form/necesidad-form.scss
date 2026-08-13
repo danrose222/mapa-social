@@ -161,6 +161,45 @@ mat-form-field {
   color: #8a2a1f;
 }
 
+.orientacion-salud {
+  padding: 16px 20px;
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-secondary);
+  border-radius: 10px;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  line-height: 1.55;
+}
+
+.orientacion-salud-titulo {
+  margin: 0 0 8px;
+  color: var(--color-secondary);
+  font-weight: 700;
+}
+
+.orientacion-salud p {
+  margin: 0 0 10px;
+}
+
+.orientacion-salud ul {
+  margin: 0 0 12px;
+  padding-left: 20px;
+}
+
+.orientacion-salud li {
+  margin-bottom: 8px;
+}
+
+.orientacion-salud a[mat-stroked-button] {
+  border-color: var(--color-secondary);
+  color: var(--color-secondary);
+}
+
+.orientacion-salud a[mat-stroked-button]:hover {
+  background-color: var(--color-secondary);
+  color: var(--color-white);
+}
+
 .form-message {
   margin: 4px 0;
   padding: 12px 16px;
