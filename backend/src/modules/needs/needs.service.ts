@@ -7,12 +7,13 @@ import { SearchNeedsDto } from './dto/search-needs.dto';
 import { SearchService } from './search/search.service';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 import { Need } from './entities/need.entity';
 import { User } from '../users/entities/user.entity';
 import { Category } from '../categories/entities/category.entity';
 import { Resource } from '../resources/entities/resource.entity';
+import { Solicitud } from '../solicitudes/entities/solicitud.entity';
 
 import { CreateNeedDto } from './dto/create-need.dto';
 import { UpdateNeedDto } from './dto/update-need.dto';
@@ -33,6 +34,8 @@ export class NeedsService {
     private readonly categoryRepository: Repository<Category>,
     @InjectRepository(Resource)
     private readonly resourceRepository: Repository<Resource>,
+    @InjectRepository(Solicitud)
+    private readonly solicitudRepository: Repository<Solicitud>,
     private readonly searchService: SearchService,
   ) {}
 
@@ -69,9 +72,61 @@ export class NeedsService {
       throw new NotFoundException('Categoría inexistente');
     }
 
-    return this.repository.save(
+    const need = await this.repository.save(
       this.repository.create({ ...dto, userId }),
     );
+
+    await this.notificarOngsRelevantes(need);
+
+    return need;
+  }
+
+  // Sin esto, una necesidad publicada era solo un pin más en el mapa: para
+  // que una ONG hiciera algo con ella, alguien tenía que verla y mandarle
+  // una Solicitud aparte a mano. Ahora se genera esa Solicitud sola, apenas
+  // se publica la necesidad, hacia cada ONG aprobada que ya ofrece la misma
+  // categoría — así aparece directo en su panel de "Solicitudes recibidas",
+  // sin ningún paso manual extra. No se notifica a la propia organización
+  // que publicó la necesidad, aunque también ofrezca esa categoría.
+  private async notificarOngsRelevantes(need: Need): Promise<void> {
+    const recursosDeLaCategoria = await this.resourceRepository.find({
+      where: { categoryId: need.categoryId },
+      select: ['userId'],
+    });
+
+    const idsOrganizaciones = [
+      ...new Set(recursosDeLaCategoria.map((recurso) => recurso.userId)),
+    ].filter((id) => id !== need.userId);
+
+    if (!idsOrganizaciones.length) {
+      return;
+    }
+
+    const ongsAprobadas = await this.userRepository.find({
+      where: {
+        id: In(idsOrganizaciones),
+        approved: true,
+        role: { name: 'ong' },
+      },
+    });
+
+    if (!ongsAprobadas.length) {
+      return;
+    }
+
+    const solicitudes = ongsAprobadas.map((ong) =>
+      this.solicitudRepository.create({
+        userId: need.userId,
+        targetUserId: ong.id,
+        categoryId: need.categoryId,
+        contactName: need.contactName,
+        contactInfo: need.contactInfo,
+        address: need.address,
+        status: 'pendiente',
+      }),
+    );
+
+    await this.solicitudRepository.save(solicitudes);
   }
 
   findAll() {
