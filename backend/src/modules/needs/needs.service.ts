@@ -16,6 +16,9 @@ interface AuthUser {
   id: number;
   role: string;
 }
+
+const RESOLVED_STATUS = 'resolved';
+
 @Injectable()
 export class NeedsService {
   constructor(
@@ -95,14 +98,18 @@ export class NeedsService {
       );
     }
 
+    const previousStatus = need.status;
+
     Object.assign(need, dto);
 
-    // Se completan solos, nunca vienen del body -- registran quién
-    // cambió el status y cuándo (ya sabemos que solo un moderador
-    // puede llegar hasta acá con dto.status definido).
     if (dto.status !== undefined) {
-      need.resolvedById = currentUser.id;
-      need.resolvedAt = new Date();
+      if (dto.status === RESOLVED_STATUS) {
+        need.resolvedById = currentUser.id;
+        need.resolvedAt = new Date();
+      } else if (previousStatus === RESOLVED_STATUS) {
+        need.resolvedById = undefined;
+        need.resolvedAt = undefined;
+      }
     }
 
     return this.repository.save(need);

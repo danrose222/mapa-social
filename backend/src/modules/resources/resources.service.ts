@@ -15,6 +15,9 @@ interface AuthUser {
   id: number;
   role: string;
 }
+
+const RESOLVED_STATUS = 'resolved';
+
 @Injectable()
 export class ResourcesService {
   constructor(
@@ -98,11 +101,18 @@ export class ResourcesService {
       );
     }
 
+    const previousStatus = resource.status;
+
     Object.assign(resource, dto);
 
     if (dto.status !== undefined) {
-      resource.resolvedById = currentUser.id;
-      resource.resolvedAt = new Date();
+      if (dto.status === RESOLVED_STATUS) {
+        resource.resolvedById = currentUser.id;
+        resource.resolvedAt = new Date();
+      } else if (previousStatus === RESOLVED_STATUS) {
+        resource.resolvedById = undefined;
+        resource.resolvedAt = undefined;
+      }
     }
 
     return this.repository.save(resource);
