@@ -8,6 +8,13 @@
       Revisá las organizaciones que esperan validación
       y decidí si aprobarlas o rechazarlas.
     </p>
+
+    @if (moderatorCity) {
+      <p class="city-info">
+        Mostrando organizaciones pendientes de
+        <strong>{{ moderatorCity }}</strong>.
+      </p>
+    }
   </header>
 
   @if (successMessage) {
@@ -32,7 +39,8 @@
         <h2>No hay organizaciones pendientes</h2>
 
         <p>
-          Actualmente no hay organizaciones esperando revisión.
+          Actualmente no hay organizaciones esperando revisión
+          en tu ciudad.
         </p>
       </div>
     } @else {
