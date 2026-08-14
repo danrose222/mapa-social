@@ -50,6 +50,15 @@
     Ofrecer recurso
   </a>
 
+  <a
+    mat-button
+    class="nav-link"
+    routerLink="/mi-organizacion"
+    routerLinkActive="active-link"
+  >
+    Mi organización
+  </a>
+
   @if (currentUser()) {
     <button
       mat-button
@@ -114,6 +123,15 @@
       (click)="closeMenu()"
     >
       Ofrecer recurso
+    </a>
+
+    <a
+      class="mobile-menu-link"
+      routerLink="/mi-organizacion"
+      routerLinkActive="active-link"
+      (click)="closeMenu()"
+    >
+      Mi organización
     </a>
   </nav>
 }

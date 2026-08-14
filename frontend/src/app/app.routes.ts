@@ -7,6 +7,7 @@ import { RecursoForm } from './features/formularios/recurso-form/recurso-form';
 import { Inicio } from './features/inicio/inicio/inicio';
 import { LoginComponent } from './features/login/login.component';
 import { MapaComponent } from './features/mapa/mapa.component';
+import { CrearOrganizacionComponent } from './features/organizacion/crear-organizacion/crear-organizacion.component';
 
 export const routes: Routes = [
   {
@@ -29,6 +30,11 @@ export const routes: Routes = [
       {
         path: 'ofrecer-recurso',
         component: RecursoForm,
+        canActivate: [authGuard],
+      },
+      {
+        path: 'mi-organizacion',
+        component: CrearOrganizacionComponent,
         canActivate: [authGuard],
       },
       {
