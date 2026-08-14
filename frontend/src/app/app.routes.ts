@@ -12,6 +12,7 @@ import { MapaComponent } from './features/mapa/mapa.component';
 import { Organizations } from './features/moderador/organizations/organizations';
 import { Register } from './features/register/register/register';
 import { OrganizacionPerfilComponent } from './features/organizacion/organizacion-perfil/organizacion-perfil.component';
+import { CrearOrganizacionComponent } from './features/organizacion/crear-organizacion/crear-organizacion.component';
 
 export const routes: Routes = [
   {
@@ -48,6 +49,11 @@ export const routes: Routes = [
       {
         path: 'organizacion/:id',
         component: OrganizacionPerfilComponent,
+      },
+      {
+        path: 'mi-organizacion',
+        component: CrearOrganizacionComponent,
+        canActivate: [authGuard],
       },
       {
         path: 'login',
