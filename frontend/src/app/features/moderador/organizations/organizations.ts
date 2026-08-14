@@ -12,6 +12,10 @@ import {
   OrganizationsService,
 } from '../../../core/services/organizations.service';
 
+import {
+  AuthService,
+} from '../../../core/services/auth.service';
+
 @Component({
   selector: 'app-organizations',
   standalone: true,
@@ -26,11 +30,16 @@ export class Organizations implements OnInit {
   private readonly organizationsService =
     inject(OrganizationsService);
 
+  private readonly authService =
+    inject(AuthService);
+
   organizations: Organization[] = [];
 
   isLoading = false;
   errorMessage = '';
   successMessage = '';
+
+  moderatorCity = '';
 
   ngOnInit(): void {
     this.loadOrganizations();
@@ -39,19 +48,47 @@ export class Organizations implements OnInit {
   loadOrganizations(): void {
     this.isLoading = true;
     this.errorMessage = '';
+    this.successMessage = '';
 
-    this.organizationsService.getAll().subscribe({
-      next: (organizations) => {
-        this.organizations = organizations.filter(
-          (organization) => !organization.verified,
-        );
+    this.authService.getProfile().subscribe({
+      next: (user) => {
+        if (!user.ciudad) {
+          this.isLoading = false;
+          this.errorMessage =
+            'No se pudo determinar la ciudad del moderador.';
+          return;
+        }
 
-        this.isLoading = false;
+        this.moderatorCity = user.ciudad;
+
+        this.organizationsService.getAll().subscribe({
+          next: (organizations) => {
+            const moderatorCityNormalized =
+              this.normalizeCity(user.ciudad!);
+
+            this.organizations = organizations.filter(
+              (organization) =>
+                !organization.verified &&
+                this.normalizeCity(
+                  organization.ciudad,
+                ) === moderatorCityNormalized,
+            );
+
+            this.isLoading = false;
+          },
+
+          error: () => {
+            this.isLoading = false;
+            this.errorMessage =
+              'No se pudieron cargar las organizaciones pendientes.';
+          },
+        });
       },
+
       error: () => {
         this.isLoading = false;
         this.errorMessage =
-          'No se pudieron cargar las organizaciones pendientes.';
+          'No se pudo obtener la información del moderador.';
       },
     });
   }
@@ -72,10 +109,17 @@ export class Organizations implements OnInit {
           this.successMessage =
             `La organización "${organization.name}" fue aprobada.`;
         },
+
         error: (error) => {
+          if (error.status === 401) {
+            this.errorMessage =
+              'Tu sesión no es válida. Volvé a iniciar sesión.';
+            return;
+          }
+
           if (error.status === 403) {
             this.errorMessage =
-              'No tenés permisos para aprobar organizaciones.';
+              'No tenés permisos para aprobar esta organización.';
             return;
           }
 
@@ -109,10 +153,17 @@ export class Organizations implements OnInit {
           this.successMessage =
             `La organización "${organization.name}" fue rechazada.`;
         },
+
         error: (error) => {
+          if (error.status === 401) {
+            this.errorMessage =
+              'Tu sesión no es válida. Volvé a iniciar sesión.';
+            return;
+          }
+
           if (error.status === 403) {
             this.errorMessage =
-              'No tenés permisos para rechazar organizaciones.';
+              'No tenés permisos para rechazar esta organización.';
             return;
           }
 
@@ -120,5 +171,11 @@ export class Organizations implements OnInit {
             'No se pudo rechazar la organización.';
         },
       });
+  }
+
+  private normalizeCity(city: string): string {
+    return city
+      .trim()
+      .toLocaleLowerCase('es');
   }
 }

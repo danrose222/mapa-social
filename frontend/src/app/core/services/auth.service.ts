@@ -8,6 +8,7 @@ export interface AuthUser {
   lastName: string;
   email: string;
   role: string;
+  ciudad?: string | null;
 }
 
 export interface LoginResponse {
@@ -30,14 +31,29 @@ export class AuthService {
 
   login(email: string, password: string): Observable<LoginResponse> {
     return this.http
-      .post<LoginResponse>('/api/auth/login', { email, password })
+      .post<LoginResponse>('/api/auth/login', {
+        email,
+        password,
+      })
       .pipe(
         tap((response) => {
-          sessionStorage.setItem(TOKEN_KEY, response.access_token);
-          sessionStorage.setItem(USER_KEY, JSON.stringify(response.user));
+          sessionStorage.setItem(
+            TOKEN_KEY,
+            response.access_token,
+          );
+
+          sessionStorage.setItem(
+            USER_KEY,
+            JSON.stringify(response.user),
+          );
+
           this.currentUserSignal.set(response.user);
         }),
       );
+  }
+
+  getProfile(): Observable<AuthUser> {
+    return this.http.get<AuthUser>('/api/users/me');
   }
 
   logout(): void {
@@ -52,6 +68,9 @@ export class AuthService {
 
   private readStoredUser(): AuthUser | null {
     const raw = sessionStorage.getItem(USER_KEY);
-    return raw ? (JSON.parse(raw) as AuthUser) : null;
+
+    return raw
+      ? (JSON.parse(raw) as AuthUser)
+      : null;
   }
 }
