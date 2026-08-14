@@ -61,6 +61,32 @@ export class OrganizationsController {
     return this.service.findOne(id);
   }
 
+  @Get(':id/resources')
+  @ApiOperation({
+    summary: 'Listar los recursos que ofrece una organización (público)',
+  })
+  @ApiResponse({ status: 200, description: 'Listado de recursos' })
+  @ApiResponse({ status: 404, description: 'Organización inexistente' })
+  findResources(
+    @Param('id', ParseIntPipe)
+    id: number,
+  ) {
+    return this.service.findResources(id);
+  }
+
+  @Get(':id/needs')
+  @ApiOperation({
+    summary: 'Listar las necesidades de una organización (público)',
+  })
+  @ApiResponse({ status: 200, description: 'Listado de necesidades' })
+  @ApiResponse({ status: 404, description: 'Organización inexistente' })
+  findNeeds(
+    @Param('id', ParseIntPipe)
+    id: number,
+  ) {
+    return this.service.findNeeds(id);
+  }
+
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('moderador')
