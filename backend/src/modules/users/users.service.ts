@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -32,6 +33,22 @@ export class UsersService {
   ) {}
 
   async create(dto: CreateUserDto) {
+    // Sin este chequeo, un email repetido llega directo a la constraint
+    // 'unique' de la columna y MySQL/TypeORM lo devuelve como un error sin
+    // capturar (500 genérico) en vez de un 409 -- el frontend de registro
+    // ya asume que existe este chequeo y espera un 409 puntualmente.
+    const existingUser = await this.userRepository.findOne({
+      where: {
+        email: dto.email,
+      },
+    });
+
+    if (existingUser) {
+      throw new ConflictException(
+        'Ya existe un usuario registrado con ese email.',
+      );
+    }
+
     const defaultRole = await this.roleRepository.findOne({
       where: {
         name: DEFAULT_ROLE_NAME,
