@@ -149,6 +149,19 @@ export class NecesidadForm {
         this.successMessage.set('La necesidad se registró correctamente.');
 
         localStorage.removeItem('need_draft');
+
+        this.form.reset({
+          title: '',
+          categoryId: 0,
+          locality: '',
+          description: '',
+          address: '',
+          contactName: '',
+          contactInfo: '',
+          latitude: 0,
+          longitude: 0,
+        });
+        this.hasLocation = false;
       },
       error: (error) => {
         this.isSubmitting.set(false);

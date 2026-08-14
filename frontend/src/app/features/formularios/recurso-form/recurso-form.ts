@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -142,8 +143,20 @@ export class RecursoForm {
         this.successMessage.set('El recurso se publicó correctamente.');
 
         localStorage.removeItem('resource_draft');
+
+        this.form.reset({
+          title: '',
+          categoryId: 0,
+          description: '',
+          address: '',
+          schedule: '',
+          contactInfo: '',
+          latitude: 0,
+          longitude: 0,
+        });
+        this.hasLocation = false;
       },
-      error: (error) => {
+      error: (error: HttpErrorResponse) => {
         this.isSubmitting.set(false);
 
         if (error.status === 401) {
@@ -155,7 +168,8 @@ export class RecursoForm {
 
         if (error.status === 403) {
           this.errorMessage.set(
-            'No tenés permisos para publicar un recurso.',
+            error.error?.message ??
+              'No tenés permisos para publicar un recurso.',
           );
           return;
         }
