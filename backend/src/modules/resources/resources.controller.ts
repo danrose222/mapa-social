@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { ResourcesService } from './resources.service';
 import { Resource } from './entities/resource.entity';
@@ -25,7 +25,6 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 interface AuthUser {
   id: number;
   role: string;
-  organizationId?: number | null;
 }
 
 @ApiTags('Resources')
@@ -39,11 +38,9 @@ export class ResourcesController {
   ): Resource {
     const isModerator = user?.role === 'moderador';
     const isOwner = user?.id === item.userId;
-    const isSameOrganization =
-      user?.organizationId != null &&
-      user.organizationId === item.organizationId;
+    const belongsToOrganization = item.organizationId != null;
 
-    if (isModerator || isOwner || isSameOrganization) {
+    if (isModerator || isOwner || belongsToOrganization) {
       return item;
     }
 
@@ -53,6 +50,17 @@ export class ResourcesController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Publicar un recurso (solo moderador o usuario de una organización avalada)',
+  })
+  @ApiResponse({ status: 201, description: 'Recurso creado' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({
+    status: 403,
+    description: 'No es moderador ni pertenece a una organización avalada',
+  })
+  @ApiResponse({ status: 404, description: 'Categoría inexistente' })
   create(@Body() dto: CreateResourceDto, @CurrentUser() user: AuthUser) {
     return this.service.create(user, dto);
   }
@@ -60,6 +68,11 @@ export class ResourcesController {
   @Get()
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Listar todos los recursos (público; el contacto es visible si el recurso pertenece a una organización, o para el dueño/moderador)',
+  })
+  @ApiResponse({ status: 200, description: 'Listado de recursos' })
   async findAll(@CurrentUser() user: AuthUser | null) {
     const resources = await this.service.findAll();
     return resources.map((r) => this.hideContactUnlessAuthorized(r, user));
@@ -68,6 +81,8 @@ export class ResourcesController {
   @Get(':id')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Ver el detalle de un recurso (público)' })
+  @ApiResponse({ status: 200, description: 'Recurso encontrado' })
   async findOne(
     @Param('id', ParseIntPipe)
     id: number,
@@ -82,6 +97,17 @@ export class ResourcesController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Editar un recurso (el dueño o un moderador; solo un moderador puede cambiar el status)',
+  })
+  @ApiResponse({ status: 200, description: 'Recurso actualizado' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({
+    status: 403,
+    description: 'No es el dueño, ni moderador, o intenta cambiar el status sin serlo',
+  })
+  @ApiResponse({ status: 404, description: 'Recurso inexistente' })
   update(
     @Param('id', ParseIntPipe)
     id: number,
@@ -94,6 +120,11 @@ export class ResourcesController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Eliminar un recurso (el dueño o un moderador)' })
+  @ApiResponse({ status: 200, description: 'Recurso eliminado' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({ status: 403, description: 'No es el dueño ni moderador' })
+  @ApiResponse({ status: 404, description: 'Recurso inexistente' })
   remove(
     @Param('id', ParseIntPipe)
     id: number,

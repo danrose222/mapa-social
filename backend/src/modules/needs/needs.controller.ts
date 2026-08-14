@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { SearchNeedsDto } from './dto/search-needs.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { NeedsService } from './needs.service';
 import { Need } from './entities/need.entity';
@@ -26,7 +26,6 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 interface AuthUser {
   id: number;
   role: string;
-  organizationId?: number | null;
 }
 
 @ApiTags('Needs')
@@ -34,22 +33,15 @@ interface AuthUser {
 export class NeedsController {
   constructor(private readonly service: NeedsService) {}
 
-  // Muestra contactName/contactInfo a: moderador, el dueño individual
-  // de la publicación, o cualquier miembro de la organización dueña.
-  // Al público general y a otros ciudadanos logueados se les oculta
-  // (decisión del equipo: para eso está el canal de Solicitudes, no
-  // hace falta exponer el contacto en el mapa abierto).
   private hideContactUnlessAuthorized(
     item: Need,
     user: AuthUser | null,
   ): Need {
     const isModerator = user?.role === 'moderador';
     const isOwner = user?.id === item.userId;
-    const isSameOrganization =
-      user?.organizationId != null &&
-      user.organizationId === item.organizationId;
+    const belongsToOrganization = item.organizationId != null;
 
-    if (isModerator || isOwner || isSameOrganization) {
+    if (isModerator || isOwner || belongsToOrganization) {
       return item;
     }
 
@@ -59,6 +51,10 @@ export class NeedsController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Publicar una necesidad (requiere estar logueado)' })
+  @ApiResponse({ status: 201, description: 'Necesidad creada' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({ status: 404, description: 'Categoría inexistente' })
   create(@Body() dto: CreateNeedDto, @CurrentUser() user: AuthUser) {
     return this.service.create(user.id, dto);
   }
@@ -66,6 +62,11 @@ export class NeedsController {
   @Get()
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Listar todas las necesidades (público; el contacto es visible si la publicación pertenece a una organización, o para el dueño/moderador)',
+  })
+  @ApiResponse({ status: 200, description: 'Listado de necesidades' })
   async findAll(@CurrentUser() user: AuthUser | null) {
     const needs = await this.service.findAll();
     return needs.map((n) => this.hideContactUnlessAuthorized(n, user));
@@ -74,6 +75,8 @@ export class NeedsController {
   @Get('search')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Buscar necesidades activas con filtros (público)' })
+  @ApiResponse({ status: 200, description: 'Resultados de la búsqueda' })
   async search(
     @Query() dto: SearchNeedsDto,
     @CurrentUser() user: AuthUser | null,
@@ -85,6 +88,8 @@ export class NeedsController {
   @Get(':id')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Ver el detalle de una necesidad (público)' })
+  @ApiResponse({ status: 200, description: 'Necesidad encontrada' })
   async findOne(
     @Param('id', ParseIntPipe)
     id: number,
@@ -97,6 +102,17 @@ export class NeedsController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Editar una necesidad (el dueño o un moderador; solo un moderador puede cambiar el status)',
+  })
+  @ApiResponse({ status: 200, description: 'Necesidad actualizada' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({
+    status: 403,
+    description: 'No es el dueño, ni moderador, o intenta cambiar el status sin serlo',
+  })
+  @ApiResponse({ status: 404, description: 'Necesidad inexistente' })
   update(
     @Param('id', ParseIntPipe)
     id: number,
@@ -109,6 +125,11 @@ export class NeedsController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Eliminar una necesidad (el dueño o un moderador)' })
+  @ApiResponse({ status: 200, description: 'Necesidad eliminada' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({ status: 403, description: 'No es el dueño ni moderador' })
+  @ApiResponse({ status: 404, description: 'Necesidad inexistente' })
   remove(
     @Param('id', ParseIntPipe)
     id: number,
