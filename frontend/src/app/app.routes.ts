@@ -10,6 +10,7 @@ import { Inicio } from './features/inicio/inicio/inicio';
 import { LoginComponent } from './features/login/login.component';
 import { MapaComponent } from './features/mapa/mapa.component';
 import { Organizations } from './features/moderador/organizations/organizations';
+import { Register } from './features/register/register/register';
 
 export const routes: Routes = [
   {
@@ -38,6 +39,10 @@ export const routes: Routes = [
         path: 'moderador/organizaciones',
         component: Organizations,
         canActivate: [authGuard, moderatorGuard],
+      },
+      {
+        path: 'registro',
+        component: Register,
       },
       {
         path: 'login',
