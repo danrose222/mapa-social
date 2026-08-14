@@ -16,9 +16,7 @@ interface AuthUser {
   id: number;
   role: string;
 }
-
 const RESOLVED_STATUS = 'resolved';
-
 @Injectable()
 export class NeedsService {
   constructor(
@@ -97,21 +95,20 @@ export class NeedsService {
         'Solo un moderador puede cambiar el estado de la publicación',
       );
     }
-
     const previousStatus = need.status;
-
     Object.assign(need, dto);
-
     if (dto.status !== undefined) {
       if (dto.status === RESOLVED_STATUS) {
         need.resolvedById = currentUser.id;
         need.resolvedAt = new Date();
       } else if (previousStatus === RESOLVED_STATUS) {
-        need.resolvedById = undefined;
-        need.resolvedAt = undefined;
+        // null explícito, no undefined -- ver el comentario en
+        // need.entity.ts. undefined hace que save() omita la columna
+        // del UPDATE y quede con el valor viejo.
+        need.resolvedById = null;
+        need.resolvedAt = null;
       }
     }
-
     return this.repository.save(need);
   }
   async remove(id: number, currentUser: AuthUser) {

@@ -65,20 +65,20 @@ export class Resource extends BaseEntity {
     default: 'available',
   })
   status!: string;
-
+  // Ver el comentario equivalente en need.entity.ts: "number | null"
+  // (no solo undefined) porque TypeORM necesita null explícito para
+  // limpiar la columna en el UPDATE.
   @Column({
     name: 'resolved_by',
     nullable: true,
   })
-  resolvedById?: number;
-
+  resolvedById?: number | null;
   @Column({
     name: 'resolved_at',
     type: 'datetime',
     nullable: true,
   })
-  resolvedAt?: Date;
-
+  resolvedAt?: Date | null;
   @ManyToOne(() => User, (user) => user.resources)
   @JoinColumn({
     name: 'user_id',
@@ -94,10 +94,9 @@ export class Resource extends BaseEntity {
     name: 'organization_id',
   })
   organization?: Organization;
-
   @ManyToOne(() => User)
   @JoinColumn({
     name: 'resolved_by',
   })
-  resolvedBy?: User;
+  resolvedBy?: User | null;
 }

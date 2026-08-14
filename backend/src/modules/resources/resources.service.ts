@@ -110,8 +110,9 @@ export class ResourcesService {
         resource.resolvedById = currentUser.id;
         resource.resolvedAt = new Date();
       } else if (previousStatus === RESOLVED_STATUS) {
-        resource.resolvedById = undefined;
-        resource.resolvedAt = undefined;
+        // null explícito -- ver el comentario en needs.service.ts.
+        resource.resolvedById = null;
+        resource.resolvedAt = null;
       }
     }
 
