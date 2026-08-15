@@ -8,6 +8,8 @@ import { Repository } from 'typeorm';
 
 import { Organization } from './entities/organization.entity';
 import { User } from '../users/entities/user.entity';
+import { Need } from '../needs/entities/need.entity';
+import { Resource } from '../resources/entities/resource.entity';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 
@@ -24,6 +26,12 @@ export class OrganizationsService {
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+
+    @InjectRepository(Need)
+    private readonly needRepository: Repository<Need>,
+
+    @InjectRepository(Resource)
+    private readonly resourceRepository: Repository<Resource>,
   ) {}
 
   async create(dto: CreateOrganizationDto, currentUser: AuthUser) {
@@ -58,6 +66,30 @@ export class OrganizationsService {
     }
 
     return organization;
+  }
+
+  // Perfil público de organización: qué recursos ofrece. Confirmamos
+  // primero que la organización exista, así el 404 es claro si el id
+  // no corresponde a ninguna.
+  async findResources(organizationId: number) {
+    await this.findOne(organizationId);
+
+    return this.resourceRepository.find({
+      where: { organizationId },
+      relations: ['category'],
+      order: { id: 'ASC' },
+    });
+  }
+
+  // Perfil público de organización: qué necesidades tiene.
+  async findNeeds(organizationId: number) {
+    await this.findOne(organizationId);
+
+    return this.needRepository.find({
+      where: { organizationId },
+      relations: ['category'],
+      order: { id: 'ASC' },
+    });
   }
 
   private async assertSameCity(
