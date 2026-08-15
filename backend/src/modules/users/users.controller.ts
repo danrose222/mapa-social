@@ -28,6 +28,7 @@ export class UsersController {
   @Post()
   @ApiOperation({ summary: 'Registrar un usuario nuevo (público, sin login)' })
   @ApiResponse({ status: 201, description: 'Usuario creado (rol por defecto)' })
+  @ApiResponse({ status: 409, description: 'Ya existe un usuario con ese email' })
   create(@Body() dto: CreateUserDto) {
     return this.service.create(dto);
   }
