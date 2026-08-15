@@ -67,11 +67,14 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Ciudad (jurisdicción)</mat-label>
 
-          <input matInput type="text" maxlength="100" formControlName="ciudad"
-            placeholder="Ej.: Córdoba Capital" />
+          <mat-select formControlName="ciudad">
+            @for (municipio of municipios; track municipio) {
+            <mat-option [value]="municipio">{{ municipio }}</mat-option>
+            }
+          </mat-select>
 
           @if (isInvalid('ciudad')) {
-          <mat-error>Ingresá la ciudad de tu organización.</mat-error>
+          <mat-error>Seleccioná la ciudad de tu organización.</mat-error>
           }
 
           <mat-hint>

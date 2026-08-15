@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -11,17 +11,10 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
+import { MatSelectModule } from '@angular/material/select';
 
-interface Organization {
-  id: number;
-  name: string;
-  type: string;
-  ciudad: string;
-  verified: boolean;
-  description?: string;
-  contactInfo?: string;
-  address?: string;
-}
+import { Organization } from '../../../core/services/organizations.service';
+import { MUNICIPIOS_CORDOBA } from '../../../shared/constants/municipios';
 
 interface MiPerfil {
   id: number;
@@ -29,17 +22,6 @@ interface MiPerfil {
   organization?: Organization;
 }
 
-// Punto de partida (rama feature/organizacion-crear-formulario, sobre la
-// base de feature/organizations-and-contact-visibility para tener
-// GET /users/me disponible): resuelve el bloqueo de fondo -- hoy no hay
-// ninguna forma en el frontend real de crear una Organization, así que
-// nada de lo que depende de que existan organizaciones (perfil público,
-// panel de moderación, publicar recursos) se puede ni probar. Falta
-// pulir: reemplazar el campo de ciudad por un selector real de
-// municipios (mismo patrón que ya está resuelto en el fork de Corazones
-// Unidos, adaptado a este DTO), y manejar mejor el caso de que
-// GET /users/me todavía no exista si esto se prueba contra develop antes
-// de que el PR #43 se mergee.
 @Component({
   selector: 'app-crear-organizacion',
   standalone: true,
@@ -50,6 +32,7 @@ interface MiPerfil {
     MatFormFieldModule,
     MatInputModule,
     MatRadioModule,
+    MatSelectModule,
   ],
   templateUrl: './crear-organizacion.component.html',
   styleUrl: './crear-organizacion.component.scss',
@@ -57,6 +40,8 @@ interface MiPerfil {
 export class CrearOrganizacionComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly http = inject(HttpClient);
+
+  readonly municipios = MUNICIPIOS_CORDOBA;
 
   readonly isLoading = signal(true);
   readonly isSubmitting = signal(false);
@@ -67,7 +52,7 @@ export class CrearOrganizacionComponent implements OnInit {
   readonly form = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(150)]],
     type: ['comunidad', [Validators.required]],
-    ciudad: ['', [Validators.required, Validators.maxLength(100)]],
+    ciudad: ['', [Validators.required]],
     description: ['', [Validators.maxLength(1000)]],
     contactInfo: ['', [Validators.maxLength(255)]],
     address: ['', [Validators.maxLength(255)]],
@@ -85,12 +70,14 @@ export class CrearOrganizacionComponent implements OnInit {
         this.miOrganizacion.set(perfil.organization ?? null);
         this.isLoading.set(false);
       },
-      error: () => {
-        // Si GET /users/me todavía no existe en la rama contra la que se
-        // prueba esto (por ejemplo, developing contra develop antes de
-        // que el PR #43 se mergee), no rompemos la pantalla: mostramos
-        // directamente el formulario de creación.
+      error: (error: HttpErrorResponse) => {
         this.isLoading.set(false);
+
+        if (error.status !== 401) {
+          this.errorMessage.set(
+            'No se pudo cargar tu perfil. Intentá recargar la página.',
+          );
+        }
       },
     });
   }
