@@ -11,6 +11,7 @@ import { LoginComponent } from './features/login/login.component';
 import { MapaComponent } from './features/mapa/mapa.component';
 import { Organizations } from './features/moderador/organizations/organizations';
 import { Register } from './features/register/register/register';
+import { OrganizacionPerfilComponent } from './features/organizacion/organizacion-perfil/organizacion-perfil.component';
 
 export const routes: Routes = [
   {
@@ -43,6 +44,10 @@ export const routes: Routes = [
       {
         path: 'registro',
         component: Register,
+      },
+      {
+        path: 'organizacion/:id',
+        component: OrganizacionPerfilComponent,
       },
       {
         path: 'login',

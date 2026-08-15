@@ -1,0 +1,103 @@
+<section class="perfil-page">
+  @if (isLoading()) {
+  <p class="perfil-status">Cargando...</p>
+  } @else if (errorMessage()) {
+  <p class="perfil-status perfil-status--error">{{ errorMessage() }}</p>
+  } @else if (organizacion(); as org) {
+  <header class="page-heading">
+    <p class="eyebrow">
+      {{ org.type === 'ong' ? 'ONG' : 'Comunidad' }} · {{ org.ciudad }}
+    </p>
+
+    <h1>
+      {{ org.name }}
+
+      <span
+        class="estado-badge"
+        [class.estado-badge--avalada]="org.verified"
+        [class.estado-badge--pendiente]="!org.verified"
+      >
+        {{ org.verified ? 'Avalada' : 'Pendiente de aprobación' }}
+      </span>
+    </h1>
+
+    @if (org.description) {
+    <p class="perfil-descripcion">{{ org.description }}</p>
+    }
+
+    <div class="perfil-contacto">
+      @if (org.address) {
+      <span><strong>Dirección:</strong> {{ org.address }}</span>
+      }
+
+      @if (org.contactInfo) {
+      <span><strong>Contacto:</strong> {{ org.contactInfo }}</span>
+      }
+    </div>
+  </header>
+
+  <section class="perfil-seccion">
+    <h2>Recursos que ofrece</h2>
+
+    @if (!recursos().length) {
+    <p class="perfil-status">Todavía no publicó ningún recurso.</p>
+    } @else {
+    <div class="perfil-grid">
+      @for (recurso of recursos(); track recurso.id) {
+      <mat-card class="perfil-card">
+        <mat-card-header>
+          <mat-card-title>{{ recurso.title }}</mat-card-title>
+
+          @if (recurso.category) {
+          <mat-card-subtitle>{{ recurso.category.name }}</mat-card-subtitle>
+          }
+        </mat-card-header>
+
+        <mat-card-content>
+          <p>{{ recurso.description }}</p>
+
+          @if (recurso.address) {
+          <p class="perfil-detail"><strong>Dirección:</strong> {{ recurso.address }}</p>
+          }
+
+          @if (recurso.schedule) {
+          <p class="perfil-detail"><strong>Horario:</strong> {{ recurso.schedule }}</p>
+          }
+        </mat-card-content>
+      </mat-card>
+      }
+    </div>
+    }
+  </section>
+
+  <section class="perfil-seccion">
+    <h2>Necesidades que tiene</h2>
+
+    @if (!necesidades().length) {
+    <p class="perfil-status">No tiene necesidades activas.</p>
+    } @else {
+    <div class="perfil-grid">
+      @for (necesidad of necesidades(); track necesidad.id) {
+      <mat-card class="perfil-card">
+        <mat-card-header>
+          <mat-card-title>{{ necesidad.title }}</mat-card-title>
+
+          @if (necesidad.category) {
+          <mat-card-subtitle>{{ necesidad.category.name }}</mat-card-subtitle>
+          }
+        </mat-card-header>
+
+        <mat-card-content>
+          <p>{{ necesidad.description }}</p>
+
+          @if (necesidad.address) {
+          <p class="perfil-detail"><strong>Dirección:</strong> {{ necesidad.address }}</p>
+          }
+        </mat-card-content>
+      </mat-card>
+      }
+    </div>
+    }
+  </section>
+  }
+</section>
