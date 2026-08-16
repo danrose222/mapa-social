@@ -14,6 +14,7 @@ interface Necesidad {
   id: number;
   usuario_id: number;
   categoria_id: number;
+  organization_id?: number;
   titulo: string;
   descripcion: string;
   latitud: number;
@@ -26,6 +27,7 @@ interface Recurso {
   id: number;
   usuario_id: number;
   categoria_id: number;
+  organization_id?: number;
   titulo: string;
   descripcion: string;
   latitud: number;
@@ -256,6 +258,19 @@ interface Recurso {
         color: var(--color-accent);
       }
 
+      app-mapa .organization-link {
+        display: inline-block;
+        margin-top: 8px;
+        color: #ffffff !important;
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      app-mapa .organization-link:hover {
+        color: var(--color-accent) !important;
+      }
+
       app-mapa .leaflet-control-attribution {
         padding: 2px 5px;
         background-color: rgb(24 63 82 / 78%) !important;
@@ -328,16 +343,30 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
     encabezado: string,
     titulo: string,
     descripcion: string,
+    organizationId?: number,
   ): void {
     const marker = L.marker(
       [latitud, longitud],
       { icon },
     ).addTo(this.map!);
 
+    const organizationLink = organizationId
+      ? `
+        <br>
+        <a
+          href="/organizacion/${organizationId}"
+          class="organization-link"
+        >
+          Ver organización
+        </a>
+      `
+      : '';
+
     marker.bindPopup(`
       <strong>${encabezado}</strong><br>
       <strong>${titulo}</strong><br>
       ${descripcion}
+      ${organizationLink}
     `);
   }
 
@@ -367,10 +396,16 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
 
       this.necesidades = needsJson.map((n: any) => ({
         id: n.id,
-        usuario_id: n.userId ?? n.user_id ?? 0,
+        usuario_id:
+          n.userId ?? n.user_id ?? 0,
         categoria_id:
           n.categoryId ?? n.category_id ?? 0,
-        titulo: n.title ?? n.titulo ?? '',
+        organization_id:
+          n.organizationId ??
+          n.organization_id ??
+          undefined,
+        titulo:
+          n.title ?? n.titulo ?? '',
         descripcion:
           n.description ?? n.descripcion ?? '',
         latitud: Number(
@@ -379,17 +414,24 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
         longitud: Number(
           n.longitude ?? n.longitud ?? 0,
         ),
-        estado: n.status ?? n.estado ?? '',
+        estado:
+          n.status ?? n.estado ?? '',
         fecha_creacion:
           n.createdAt ?? n.fecha_creacion ?? '',
       }));
 
       this.recursos = resourcesJson.map((r: any) => ({
         id: r.id,
-        usuario_id: r.userId ?? r.user_id ?? 0,
+        usuario_id:
+          r.userId ?? r.user_id ?? 0,
         categoria_id:
           r.categoryId ?? r.category_id ?? 0,
-        titulo: r.title ?? r.titulo ?? '',
+        organization_id:
+          r.organizationId ??
+          r.organization_id ??
+          undefined,
+        titulo:
+          r.title ?? r.titulo ?? '',
         descripcion:
           r.description ?? r.descripcion ?? '',
         latitud: Number(
@@ -398,7 +440,8 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
         longitud: Number(
           r.longitude ?? r.longitud ?? 0,
         ),
-        estado: r.status ?? r.estado ?? '',
+        estado:
+          r.status ?? r.estado ?? '',
         fecha_creacion:
           r.createdAt ?? r.fecha_creacion ?? '',
       }));
@@ -448,6 +491,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
         'Necesidad',
         necesidad.titulo,
         necesidad.descripcion,
+        necesidad.organization_id,
       );
     });
 
@@ -459,6 +503,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
         'Recurso',
         recurso.titulo,
         recurso.descripcion,
+        recurso.organization_id,
       );
     });
 

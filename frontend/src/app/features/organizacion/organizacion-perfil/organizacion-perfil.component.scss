@@ -12,6 +12,27 @@
   margin-bottom: 36px;
 }
 
+.verification-warning {
+  margin-bottom: 24px;
+  padding: 16px 18px;
+  border-left: 4px solid var(--color-accent);
+  border-radius: 10px;
+  background: rgb(230 95 50 / 8%);
+  color: var(--color-text-secondary);
+}
+
+.verification-warning strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.verification-warning p {
+  margin: 0;
+  line-height: 1.5;
+}
+
 .eyebrow {
   margin: 0 0 6px;
   color: var(--color-accent);
@@ -86,7 +107,10 @@
 
 .perfil-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(260px, 1fr)
+  );
   gap: 18px;
 }
 
