@@ -1,0 +1,118 @@
+<section class="form-page">
+  <header class="page-heading">
+    <p class="eyebrow">Mi organización</p>
+
+    <h1>Comunidad u ONG</h1>
+
+    <p>
+      Creá tu organización para poder publicar recursos y necesidades a su
+      nombre. Un moderador de tu ciudad tiene que avalarla antes de que
+      puedas publicar recursos.
+    </p>
+  </header>
+
+  @if (isLoading()) {
+  <p class="form-status">Cargando...</p>
+  } @else if (miOrganizacion()) {
+  <mat-card class="form-card">
+    <mat-card-content>
+      <p class="organizacion-nombre">{{ miOrganizacion()!.name }}</p>
+
+      <p class="organizacion-meta">
+        {{ miOrganizacion()!.type === 'ong' ? 'ONG' : 'Comunidad' }} ·
+        {{ miOrganizacion()!.ciudad }}
+      </p>
+
+      <span
+        class="estado-badge"
+        [class.estado-badge--avalada]="miOrganizacion()!.verified"
+        [class.estado-badge--pendiente]="!miOrganizacion()!.verified"
+      >
+        {{ miOrganizacion()!.verified ? 'Avalada' : 'Pendiente de aprobación' }}
+      </span>
+
+      @if (successMessage()) {
+      <p class="form-message success-message">{{ successMessage() }}</p>
+      }
+    </mat-card-content>
+  </mat-card>
+  } @else {
+  <mat-card class="form-card">
+    <mat-card-content>
+      <form class="form-grid" [formGroup]="form" (ngSubmit)="crear()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nombre de la organización</mat-label>
+
+          <input matInput type="text" maxlength="150" formControlName="name"
+            placeholder="Ej.: Comedor Los Pinos" />
+
+          @if (isInvalid('name')) {
+          <mat-error>El nombre es obligatorio.</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="full-width tipo-selector">
+          <p class="field-label">Tipo de organización</p>
+
+          <mat-radio-group formControlName="type" aria-label="Tipo de organización">
+            <mat-radio-button value="comunidad">
+              Comunidad (comedor, club, centro barrial)
+            </mat-radio-button>
+            <mat-radio-button value="ong">
+              ONG / Fundación
+            </mat-radio-button>
+          </mat-radio-group>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Ciudad (jurisdicción)</mat-label>
+
+          <mat-select formControlName="ciudad">
+            @for (municipio of municipios; track municipio) {
+            <mat-option [value]="municipio">{{ municipio }}</mat-option>
+            }
+          </mat-select>
+
+          @if (isInvalid('ciudad')) {
+          <mat-error>Seleccioná la ciudad de tu organización.</mat-error>
+          }
+
+          <mat-hint>
+            El moderador de esta ciudad va a ser quien te apruebe.
+          </mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Descripción (opcional)</mat-label>
+
+          <textarea matInput rows="3" formControlName="description"
+            placeholder="A qué se dedica tu organización"></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Contacto (opcional)</mat-label>
+
+          <input matInput type="text" maxlength="255" formControlName="contactInfo"
+            placeholder="Teléfono o email" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Dirección (opcional)</mat-label>
+
+          <input matInput type="text" maxlength="255" formControlName="address" />
+        </mat-form-field>
+
+        @if (errorMessage()) {
+        <p class="form-message error-message full-width">{{ errorMessage() }}</p>
+        }
+
+        <div class="form-actions full-width">
+          <button mat-flat-button color="primary" type="submit" [disabled]="isSubmitting()">
+            {{ isSubmitting() ? 'Creando...' : 'Crear organización' }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+  }
+</section>
