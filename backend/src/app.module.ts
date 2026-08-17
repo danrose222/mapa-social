@@ -10,6 +10,8 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { NeedsModule } from './modules/needs/needs.module';
 import { ResourcesModule } from './modules/resources/resources.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
+import { UploadsModule } from './modules/uploads/uploads.module';
+import { SolicitudesModule } from './modules/solicitudes/solicitudes.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -34,6 +36,8 @@ import { OrganizationsModule } from './modules/organizations/organizations.modul
     NeedsModule,
     ResourcesModule,
     OrganizationsModule,
+    UploadsModule,
+    SolicitudesModule,
     // MatchesModule
   ],
   controllers: [AppController],

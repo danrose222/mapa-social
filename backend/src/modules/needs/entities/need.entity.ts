@@ -65,6 +65,22 @@ export class Need extends BaseEntity {
     default: 'active',
   })
   status!: string;
+  @Column({
+    name: 'image_url',
+    length: 500,
+    nullable: true,
+  })
+  imageUrl?: string;
+
+  // Por defecto (false), cualquier persona logueada ve el contacto. Un
+  // moderador puede prenderlo para forzar el circuito de Solicitudes en un
+  // caso puntual (necesidad sensible, por ejemplo) -- el dueño nunca lo
+  // decide, solo un moderador.
+  @Column({
+    name: 'requires_solicitud',
+    default: false,
+  })
+  requiresSolicitud!: boolean;
   // Se completan solos cuando un moderador cambia el status -- nunca
   // vienen del body del cliente (ver needs.service.ts -> update()).
   // Tipo "number | null" (no solo "number | undefined"): TypeORM

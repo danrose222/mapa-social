@@ -1,0 +1,95 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.mis-loc {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 20px 20px 60px;
+}
+
+.mis-loc__header {
+  padding: 12px 0 24px;
+
+  h1 {
+    margin: 10px 0 6px;
+    font-size: 1.6rem;
+  }
+
+  p {
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+}
+
+.mis-loc__back {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.mis-loc__card {
+  padding: 22px;
+  margin-bottom: 18px;
+
+  h2 {
+    margin-bottom: 14px;
+    font-size: 1.05rem;
+  }
+}
+
+.mis-loc__status {
+  margin-top: 10px;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+.mis-loc__error {
+  margin-top: 10px;
+  color: var(--danger);
+  font-size: 0.82rem;
+}
+
+.mis-loc__empty {
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.mis-loc__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+  }
+
+  button {
+    border: 0;
+    background: none;
+    color: var(--danger);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.mis-loc__province {
+  color: var(--ink-soft);
+}

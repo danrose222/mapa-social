@@ -1,0 +1,49 @@
+<div class="mis-loc">
+  <header class="mis-loc__header">
+    <a routerLink="/" class="mis-loc__back">← Volver al mapa</a>
+    <h1>Mis localidades</h1>
+    <p>
+      Solo podés avalar o administrar organizaciones de las localidades que
+      tengas asignadas acá abajo.
+    </p>
+  </header>
+
+  <div class="card mis-loc__card">
+    <h2>Agregar una localidad</h2>
+
+    <app-locality-autocomplete (localitySelected)="addLocality($event)" />
+
+    @if (isSaving()) {
+      <p class="mis-loc__status">Guardando…</p>
+    }
+
+    @if (errorMessage()) {
+      <p class="mis-loc__error">{{ errorMessage() }}</p>
+    }
+  </div>
+
+  <div class="card mis-loc__card">
+    <h2>Localidades asignadas</h2>
+
+    @if (localities().length === 0) {
+      <p class="mis-loc__empty">
+        Todavía no tenés ninguna localidad asignada — no vas a poder avalar
+        ninguna organización hasta que agregues al menos una.
+      </p>
+    } @else {
+      <ul class="mis-loc__list">
+        @for (item of localities(); track item.id) {
+          <li>
+            <span>
+              {{ item.locality }}
+              @if (item.provincia) {
+                <span class="mis-loc__province">, {{ item.provincia }}</span>
+              }
+            </span>
+            <button type="button" (click)="removeLocality(item.id)">Quitar</button>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</div>

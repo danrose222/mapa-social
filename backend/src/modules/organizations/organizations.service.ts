@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 
 import { Organization } from './entities/organization.entity';
 import { User } from '../users/entities/user.entity';
+import { ModeratorLocality } from '../users/entities/moderator-locality.entity';
 import { Need } from '../needs/entities/need.entity';
 import { Resource } from '../resources/entities/resource.entity';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
@@ -27,6 +28,9 @@ export class OrganizationsService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
 
+    @InjectRepository(ModeratorLocality)
+    private readonly localityRepository: Repository<ModeratorLocality>,
+
     @InjectRepository(Need)
     private readonly needRepository: Repository<Need>,
 
@@ -39,7 +43,10 @@ export class OrganizationsService {
       this.repository.create(dto),
     );
 
-    if (currentUser.role !== 'moderador') {
+    const hasModeratorAccess =
+      currentUser.role === 'moderador' || currentUser.role === 'admin';
+
+    if (!hasModeratorAccess) {
       await this.userRepository.update(currentUser.id, {
         organizationId: organization.id,
       });
@@ -92,17 +99,30 @@ export class OrganizationsService {
     });
   }
 
-  private async assertSameCity(
+  private async assertCityInModeratorScope(
     organization: Organization,
     currentUser: AuthUser,
   ): Promise<void> {
-    const moderator = await this.userRepository.findOne({
-      where: { id: currentUser.id },
+    // Un admin no está acotado a ninguna localidad -- por eso es "súper".
+    if (currentUser.role === 'admin') {
+      return;
+    }
+
+    const localities = await this.localityRepository.find({
+      where: { userId: currentUser.id },
     });
 
-    if (!moderator?.ciudad || moderator.ciudad !== organization.ciudad) {
+    const targetCity = organization.ciudad.trim().toLowerCase();
+    // Comparación case-insensitive/trim: los datos viejos de 'ciudad' son
+    // texto libre sin normalizar, así que un match exacto sería demasiado
+    // frágil contra mayúsculas/espacios.
+    const isInScope = localities.some(
+      (l) => l.locality.trim().toLowerCase() === targetCity,
+    );
+
+    if (!isInScope) {
       throw new ForbiddenException(
-        'Solo podés administrar organizaciones de tu misma ciudad',
+        'No tenés esa localidad asignada. Pedile a otro moderador que te la asigne en tu perfil.',
       );
     }
   }
@@ -110,7 +130,31 @@ export class OrganizationsService {
   async update(id: number, dto: UpdateOrganizationDto, currentUser: AuthUser) {
     const organization = await this.findOne(id);
 
-    await this.assertSameCity(organization, currentUser);
+    const hasModeratorAccess =
+      currentUser.role === 'moderador' || currentUser.role === 'admin';
+
+    if (hasModeratorAccess) {
+      await this.assertCityInModeratorScope(organization, currentUser);
+    } else {
+      // Autoservicio: un miembro de la propia organización puede editar su
+      // perfil (nombre, descripción, contacto, dirección), pero JAMÁS
+      // avalarse a sí mismo -- eso sigue siendo exclusivo de moderador/admin.
+      const member = await this.userRepository.findOne({
+        where: { id: currentUser.id },
+      });
+
+      if (member?.organizationId !== id) {
+        throw new ForbiddenException(
+          'No pertenecés a esta organización',
+        );
+      }
+
+      if (dto.verified !== undefined) {
+        throw new ForbiddenException(
+          'Solo un moderador o un admin puede avalar una organización',
+        );
+      }
+    }
 
     Object.assign(organization, dto);
 
@@ -120,7 +164,7 @@ export class OrganizationsService {
   async remove(id: number, currentUser: AuthUser) {
     const organization = await this.findOne(id);
 
-    await this.assertSameCity(organization, currentUser);
+    await this.assertCityInModeratorScope(organization, currentUser);
 
     await this.repository.remove(organization);
 

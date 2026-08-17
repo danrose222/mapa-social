@@ -1,0 +1,76 @@
+@if (submitted()) {
+  <div class="confirm">
+    <div class="card confirm__card">
+      <span class="confirm__icon" aria-hidden="true">✓</span>
+      <h1>¡Organización creada!</h1>
+      <p>
+        Queda pendiente de aprobación. Un moderador de esa localidad la va a
+        revisar antes de que puedas publicar recursos en su nombre.
+      </p>
+      <button type="button" class="btn" (click)="volverAlMapa()">Volver al mapa</button>
+    </div>
+  </div>
+} @else {
+  <div class="crear-org">
+    <header class="crear-org__header">
+      <a routerLink="/" class="crear-org__back">← Volver</a>
+      <h1>Registrar una organización</h1>
+      <p>
+        Una vez creada, un moderador de tu localidad tiene que avalarla antes
+        de que puedas publicar recursos en su nombre.
+      </p>
+    </header>
+
+    <div class="card crear-org__card">
+      @if (errorMessage()) {
+        <p class="crear-org__alert">{{ errorMessage() }}</p>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="field">
+          <label for="org-name">Nombre de la organización</label>
+          <input id="org-name" type="text" formControlName="name" placeholder="Ej: Comedor Los Pinos" />
+        </div>
+
+        <div class="field">
+          <label for="org-type">Tipo</label>
+          <select id="org-type" formControlName="type">
+            <option value="comunidad">Organización comunitaria</option>
+            <option value="ong">ONG</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Localidad</label>
+          <app-locality-autocomplete (localitySelected)="onLocalitySelected($event)" />
+          @if (form.controls.ciudad.invalid && form.controls.ciudad.touched) {
+            <span class="field__error">Elegí una localidad de la lista.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="org-description">Descripción (opcional)</label>
+          <textarea
+            id="org-description"
+            formControlName="description"
+            placeholder="A quién asiste, qué actividades realiza"
+          ></textarea>
+        </div>
+
+        <div class="field">
+          <label for="org-address">Dirección (opcional)</label>
+          <input id="org-address" type="text" formControlName="address" />
+        </div>
+
+        <div class="field">
+          <label for="org-contact">Contacto (opcional)</label>
+          <input id="org-contact" type="text" formControlName="contactInfo" placeholder="Teléfono o email" />
+        </div>
+
+        <button type="submit" class="btn btn--block" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'Creando…' : 'Crear organización' }}
+        </button>
+      </form>
+    </div>
+  </div>
+}

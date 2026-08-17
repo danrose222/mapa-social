@@ -1,0 +1,75 @@
+:host {
+  display: block;
+  position: relative;
+}
+
+.locality-ac {
+  position: relative;
+
+  input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+
+    &:focus {
+      border-color: var(--brand);
+      outline: none;
+      box-shadow: 0 0 0 3px var(--brand-soft);
+    }
+  }
+}
+
+.locality-ac__status {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ink-soft);
+  font-size: 0.76rem;
+}
+
+.locality-ac__list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  margin: 0;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+  overflow-y: auto;
+  list-style: none;
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 9px 10px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--ink);
+    font-size: 0.88rem;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--surface-sunken);
+    }
+  }
+}
+
+.locality-ac__province {
+  color: var(--ink-soft);
+  font-size: 0.76rem;
+}

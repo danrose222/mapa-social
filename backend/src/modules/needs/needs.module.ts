@@ -8,9 +8,10 @@ import { Category } from '../categories/entities/category.entity';
 import { NeedsController } from './needs.controller';
 import { NeedsService } from './needs.service';
 import { SearchService } from './search/search.service';
+import { SolicitudesModule } from '../solicitudes/solicitudes.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Need, User, Category])],
+  imports: [TypeOrmModule.forFeature([Need, User, Category]), SolicitudesModule],
   controllers: [NeedsController],
   providers: [NeedsService, SearchService],
 })

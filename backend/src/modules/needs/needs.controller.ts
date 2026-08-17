@@ -15,6 +15,7 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 
 import { NeedsService } from './needs.service';
 import { Need } from './entities/need.entity';
+import { SolicitudesService } from '../solicitudes/solicitudes.service';
 
 import { CreateNeedDto } from './dto/create-need.dto';
 import { UpdateNeedDto } from './dto/update-need.dto';
@@ -31,17 +32,35 @@ interface AuthUser {
 @ApiTags('Needs')
 @Controller('needs')
 export class NeedsController {
-  constructor(private readonly service: NeedsService) {}
+  constructor(
+    private readonly service: NeedsService,
+    private readonly solicitudesService: SolicitudesService,
+  ) {}
 
   private hideContactUnlessAuthorized(
     item: Need,
     user: AuthUser | null,
+    acceptedNeedIds: Set<number>,
   ): Need {
-    const isModerator = user?.role === 'moderador';
+    const isModerator = user?.role === 'moderador' || user?.role === 'admin';
     const isOwner = user?.id === item.userId;
-    const belongsToOrganization = item.organizationId != null;
 
-    if (isModerator || isOwner || belongsToOrganization) {
+    if (isModerator || isOwner) {
+      return item;
+    }
+
+    if (item.requiresSolicitud) {
+      // Caso especial marcado por un moderador: se vuelve al circuito
+      // viejo, contacto oculto hasta que el dueño acepte una Solicitud.
+      const isAcceptedHelper = user != null && acceptedNeedIds.has(item.id);
+      return isAcceptedHelper
+        ? item
+        : { ...item, contactName: undefined, contactInfo: undefined };
+    }
+
+    // Caso por defecto: cualquier persona LOGUEADA ve el contacto. Alguien
+    // anónimo (sin sesión) sigue sin verlo.
+    if (user) {
       return item;
     }
 
@@ -69,7 +88,10 @@ export class NeedsController {
   @ApiResponse({ status: 200, description: 'Listado de necesidades' })
   async findAll(@CurrentUser() user: AuthUser | null) {
     const needs = await this.service.findAll();
-    return needs.map((n) => this.hideContactUnlessAuthorized(n, user));
+    const acceptedNeedIds = user
+      ? await this.solicitudesService.findAcceptedNeedIds(user.id)
+      : new Set<number>();
+    return needs.map((n) => this.hideContactUnlessAuthorized(n, user, acceptedNeedIds));
   }
 
   @Get('search')
@@ -82,7 +104,10 @@ export class NeedsController {
     @CurrentUser() user: AuthUser | null,
   ) {
     const needs = await this.service.search(dto);
-    return needs.map((n) => this.hideContactUnlessAuthorized(n, user));
+    const acceptedNeedIds = user
+      ? await this.solicitudesService.findAcceptedNeedIds(user.id)
+      : new Set<number>();
+    return needs.map((n) => this.hideContactUnlessAuthorized(n, user, acceptedNeedIds));
   }
 
   @Get(':id')
@@ -96,7 +121,16 @@ export class NeedsController {
     @CurrentUser() user: AuthUser | null,
   ) {
     const need = await this.service.findOne(id);
-    return need ? this.hideContactUnlessAuthorized(need, user) : need;
+
+    if (!need) {
+      return need;
+    }
+
+    const acceptedNeedIds = user
+      ? await this.solicitudesService.findAcceptedNeedIds(user.id)
+      : new Set<number>();
+
+    return this.hideContactUnlessAuthorized(need, user, acceptedNeedIds);
   }
 
   @Patch(':id')

@@ -74,7 +74,7 @@ export class NeedsService {
   }
   private assertCanModify(need: Need, currentUser: AuthUser) {
     const isOwner = need.userId === currentUser.id;
-    const isModerator = currentUser.role === 'moderador';
+    const isModerator = currentUser.role === 'moderador' || currentUser.role === 'admin';
     if (!isOwner && !isModerator) {
       throw new ForbiddenException(
         'No podés modificar una publicación que no es tuya',
@@ -89,10 +89,15 @@ export class NeedsService {
       throw new NotFoundException('Necesidad inexistente');
     }
     this.assertCanModify(need, currentUser);
-    const isModerator = currentUser.role === 'moderador';
+    const isModerator = currentUser.role === 'moderador' || currentUser.role === 'admin';
     if (dto.status !== undefined && !isModerator) {
       throw new ForbiddenException(
         'Solo un moderador puede cambiar el estado de la publicación',
+      );
+    }
+    if (dto.requiresSolicitud !== undefined && !isModerator) {
+      throw new ForbiddenException(
+        'Solo un moderador puede cambiar si esta necesidad requiere Solicitud',
       );
     }
     const previousStatus = need.status;

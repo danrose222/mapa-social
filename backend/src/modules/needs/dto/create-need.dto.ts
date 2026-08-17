@@ -88,4 +88,15 @@ export class CreateNeedDto {
   @IsString()
   @MaxLength(50)
   status?: string;
+
+  @ApiProperty({
+    example: '/uploads/a1b2c3d4.jpg',
+    description:
+      'URL de la imagen, obtenida antes subiendo el archivo a POST /uploads/image',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  imageUrl?: string;
 }

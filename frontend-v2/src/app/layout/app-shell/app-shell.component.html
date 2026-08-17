@@ -1,0 +1,71 @@
+<header class="shell-header">
+  <a routerLink="/" class="shell-header__brand" (click)="closeMenu()">
+    <app-icon name="heart" [size]="20" [filled]="true" />
+    Mapa Social
+  </a>
+
+  <nav class="shell-header__nav" [class.shell-header__nav--open]="isMenuOpen()">
+    <a routerLink="/publicar/quiero-ayudar" routerLinkActive="is-active" (click)="closeMenu()">
+      Quiero ayudar
+    </a>
+
+    @if (currentUser()) {
+      <a routerLink="/mis-solicitudes" routerLinkActive="is-active" (click)="closeMenu()">
+        Mis solicitudes
+      </a>
+      <a routerLink="/organizacion/mi-organizacion" routerLinkActive="is-active" (click)="closeMenu()">
+        Mi organización
+      </a>
+    }
+
+    @if (isModerator()) {
+      <span class="shell-header__divider" aria-hidden="true"></span>
+      <a routerLink="/moderador/publicaciones" routerLinkActive="is-active" (click)="closeMenu()">
+        Publicaciones
+      </a>
+      <a routerLink="/moderador/organizaciones" routerLinkActive="is-active" (click)="closeMenu()">
+        Organizaciones
+      </a>
+      <a routerLink="/moderador/mis-localidades" routerLinkActive="is-active" (click)="closeMenu()">
+        Mis localidades
+      </a>
+    }
+
+    @if (isAdmin()) {
+      <a routerLink="/admin/usuarios" routerLinkActive="is-active" (click)="closeMenu()">
+        Usuarios
+      </a>
+    }
+
+    <span class="shell-header__divider" aria-hidden="true"></span>
+
+    <a routerLink="/quienes-somos" routerLinkActive="is-active" (click)="closeMenu()">
+      Quiénes somos
+    </a>
+
+    @if (currentUser()) {
+      <span class="shell-header__user">{{ currentUser()?.firstName }}</span>
+      <button type="button" class="shell-header__logout" (click)="logout()">
+        Cerrar sesión
+      </button>
+    } @else {
+      <a routerLink="/entrar" class="shell-header__cta" (click)="closeMenu()">Entrar</a>
+    }
+  </nav>
+
+  <button
+    type="button"
+    class="shell-header__hamburger"
+    (click)="toggleMenu()"
+    [attr.aria-expanded]="isMenuOpen()"
+    aria-label="Abrir menú"
+  >
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+</header>
+
+<main class="shell-main">
+  <router-outlet />
+</main>

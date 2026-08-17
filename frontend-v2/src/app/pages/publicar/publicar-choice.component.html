@@ -1,0 +1,65 @@
+<div class="choice">
+  <header class="choice__header">
+    <a routerLink="/" class="choice__back">
+      <app-icon name="arrowLeft" [size]="16" />
+      Volver
+    </a>
+    <div class="choice__brand">
+      <app-icon name="heart" [size]="18" [filled]="true" />
+      Mapa Social
+    </div>
+  </header>
+
+  <div class="choice__cards">
+    <button type="button" class="choice__card choice__card--help" (click)="goTo('/publicar/quiero-ayudar')">
+      <div class="choice__hearts" aria-hidden="true">
+        <span>♥</span><span>♥</span><span>♥</span><span>♥</span><span>♥</span><span>♥</span>
+      </div>
+
+      <span class="choice__icon">
+        <app-icon name="helpingHand" [size]="30" />
+      </span>
+
+      <div class="choice__text">
+        <h2>¡QUIERO AYUDAR!</h2>
+        <p>Tocá acá para ver necesidades y ofrecer tu ayuda.</p>
+      </div>
+
+      <svg class="choice__illustration" viewBox="0 0 120 70" aria-hidden="true">
+        <path d="M20 40 L100 40 L90 66 L30 66 Z" fill="#fff" fill-opacity="0.22" />
+        <path d="M28 40 C28 24 42 14 60 14 C78 14 92 24 92 40 Z" fill="none" stroke="#fff" stroke-opacity="0.35" stroke-width="3" />
+        <circle cx="45" cy="52" r="6" fill="#fff" fill-opacity="0.55" />
+        <circle cx="60" cy="48" r="7" fill="#fff" fill-opacity="0.4" />
+        <rect x="68" y="46" width="14" height="10" rx="2" fill="#fff" fill-opacity="0.55" />
+      </svg>
+    </button>
+
+    <button type="button" class="choice__card choice__card--need" (click)="goTo('/publicar/necesito-ayuda')">
+      <span class="choice__icon">
+        <app-icon name="hands" [size]="30" />
+      </span>
+
+      <div class="choice__text">
+        <h2>NECESITO AYUDA</h2>
+        <p>Tocá acá para publicar tu necesidad y recibir apoyo.</p>
+      </div>
+
+      <svg class="choice__illustration" viewBox="0 0 120 70" aria-hidden="true">
+        <path d="M60 12 L78 22 L74 34 L82 40 L82 62 L38 62 L38 40 L46 34 L42 22 Z" fill="#fff" fill-opacity="0.3" />
+        <path d="M60 12 L78 22 L74 34" fill="none" stroke="#fff" stroke-opacity="0.55" stroke-width="2.5" />
+        <path d="M60 12 L42 22 L46 34" fill="none" stroke="#fff" stroke-opacity="0.55" stroke-width="2.5" />
+        <line x1="60" y1="24" x2="60" y2="62" stroke="#fff" stroke-opacity="0.4" stroke-width="2" />
+      </svg>
+    </button>
+  </div>
+
+  <p class="choice__note">
+    Publicar requiere una cuenta. Si no tenés una, te la vamos a pedir en el siguiente paso.
+  </p>
+
+  @if (canPublishResource()) {
+    <a routerLink="/publicar/ofrecer-recurso" class="choice__org-link">
+      ¿Sos de una organización avalada? Publicá un recurso →
+    </a>
+  }
+</div>

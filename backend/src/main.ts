@@ -1,9 +1,12 @@
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
+import * as express from 'express';
+import { join } from 'path';
 
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
+import { UPLOADS_DIR } from './modules/uploads/uploads.controller';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,6 +14,11 @@ async function bootstrap() {
   app.enableCors();
 
   app.setGlobalPrefix('api');
+
+  // Mismo prefijo /api que el resto de la API, para que el proxy de nginx
+  // del frontend (que ya reenvía todo /api/*) sirva las imágenes sin
+  // necesitar una regla nueva.
+  app.use('/api/uploads', express.static(UPLOADS_DIR));
 
   app.useGlobalPipes(
     new ValidationPipe({

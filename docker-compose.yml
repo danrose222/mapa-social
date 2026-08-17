@@ -29,6 +29,8 @@ services:
       - DB_NAME=mapa_social
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES=${JWT_EXPIRES:-7d}
+    volumes:
+      - backend_uploads:/app/uploads
     depends_on:
       - db
     restart: unless-stopped
@@ -43,5 +45,17 @@ services:
       - backend
     restart: unless-stopped
 
+  # Nuevo: segundo frontend (prototipo), mismo backend, puerto aparte.
+  frontend-v2:
+    build:
+      context: ./frontend-v2
+    container_name: mapa_social_frontend_v2
+    ports:
+      - "90:8080"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
 volumes:
   db_data:
+  backend_uploads:

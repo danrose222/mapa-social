@@ -1,0 +1,85 @@
+<div class="mod-org">
+  <header class="mod-org__header">
+    <a routerLink="/" class="mod-org__back">← Volver al mapa</a>
+    <h1>Organizaciones</h1>
+    <p>Solo se muestran las de las localidades que tenés asignadas.</p>
+    <a routerLink="/moderador/mis-localidades" class="mod-org__loc-link">
+      Administrar mis localidades →
+    </a>
+  </header>
+
+  @if (isLoading()) {
+    <p class="mod-org__status">Cargando…</p>
+  } @else if (loadError()) {
+    <p class="mod-org__status mod-org__status--error">
+      No se pudo conectar con el servidor.
+    </p>
+  } @else {
+    @if (actionError()) {
+      <p class="mod-org__alert">{{ actionError() }}</p>
+    }
+
+    <section class="mod-org__section">
+      <h2>Pendientes de aprobación ({{ pending().length }})</h2>
+
+      @if (pending().length === 0) {
+        <p class="mod-org__empty">No hay organizaciones pendientes en tus localidades.</p>
+      } @else {
+        <ul class="mod-org__list">
+          @for (org of pending(); track org.id) {
+            <li class="card mod-org__item">
+              <div>
+                <p class="mod-org__name">{{ org.name }}</p>
+                <p class="mod-org__meta">{{ org.type === 'ong' ? 'ONG' : 'Comunitaria' }} · {{ org.ciudad }}</p>
+                @if (org.description) {
+                  <p class="mod-org__desc">{{ org.description }}</p>
+                }
+              </div>
+
+              <div class="mod-org__actions">
+                <button
+                  type="button"
+                  class="btn"
+                  [disabled]="processingId() === org.id"
+                  (click)="approve(org)"
+                >
+                  Avalar
+                </button>
+                <button
+                  type="button"
+                  class="btn btn--ghost mod-org__reject"
+                  [disabled]="processingId() === org.id"
+                  (click)="reject(org)"
+                >
+                  Rechazar
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="mod-org__section">
+      <h2>Ya avaladas ({{ verified().length }})</h2>
+
+      @if (verified().length === 0) {
+        <p class="mod-org__empty">Todavía no avalaste ninguna en tus localidades.</p>
+      } @else {
+        <ul class="mod-org__list">
+          @for (org of verified(); track org.id) {
+            <li class="card mod-org__item mod-org__item--verified">
+              <div>
+                <p class="mod-org__name">
+                  {{ org.name }}
+                  <span class="badge-verified">✓ Verificada</span>
+                </p>
+                <p class="mod-org__meta">{{ org.type === 'ong' ? 'ONG' : 'Comunitaria' }} · {{ org.ciudad }}</p>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</div>

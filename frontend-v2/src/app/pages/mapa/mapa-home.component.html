@@ -1,0 +1,83 @@
+<div class="mapa">
+  <div class="mapa__search">
+    <input
+      type="search"
+      placeholder="Buscar por título o descripción…"
+      [value]="searchTerm()"
+      (input)="onSearchChange($any($event.target).value)"
+    />
+  </div>
+
+  <div class="mapa__chips">
+    <button
+      type="button"
+      class="chip chip--tinted"
+      [style.--chip-color]="'var(--brand)'"
+      [class.is-active]="kindFilter() === 'todos'"
+      (click)="setKindFilter('todos')"
+    >
+      Todos
+    </button>
+
+    <button
+      type="button"
+      class="chip chip--tinted"
+      [style.--chip-color]="'var(--need-color)'"
+      [class.is-active]="kindFilter() === 'necesidades'"
+      (click)="setKindFilter('necesidades')"
+    >
+      Necesidades
+    </button>
+
+    <button
+      type="button"
+      class="chip chip--tinted"
+      [style.--chip-color]="'var(--help-color)'"
+      [class.is-active]="kindFilter() === 'recursos'"
+      (click)="setKindFilter('recursos')"
+    >
+      Recursos
+    </button>
+
+    <span class="mapa__chips-divider" aria-hidden="true"></span>
+
+    @for (category of categories(); track category.id) {
+      <button
+        type="button"
+        class="chip chip--tinted"
+        [style.--chip-color]="categoryColor(category.id)"
+        [class.is-active]="isCategoryActive(category.id)"
+        (click)="toggleCategoryFilter(category.id)"
+      >
+        {{ category.name }}
+      </button>
+    }
+
+    @if (categoryFilter().size > 0) {
+      <button type="button" class="chip chip--clear" (click)="clearCategoryFilters()">
+        Limpiar categorías ✕
+      </button>
+    }
+  </div>
+
+  <div class="mapa__canvas-wrap">
+    @if (isLoading()) {
+      <div class="mapa__status" aria-live="polite">Cargando el mapa…</div>
+    }
+
+    @if (loadError()) {
+      <div class="mapa__status mapa__status--error">
+        No se pudo conectar con el servidor.
+      </div>
+    }
+
+    <div #mapContainer class="mapa__canvas"></div>
+
+    <div class="mapa__count">{{ visibleCount() }} puntos visibles</div>
+  </div>
+
+  <button type="button" class="mapa__publish-btn" (click)="goToPublicar()">
+    <app-icon name="heart" [size]="16" [filled]="true" />
+    Publicar
+  </button>
+</div>
