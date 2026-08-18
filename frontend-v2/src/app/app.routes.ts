@@ -90,6 +90,17 @@ export const routes: Routes = [
           ),
       },
       {
+        // Va DESPUÉS de mi-organizacion y crear -- Angular matchea rutas en
+        // el orden del array, no por especificidad, así que si ':id'
+        // estuviera antes capturaría '/organizacion/mi-organizacion' como
+        // si "mi-organizacion" fuera un id.
+        path: 'organizacion/:id',
+        loadComponent: () =>
+          import('./pages/organizacion/perfil/organizacion-perfil.component').then(
+            (m) => m.OrganizacionPerfilComponent,
+          ),
+      },
+      {
         path: 'moderador/publicaciones',
         canActivate: [moderatorGuard],
         loadComponent: () =>

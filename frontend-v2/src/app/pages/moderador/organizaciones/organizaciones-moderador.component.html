@@ -76,6 +76,8 @@
                 </p>
                 <p class="mod-org__meta">{{ org.type === 'ong' ? 'ONG' : 'Comunitaria' }} · {{ org.ciudad }}</p>
               </div>
+
+              <a [routerLink]="['/organizacion', org.id]" class="btn btn--ghost">Ver perfil público</a>
             </li>
           }
         </ul>

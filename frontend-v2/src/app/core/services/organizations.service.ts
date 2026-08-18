@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { Organization } from '../models/mapa-social.model';
+import { Need, Organization, Resource } from '../models/mapa-social.model';
 
 export interface CreateOrganizationPayload {
   name: string;
@@ -32,6 +32,16 @@ export class OrganizationsService {
 
   getOne(id: number): Observable<Organization> {
     return this.http.get<Organization>(`${this.baseUrl}/${id}`);
+  }
+
+  // Perfil público: qué ofrece y qué necesita esta organización. El
+  // contacto ya viene enmascarado por el backend según corresponda.
+  getResources(id: number): Observable<Resource[]> {
+    return this.http.get<Resource[]>(`${this.baseUrl}/${id}/resources`);
+  }
+
+  getNeeds(id: number): Observable<Need[]> {
+    return this.http.get<Need[]>(`${this.baseUrl}/${id}/needs`);
   }
 
   create(payload: CreateOrganizationPayload): Observable<Organization> {
