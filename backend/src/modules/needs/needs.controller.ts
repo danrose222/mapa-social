@@ -15,10 +15,10 @@ import { SearchNeedsDto } from './dto/search-needs.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { NeedsService } from './needs.service';
-import { Need } from './entities/need.entity';
 import { SolicitudesService } from '../solicitudes/solicitudes.service';
 import { ResourcesService } from '../resources/resources.service';
-import { Resource } from '../resources/entities/resource.entity';
+import { hideNeedContactUnlessAuthorized } from './needs-contact.util';
+import { hideResourceContactUnlessAuthorized } from '../resources/resource-contact.util';
 
 import { CreateNeedDto } from './dto/create-need.dto';
 import { UpdateNeedDto } from './dto/update-need.dto';
@@ -41,36 +41,6 @@ export class NeedsController {
     private readonly solicitudesService: SolicitudesService,
     private readonly resourcesService: ResourcesService,
   ) {}
-
-  private hideContactUnlessAuthorized(
-    item: Need,
-    user: AuthUser | null,
-    acceptedNeedIds: Set<number>,
-  ): Need {
-    const isModerator = user?.role === 'moderador' || user?.role === 'admin';
-    const isOwner = user?.id === item.userId;
-
-    if (isModerator || isOwner) {
-      return item;
-    }
-
-    if (item.requiresSolicitud) {
-      // Caso especial marcado por un moderador: se vuelve al circuito
-      // viejo, contacto oculto hasta que el dueño acepte una Solicitud.
-      const isAcceptedHelper = user != null && acceptedNeedIds.has(item.id);
-      return isAcceptedHelper
-        ? item
-        : { ...item, contactName: undefined, contactInfo: undefined };
-    }
-
-    // Caso por defecto: cualquier persona LOGUEADA ve el contacto. Alguien
-    // anónimo (sin sesión) sigue sin verlo.
-    if (user) {
-      return item;
-    }
-
-    return { ...item, contactName: undefined, contactInfo: undefined };
-  }
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -96,7 +66,7 @@ export class NeedsController {
     const acceptedNeedIds = user
       ? await this.solicitudesService.findAcceptedNeedIds(user.id)
       : new Set<number>();
-    return needs.map((n) => this.hideContactUnlessAuthorized(n, user, acceptedNeedIds));
+    return needs.map((n) => hideNeedContactUnlessAuthorized(n, user, acceptedNeedIds));
   }
 
   @Get('search')
@@ -114,7 +84,7 @@ export class NeedsController {
       : new Set<number>();
 
     return {
-      items: items.map((n) => this.hideContactUnlessAuthorized(n, user, acceptedNeedIds)),
+      items: items.map((n) => hideNeedContactUnlessAuthorized(n, user, acceptedNeedIds)),
       total,
       page,
       limit,
@@ -129,28 +99,6 @@ export class NeedsController {
   @ApiResponse({ status: 200, description: 'Listado de localidades' })
   localities() {
     return this.service.localities();
-  }
-
-  private hideResourceContactUnlessAuthorized(
-    item: Resource,
-    user: AuthUser | null,
-  ): Resource {
-    const isModerator = user?.role === 'moderador' || user?.role === 'admin';
-    const isOwner = user?.id === item.userId;
-    const belongsToOrganization = item.organizationId != null;
-
-    if (isModerator || isOwner || belongsToOrganization) {
-      if (!item.contactInfo && item.organization?.contactInfo) {
-        return {
-          ...item,
-          contactName: item.contactName ?? item.organization.name,
-          contactInfo: item.organization.contactInfo,
-        };
-      }
-      return item;
-    }
-
-    return { ...item, contactName: undefined, contactInfo: undefined };
   }
 
   @Get(':id/matches')
@@ -181,7 +129,7 @@ export class NeedsController {
       dto.limit ?? 10,
     );
 
-    return resources.map((r) => this.hideResourceContactUnlessAuthorized(r, user));
+    return resources.map((r) => hideResourceContactUnlessAuthorized(r, user));
   }
 
   @Get(':id')
@@ -204,7 +152,7 @@ export class NeedsController {
       ? await this.solicitudesService.findAcceptedNeedIds(user.id)
       : new Set<number>();
 
-    return this.hideContactUnlessAuthorized(need, user, acceptedNeedIds);
+    return hideNeedContactUnlessAuthorized(need, user, acceptedNeedIds);
   }
 
   @Patch(':id')

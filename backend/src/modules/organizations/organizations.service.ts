@@ -84,7 +84,7 @@ export class OrganizationsService {
 
     return this.resourceRepository.find({
       where: { organizationId },
-      relations: ['category'],
+      relations: ['category', 'organization'],
       order: { id: 'ASC' },
     });
   }
@@ -165,6 +165,21 @@ export class OrganizationsService {
       if (dto.verified !== undefined) {
         throw new ForbiddenException(
           'Solo un moderador o un admin puede avalar una organización',
+        );
+      }
+
+      // Una organización ya avalada no puede "mudarse" de ciudad por
+      // autoservicio -- eso la sacaría de la jurisdicción del moderador
+      // que la aprobó, sin que nadie vuelva a revisarla. Si todavía no
+      // está avalada, se permite: el dueño puede corregir la ciudad antes
+      // de que un moderador la evalúe.
+      if (
+        dto.ciudad !== undefined &&
+        dto.ciudad !== organization.ciudad &&
+        organization.verified
+      ) {
+        throw new ForbiddenException(
+          'Una organización ya avalada no puede cambiar de ciudad por autoservicio -- pedile a un moderador que la reubique.',
         );
       }
     }

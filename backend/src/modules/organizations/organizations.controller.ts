@@ -16,9 +16,13 @@ import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { SolicitudesService } from '../solicitudes/solicitudes.service';
+import { hideNeedContactUnlessAuthorized } from '../needs/needs-contact.util';
+import { hideResourceContactUnlessAuthorized } from '../resources/resource-contact.util';
 
 interface AuthUser {
   id: number;
@@ -28,7 +32,10 @@ interface AuthUser {
 @ApiTags('Organizations')
 @Controller('organizations')
 export class OrganizationsController {
-  constructor(private readonly service: OrganizationsService) {}
+  constructor(
+    private readonly service: OrganizationsService,
+    private readonly solicitudesService: SolicitudesService,
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -62,29 +69,42 @@ export class OrganizationsController {
   }
 
   @Get(':id/resources')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Listar los recursos que ofrece una organización (público)',
+    summary:
+      'Listar los recursos que ofrece una organización (público; el contacto se enmascara con el mismo criterio que /resources)',
   })
   @ApiResponse({ status: 200, description: 'Listado de recursos' })
   @ApiResponse({ status: 404, description: 'Organización inexistente' })
-  findResources(
+  async findResources(
     @Param('id', ParseIntPipe)
     id: number,
+    @CurrentUser() user: AuthUser | null,
   ) {
-    return this.service.findResources(id);
+    const resources = await this.service.findResources(id);
+    return resources.map((r) => hideResourceContactUnlessAuthorized(r, user));
   }
 
   @Get(':id/needs')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Listar las necesidades de una organización (público)',
+    summary:
+      'Listar las necesidades de una organización (público; el contacto se enmascara con el mismo criterio que /needs)',
   })
   @ApiResponse({ status: 200, description: 'Listado de necesidades' })
   @ApiResponse({ status: 404, description: 'Organización inexistente' })
-  findNeeds(
+  async findNeeds(
     @Param('id', ParseIntPipe)
     id: number,
+    @CurrentUser() user: AuthUser | null,
   ) {
-    return this.service.findNeeds(id);
+    const needs = await this.service.findNeeds(id);
+    const acceptedNeedIds = user
+      ? await this.solicitudesService.findAcceptedNeedIds(user.id)
+      : new Set<number>();
+    return needs.map((n) => hideNeedContactUnlessAuthorized(n, user, acceptedNeedIds));
   }
 
   @Patch(':id')
