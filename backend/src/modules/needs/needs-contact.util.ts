@@ -15,7 +15,7 @@ export function hideNeedContactUnlessAuthorized(
   user: AuthUser | null,
   acceptedNeedIds: Set<number>,
 ): Need {
-  const isModerator = user?.role === 'moderador' || user?.role === 'admin';
+  const isModerator = user?.role === 'moderador';
   const isOwner = user?.id === item.userId;
 
   if (isModerator || isOwner) {

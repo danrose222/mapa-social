@@ -13,7 +13,6 @@ import { OrganizationsModule } from './modules/organizations/organizations.modul
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { SolicitudesModule } from './modules/solicitudes/solicitudes.module';
 import { StatsModule } from './modules/stats/stats.module';
-import { LocalityRequestsModule } from './modules/locality-requests/locality-requests.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -41,7 +40,6 @@ import { LocalityRequestsModule } from './modules/locality-requests/locality-req
     UploadsModule,
     SolicitudesModule,
     StatsModule,
-    LocalityRequestsModule,
     // MatchesModule
   ],
   controllers: [AppController],

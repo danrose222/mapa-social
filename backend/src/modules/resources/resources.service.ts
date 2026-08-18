@@ -40,7 +40,7 @@ export class ResourcesService {
     if (!user) {
       throw new NotFoundException('Usuario inexistente');
     }
-    const isModerator = currentUser.role === 'moderador' || currentUser.role === 'admin';
+    const isModerator = currentUser.role === 'moderador';
     let organizationVerified = false;
     if (user.organizationId) {
       const organization = await this.organizationsService.findOne(
@@ -83,7 +83,7 @@ export class ResourcesService {
   }
   private assertCanModify(resource: Resource, currentUser: AuthUser) {
     const isOwner = resource.userId === currentUser.id;
-    const isModerator = currentUser.role === 'moderador' || currentUser.role === 'admin';
+    const isModerator = currentUser.role === 'moderador';
     if (!isOwner && !isModerator) {
       throw new ForbiddenException(
         'No podés modificar un recurso que no es tuyo',
@@ -98,7 +98,7 @@ export class ResourcesService {
   // ningún moderador pueda tocar.
   private async assertModeratorJurisdiction(resource: Resource, currentUser: AuthUser) {
     const isOwner = resource.userId === currentUser.id;
-    if (currentUser.role === 'admin' || isOwner) {
+    if (isOwner) {
       return;
     }
 
@@ -130,7 +130,7 @@ export class ResourcesService {
       throw new NotFoundException('Recurso inexistente');
     }
     this.assertCanModify(resource, currentUser);
-    const isModerator = currentUser.role === 'moderador' || currentUser.role === 'admin';
+    const isModerator = currentUser.role === 'moderador';
     if (dto.status !== undefined && !isModerator) {
       throw new ForbiddenException(
         'Solo un moderador puede cambiar el estado del recurso',

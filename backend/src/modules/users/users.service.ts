@@ -108,30 +108,19 @@ export class UsersService {
     const user = await this.findOne(id);
 
     const isOwner = currentUser.id === id;
-    const isAdmin = currentUser.role === 'admin';
-    // 'admin' incluye todo lo que puede hacer un moderador, más el cambio
-    // de roles -- por eso esta variable se llama "hasModeratorAccess" y no
-    // "isModerator": evita repetir "role === 'moderador' || role === 'admin'"
-    // en cada chequeo de abajo.
-    const hasModeratorAccess = currentUser.role === 'moderador' || isAdmin;
+    const isModerator = currentUser.role === 'moderador';
 
-    if (!isOwner && !hasModeratorAccess) {
+    if (!isOwner && !isModerator) {
       throw new ForbiddenException(
         'No podés modificar un usuario que no sos vos',
       );
     }
 
-    if (dto.roleId !== undefined) {
-      if (!isAdmin) {
-        throw new ForbiddenException(
-          'Solo un admin puede cambiar el rol de un usuario -- ni siquiera un moderador puede hacerlo, para que no puedan promoverse o degradarse entre sí',
-        );
-      }
-
-      await this.assertNotDemotingLastAdmin(user, dto.roleId);
+    if (dto.roleId !== undefined && !isModerator) {
+      throw new ForbiddenException('No podés cambiar tu propio rol');
     }
 
-    if (dto.organizationId !== undefined && !hasModeratorAccess) {
+    if (dto.organizationId !== undefined && !isModerator) {
       throw new ForbiddenException(
         'No podés vincularte vos mismo a una organización',
       );
@@ -163,69 +152,8 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
-  // Evita dos formas de quedarse sin nadie que pueda gestionar roles:
-  // que el último admin se degrade a sí mismo, o que otro admin lo degrade.
-  private async assertNotDemotingLastAdmin(
-    user: User,
-    newRoleId: number,
-  ): Promise<void> {
-    const wasAdmin = user.role?.name === 'admin';
-    const staysAdmin = wasAdmin && user.roleId === newRoleId;
-
-    if (!wasAdmin || staysAdmin) {
-      return;
-    }
-
-    const adminRole = await this.roleRepository.findOne({
-      where: { name: 'admin' },
-    });
-
-    if (!adminRole) {
-      return;
-    }
-
-    const adminCount = await this.userRepository.count({
-      where: { roleId: adminRole.id },
-    });
-
-    if (adminCount <= 1) {
-      throw new ForbiddenException(
-        'No podés quitarle el rol de admin al último admin que queda -- el sistema se quedaría sin nadie que pueda gestionar roles.',
-      );
-    }
-  }
-
-  async remove(id: number, currentUser: AuthUser) {
+  async remove(id: number) {
     const user = await this.findOne(id);
-
-    const isAdmin = currentUser.role === 'admin';
-    const targetHasPrivilegedRole =
-      user.role?.name === 'moderador' || user.role?.name === 'admin';
-
-    // Un moderador puede borrar vecinos comunes, pero no a otro moderador
-    // ni a un admin -- eso queda reservado a un admin, por la misma razón
-    // que el cambio de rol.
-    if (targetHasPrivilegedRole && !isAdmin) {
-      throw new ForbiddenException(
-        'Solo un admin puede eliminar la cuenta de un moderador o de otro admin',
-      );
-    }
-
-    if (user.role?.name === 'admin') {
-      const adminRole = await this.roleRepository.findOne({
-        where: { name: 'admin' },
-      });
-
-      const adminCount = adminRole
-        ? await this.userRepository.count({ where: { roleId: adminRole.id } })
-        : 0;
-
-      if (adminCount <= 1) {
-        throw new ForbiddenException(
-          'No podés eliminar al último admin que queda.',
-        );
-      }
-    }
 
     await this.userRepository.remove(user);
 
@@ -236,17 +164,11 @@ export class UsersService {
 
   // Un moderador solo puede otorgar/quitar jurisdicción sobre localidades
   // que él mismo ya tiene asignadas -- si no, cualquier moderador podría
-  // darle a otro (o sacarle) jurisdicción sobre una ciudad ajena, pasando
-  // por al lado del flujo de aprobación de locality-requests. Un admin no
-  // tiene esta restricción.
+  // darle a otro (o sacarle) jurisdicción sobre una ciudad ajena.
   private async assertCallerHasLocality(
     locality: string,
     currentUser: AuthUser,
   ) {
-    if (currentUser.role === 'admin') {
-      return;
-    }
-
     const callerLocalities = await this.localityRepository.find({
       where: { userId: currentUser.id },
     });
@@ -267,15 +189,15 @@ export class UsersService {
     dto: AddModeratorLocalityDto,
     currentUser: AuthUser,
   ) {
-    if (currentUser.role !== 'moderador' && currentUser.role !== 'admin') {
+    if (currentUser.role !== 'moderador') {
       throw new ForbiddenException(
-        'Solo un moderador o un admin puede asignar localidades',
+        'Solo un moderador puede asignar localidades',
       );
     }
 
     if (userId === currentUser.id) {
       throw new ForbiddenException(
-        'No podés asignarte una localidad a vos mismo -- tiene que hacerlo otro moderador o admin',
+        'No podés asignarte una localidad a vos mismo -- tiene que hacerlo otro moderador',
       );
     }
 
@@ -309,15 +231,15 @@ export class UsersService {
     localityId: number,
     currentUser: AuthUser,
   ) {
-    if (currentUser.role !== 'moderador' && currentUser.role !== 'admin') {
+    if (currentUser.role !== 'moderador') {
       throw new ForbiddenException(
-        'Solo un moderador o un admin puede quitar localidades',
+        'Solo un moderador puede quitar localidades',
       );
     }
 
     if (userId === currentUser.id) {
       throw new ForbiddenException(
-        'No podés quitarte una localidad a vos mismo -- tiene que hacerlo otro moderador o admin',
+        'No podés quitarte una localidad a vos mismo -- tiene que hacerlo otro moderador',
       );
     }
 

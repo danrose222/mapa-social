@@ -52,7 +52,7 @@ export class UsersController {
 
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('moderador', 'admin')
+  @Roles('moderador')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Listar todos los usuarios (solo moderador)' })
   @ApiResponse({ status: 200, description: 'Listado de usuarios' })
@@ -63,7 +63,7 @@ export class UsersController {
   }
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('moderador', 'admin')
+  @Roles('moderador')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Ver el detalle de un usuario (solo moderador)' })
   @ApiResponse({ status: 200, description: 'Usuario encontrado' })
@@ -101,7 +101,7 @@ export class UsersController {
   }
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('moderador', 'admin')
+  @Roles('moderador')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Eliminar un usuario (solo moderador)' })
   @ApiResponse({ status: 200, description: 'Usuario eliminado' })
@@ -111,14 +111,13 @@ export class UsersController {
   remove(
     @Param('id', ParseIntPipe)
     id: number,
-    @CurrentUser() user: AuthUser,
   ) {
-    return this.service.remove(id, user);
+    return this.service.remove(id);
   }
 
   @Post(':id/localities')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('moderador', 'admin')
+  @Roles('moderador')
   @ApiBearerAuth()
   @ApiOperation({
     summary:
@@ -140,7 +139,7 @@ export class UsersController {
 
   @Delete(':id/localities/:localityId')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('moderador', 'admin')
+  @Roles('moderador')
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Quitarle una localidad a un moderador (solo otro moderador)',

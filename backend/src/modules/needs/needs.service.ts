@@ -107,7 +107,7 @@ export class NeedsService {
   }
   private assertCanModify(need: Need, currentUser: AuthUser) {
     const isOwner = need.userId === currentUser.id;
-    const isModerator = currentUser.role === 'moderador' || currentUser.role === 'admin';
+    const isModerator = currentUser.role === 'moderador';
     if (!isOwner && !isModerator) {
       throw new ForbiddenException(
         'No podés modificar una publicación que no es tuya',
@@ -115,7 +115,7 @@ export class NeedsService {
     }
   }
 
-  // Si un moderador (no admin, no el dueño) está actuando sobre esta
+  // Si un moderador (no el dueño) está actuando sobre esta
   // necesidad, tiene que tener asignada la localidad que le corresponde --
   // la de la organización si está vinculada, si no la propia 'locality'.
   // Sin ninguna de las dos (dato viejo, o nunca cargado) no podemos acotar,
@@ -123,7 +123,7 @@ export class NeedsService {
   // moderar.
   private async assertModeratorJurisdiction(need: Need, currentUser: AuthUser) {
     const isOwner = need.userId === currentUser.id;
-    if (currentUser.role === 'admin' || isOwner) {
+    if (isOwner) {
       return;
     }
 
@@ -155,7 +155,7 @@ export class NeedsService {
       throw new NotFoundException('Necesidad inexistente');
     }
     this.assertCanModify(need, currentUser);
-    const isModerator = currentUser.role === 'moderador' || currentUser.role === 'admin';
+    const isModerator = currentUser.role === 'moderador';
     if (dto.status !== undefined && !isModerator) {
       throw new ForbiddenException(
         'Solo un moderador puede cambiar el estado de la publicación',

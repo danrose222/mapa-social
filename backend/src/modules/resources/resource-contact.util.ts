@@ -13,7 +13,7 @@ export function hideResourceContactUnlessAuthorized(
   item: Resource,
   user: AuthUser | null,
 ): Resource {
-  const isModerator = user?.role === 'moderador' || user?.role === 'admin';
+  const isModerator = user?.role === 'moderador';
   const isOwner = user?.id === item.userId;
   const belongsToOrganization = item.organizationId != null;
 

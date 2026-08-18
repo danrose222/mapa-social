@@ -81,7 +81,7 @@ export class UploadsController {
   @ApiBearerAuth()
   @ApiOperation({
     summary:
-      'Borra una imagen subida. Si está asociada a una necesidad/recurso, solo su dueño o un moderador/admin puede borrarla; si quedó huérfana (subida pero nunca usada), cualquier usuario autenticado puede. Idempotente: si el archivo ya no existe, no falla.',
+      'Borra una imagen subida. Si está asociada a una necesidad/recurso, solo su dueño o un moderador puede borrarla; si quedó huérfana (subida pero nunca usada), cualquier usuario autenticado puede. Idempotente: si el archivo ya no existe, no falla.',
   })
   @ApiResponse({ status: 200, description: 'Borrada (o ya no existía)' })
   @ApiResponse({ status: 400, description: 'URL inválida' })

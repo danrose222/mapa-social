@@ -45,7 +45,7 @@ export class OrganizationsService {
     );
 
     const hasModeratorAccess =
-      currentUser.role === 'moderador' || currentUser.role === 'admin';
+      currentUser.role === 'moderador';
 
     if (!hasModeratorAccess) {
       await this.userRepository.update(currentUser.id, {
@@ -104,11 +104,6 @@ export class OrganizationsService {
     organization: Organization,
     currentUser: AuthUser,
   ): Promise<void> {
-    // Un admin no está acotado a ninguna localidad -- por eso es "súper".
-    if (currentUser.role === 'admin') {
-      return;
-    }
-
     const localities = await this.localityRepository.find({
       where: { userId: currentUser.id },
     });
@@ -131,7 +126,7 @@ export class OrganizationsService {
     const organization = await this.findOne(id);
 
     const hasModeratorAccess =
-      currentUser.role === 'moderador' || currentUser.role === 'admin';
+      currentUser.role === 'moderador';
 
     if (hasModeratorAccess) {
       // Hay que validar las DOS ciudades si 'ciudad' viene en el mismo
@@ -151,7 +146,7 @@ export class OrganizationsService {
     } else {
       // Autoservicio: un miembro de la propia organización puede editar su
       // perfil (nombre, descripción, contacto, dirección), pero JAMÁS
-      // avalarse a sí mismo -- eso sigue siendo exclusivo de moderador/admin.
+      // avalarse a sí mismo -- eso sigue siendo exclusivo de moderador.
       const member = await this.userRepository.findOne({
         where: { id: currentUser.id },
       });
@@ -164,7 +159,7 @@ export class OrganizationsService {
 
       if (dto.verified !== undefined) {
         throw new ForbiddenException(
-          'Solo un moderador o un admin puede avalar una organización',
+          'Solo un moderador puede avalar una organización',
         );
       }
 

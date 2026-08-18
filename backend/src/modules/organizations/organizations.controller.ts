@@ -112,13 +112,13 @@ export class OrganizationsController {
   @ApiBearerAuth()
   @ApiOperation({
     summary:
-      'Editar una organización. Un moderador/admin puede editar todo, incluido avalarla (moderador acotado a su localidad, admin sin restricción). Un miembro de la propia organización puede editar su perfil, pero nunca el campo verified',
+      'Editar una organización. Un moderador puede editar todo, incluido avalarla, acotado a su localidad. Un miembro de la propia organización puede editar su perfil, pero nunca el campo verified',
   })
   @ApiResponse({ status: 200, description: 'Organización actualizada' })
   @ApiResponse({ status: 401, description: 'No autenticado' })
   @ApiResponse({
     status: 403,
-    description: 'No pertenece a la organización, intenta avalarla sin ser moderador/admin, o es un moderador de otra localidad',
+    description: 'No pertenece a la organización, intenta avalarla sin ser moderador, o es un moderador de otra localidad',
   })
   @ApiResponse({ status: 404, description: 'Organización inexistente' })
   update(
@@ -132,7 +132,7 @@ export class OrganizationsController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('moderador', 'admin')
+  @Roles('moderador')
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Eliminar una organización (solo un moderador de su misma ciudad)',

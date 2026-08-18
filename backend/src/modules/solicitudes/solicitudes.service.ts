@@ -20,7 +20,7 @@ interface AuthUser {
 }
 
 function hasModeratorAccess(user: AuthUser): boolean {
-  return user.role === 'moderador' || user.role === 'admin';
+  return user.role === 'moderador';
 }
 
 @Injectable()
@@ -57,10 +57,6 @@ export class SolicitudesService {
     need: Need,
     currentUser: AuthUser,
   ) {
-    if (currentUser.role === 'admin') {
-      return;
-    }
-
     const targetLocality = need.organization?.ciudad ?? need.locality;
     if (!targetLocality) {
       return;

@@ -50,15 +50,14 @@ export class UploadsService {
   }
 
   // Esta imagen puede estar asociada a una necesidad o recurso ya
-  // publicado -- en ese caso, solo su dueño o un moderador/admin puede
+  // publicado -- en ese caso, solo su dueño o un moderador puede
   // borrarla. Si no está asociada a ninguna publicación (huérfana: se
   // subió pero la publicación nunca se llegó a crear -- el caso de uso
   // real que describe el propio endpoint), cualquier usuario autenticado
   // puede borrarla: no hay forma de rastrear un dueño para algo que nunca
   // se asoció a nada.
   private async assertCanDelete(canonicalUrl: string, currentUser: AuthUser) {
-    const isModerator =
-      currentUser.role === 'moderador' || currentUser.role === 'admin';
+    const isModerator = currentUser.role === 'moderador';
 
     if (isModerator) {
       return;

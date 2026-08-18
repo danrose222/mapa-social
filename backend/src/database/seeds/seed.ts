@@ -5,7 +5,6 @@ import { QueryRunner } from 'typeorm';
 
 const SEED_PASSWORD = 'seed-password';
 const MODERATOR_PASSWORD = 'moderador123';
-const ADMIN_PASSWORD = 'admin123';
 // Contraseña compartida para los vecinos de prueba. Es solo para datos de
 // demo/desarrollo — no usar este patrón para usuarios reales.
 const CITIZEN_PASSWORD = 'vecino123';
@@ -255,10 +254,6 @@ async function seed(): Promise<void> {
       `INSERT IGNORE INTO roles (id, name, description, created_at, updated_at) VALUES (2, 'moderador', 'Moderador de contenido', NOW(), NOW())`,
     );
 
-    await queryRunner.query(
-      `INSERT IGNORE INTO roles (id, name, description, created_at, updated_at) VALUES (3, 'admin', 'Súper admin -- único rol que puede cambiar el rol de otros usuarios', NOW(), NOW())`,
-    );
-
     const hashedPassword = await bcrypt.hash(SEED_PASSWORD, 10);
 
     await queryRunner.query(
@@ -271,13 +266,6 @@ async function seed(): Promise<void> {
     await queryRunner.query(
       `INSERT IGNORE INTO users (id, first_name, last_name, email, password, active, role_id, created_at, updated_at) VALUES (2, 'Mod', 'Erator', 'moderador@example.com', ?, 1, 2, NOW(), NOW())`,
       [hashedModeratorPassword],
-    );
-
-    const hashedAdminPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
-
-    await queryRunner.query(
-      `INSERT IGNORE INTO users (id, first_name, last_name, email, password, active, role_id, created_at, updated_at) VALUES (11, 'Super', 'Admin', 'admin@example.com', ?, 1, 3, NOW(), NOW())`,
-      [hashedAdminPassword],
     );
 
     // Sin esto, el moderador de prueba no puede avalar NINGUNA
