@@ -69,8 +69,12 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   readonly territoryTotal = signal(0);
   readonly territoryLoading = signal(false);
 
-  private allNeeds: Need[] = [];
-  private allResources: Resource[] = [];
+  // Signals (no campos planos): visibleCount y los filtrados dependen de
+  // estos dos, y sin ser signals Angular no detecta cuándo llegan los
+  // datos async -- el contador de "puntos visibles" quedaba pegado en el
+  // último valor calculado hasta que el usuario tocaba un filtro.
+  private readonly allNeeds = signal<Need[]>([]);
+  private readonly allResources = signal<Resource[]>([]);
 
   private staticDataLoaded = false;
   private needsDataLoaded = false;
@@ -90,11 +94,11 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   });
 
   private filteredNeeds(): Need[] {
-    return this.applyFilters(this.allNeeds);
+    return this.applyFilters(this.allNeeds());
   }
 
   private filteredResources(): Resource[] {
-    return this.applyFilters(this.allResources);
+    return this.applyFilters(this.allResources());
   }
 
   private applyFilters<T extends { categoryId: number; title: string; description: string }>(
@@ -232,7 +236,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     ])
       .then(([categories, resources]) => {
         this.categories.set(categories ?? []);
-        this.allResources = (resources ?? []).filter((r) => r.status === 'available');
+        this.allResources.set((resources ?? []).filter((r) => r.status === 'available'));
         this.staticDataLoaded = true;
         this.checkFullyLoaded();
         this.renderMarkers();
@@ -311,7 +315,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       .getNeeds()
       .toPromise()
       .then((needs) => {
-        this.allNeeds = (needs ?? []).filter((n) => n.status === 'active');
+        this.allNeeds.set((needs ?? []).filter((n) => n.status === 'active'));
         this.needsDataLoaded = true;
         this.checkFullyLoaded();
         this.renderMarkers();
@@ -362,7 +366,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       })
       .subscribe({
         next: (result) => {
-          this.allNeeds = result.items;
+          this.allNeeds.set(result.items);
           this.territoryTotalPages.set(result.totalPages);
           this.territoryTotal.set(result.total);
           this.territoryLoading.set(false);
@@ -390,7 +394,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       .searchNeeds({ locality, page: this.territoryPage(), limit: TERRITORY_PAGE_SIZE })
       .subscribe({
         next: (result) => {
-          this.allNeeds = result.items;
+          this.allNeeds.set(result.items);
           this.territoryTotalPages.set(result.totalPages);
           this.territoryTotal.set(result.total);
           this.territoryLoading.set(false);
