@@ -10,6 +10,7 @@ import { User } from '../users/entities/user.entity';
 import { Category } from '../categories/entities/category.entity';
 import { ModeratorLocality } from '../users/entities/moderator-locality.entity';
 import { localitiesMatch } from '../../common/utils/locality-match.util';
+import { haversineDistanceExpr } from '../../common/utils/haversine.util';
 import { OrganizationsService } from '../organizations/organizations.service';
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
@@ -184,11 +185,7 @@ export class ResourcesService {
     radiusKm: number,
     limit: number,
   ) {
-    const distanceExpr = `(6371 * acos(
-        cos(radians(:lat)) * cos(radians(entity.latitude))
-        * cos(radians(entity.longitude) - radians(:lng))
-        + sin(radians(:lat)) * sin(radians(entity.latitude))
-      ))`;
+    const distanceExpr = haversineDistanceExpr('entity', 'lat', 'lng');
 
     return this.repository
       .createQueryBuilder('entity')
