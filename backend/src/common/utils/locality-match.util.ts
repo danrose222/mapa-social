@@ -11,6 +11,16 @@
 // puede dar falsos positivos con nombres cortos que sean substring de
 // otros no relacionados. Documentado así a propósito, para que quien lo
 // lea después sepa la limitación.
+//
+// Tampoco considera 'provincia' (se guarda en ModeratorLocality y
+// LocalityRequest, pero es solo informativa -- nunca se compara acá).
+// Mientras el proyecto quede acotado a Córdoba esto no es un problema,
+// pero apenas haya moderadores/organizaciones en otras provincias, dos
+// localidades homónimas de provincias distintas (hay varias en
+// Argentina: San Martín, Concepción, Libertador...) van a matchear entre
+// sí como si fueran la misma jurisdicción. No bloqueante para el alcance
+// actual, pero hay que resolverlo antes de escalar más allá de una sola
+// provincia.
 export function localitiesMatch(a: string, b: string): boolean {
   const normalizedA = a.trim().toLowerCase();
   const normalizedB = b.trim().toLowerCase();
