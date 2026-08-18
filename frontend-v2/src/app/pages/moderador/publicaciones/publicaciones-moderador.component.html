@@ -2,7 +2,11 @@
   <header class="mod-pub__header">
     <a routerLink="/" class="mod-pub__back">← Volver al mapa</a>
     <h1>Moderar publicaciones</h1>
-    <p>Necesidades y recursos de toda la plataforma — esto no está acotado por localidad.</p>
+    @if (isAdmin()) {
+      <p>Necesidades y recursos de toda la plataforma — como admin, sin restricción de localidad.</p>
+    } @else {
+      <p>Acotado a tus localidades asignadas — lo de afuera no lo podés moderar aunque lo veas.</p>
+    }
   </header>
 
   @if (isLoading()) {
@@ -10,6 +14,27 @@
   } @else if (loadError()) {
     <p class="mod-pub__status mod-pub__status--error">No se pudo conectar con el servidor.</p>
   } @else {
+    @if (!isAdmin()) {
+      <div class="mod-pub__scope-toggle">
+        <button
+          type="button"
+          class="chip"
+          [class.is-active]="showOnlyMine()"
+          (click)="showOnlyMine.set(true)"
+        >
+          Solo mis localidades
+        </button>
+        <button
+          type="button"
+          class="chip"
+          [class.is-active]="!showOnlyMine()"
+          (click)="showOnlyMine.set(false)"
+        >
+          Ver todo el país
+        </button>
+      </div>
+    }
+
     <div class="mod-pub__tabs">
       <button
         type="button"
@@ -59,8 +84,17 @@
                   @if (need.requiresSolicitud) {
                     · <span class="mod-pub__flag">Contacto oculto (requiere Solicitud)</span>
                   }
+                  @if (!isAdmin() && !isInScope(need)) {
+                    · <span class="mod-pub__out-of-scope">Fuera de tu jurisdicción</span>
+                  }
                 </p>
                 <p class="mod-pub__desc">{{ need.description }}</p>
+                @if (need.status === 'resolved' && need.resolvedBy) {
+                  <p class="mod-pub__resolved-by">
+                    ✓ Resuelta por {{ need.resolvedBy.firstName }} {{ need.resolvedBy.lastName }}
+                    @if (need.resolvedAt) { el {{ need.resolvedAt | date: 'dd/MM/yyyy, HH:mm' }} }
+                  </p>
+                }
               </div>
 
               <div class="mod-pub__actions">
@@ -68,7 +102,7 @@
                   <button
                     type="button"
                     class="btn btn--ghost"
-                    [disabled]="processingId() === need.id"
+                    [disabled]="processingId() === need.id || (!isAdmin() && !isInScope(need))"
                     (click)="resolveNeed(need)"
                   >
                     Marcar resuelta
@@ -77,7 +111,7 @@
                 <button
                   type="button"
                   class="btn btn--ghost"
-                  [disabled]="processingId() === need.id"
+                  [disabled]="processingId() === need.id || (!isAdmin() && !isInScope(need))"
                   (click)="toggleRequiresSolicitud(need)"
                 >
                   {{ need.requiresSolicitud ? 'Mostrar contacto directo' : 'Ocultar contacto (requerir Solicitud)' }}
@@ -85,7 +119,7 @@
                 <button
                   type="button"
                   class="btn btn--ghost mod-pub__delete"
-                  [disabled]="processingId() === need.id"
+                  [disabled]="processingId() === need.id || (!isAdmin() && !isInScope(need))"
                   (click)="deleteNeed(need)"
                 >
                   Eliminar
@@ -112,8 +146,17 @@
                   @if (resource.organization) {
                     · {{ resource.organization.name }}
                   }
+                  @if (!isAdmin() && !isInScope(resource)) {
+                    · <span class="mod-pub__out-of-scope">Fuera de tu jurisdicción</span>
+                  }
                 </p>
                 <p class="mod-pub__desc">{{ resource.description }}</p>
+                @if (resource.status === 'resolved' && resource.resolvedBy) {
+                  <p class="mod-pub__resolved-by">
+                    ✓ Resuelto por {{ resource.resolvedBy.firstName }} {{ resource.resolvedBy.lastName }}
+                    @if (resource.resolvedAt) { el {{ resource.resolvedAt | date: 'dd/MM/yyyy, HH:mm' }} }
+                  </p>
+                }
               </div>
 
               <div class="mod-pub__actions">
@@ -121,7 +164,7 @@
                   <button
                     type="button"
                     class="btn btn--ghost"
-                    [disabled]="processingId() === resource.id"
+                    [disabled]="processingId() === resource.id || (!isAdmin() && !isInScope(resource))"
                     (click)="resolveResource(resource)"
                   >
                     Marcar resuelto
@@ -130,7 +173,7 @@
                 <button
                   type="button"
                   class="btn btn--ghost mod-pub__delete"
-                  [disabled]="processingId() === resource.id"
+                  [disabled]="processingId() === resource.id || (!isAdmin() && !isInScope(resource))"
                   (click)="deleteResource(resource)"
                 >
                   Eliminar

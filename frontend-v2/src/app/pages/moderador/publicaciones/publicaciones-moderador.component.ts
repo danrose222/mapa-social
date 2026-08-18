@@ -1,22 +1,37 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 import { PublicationsService } from '../../../core/services/publications.service';
 import { CategoriesService } from '../../../core/services/categories.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Category, Need, Resource } from '../../../core/models/mapa-social.model';
 
 type Tab = 'needs' | 'resources';
 
+// Misma lógica bidireccional que el backend (locality-match.util.ts) --
+// duplicada acá a propósito, es una función chica y así el filtro visual
+// coincide exacto con lo que el servidor va a permitir o rechazar.
+function localitiesMatch(a: string, b: string): boolean {
+  const na = a.trim().toLowerCase();
+  const nb = b.trim().toLowerCase();
+  if (!na || !nb) return false;
+  return na.includes(nb) || nb.includes(na);
+}
+
 @Component({
   selector: 'app-publicaciones-moderador',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, DatePipe],
   templateUrl: './publicaciones-moderador.component.html',
   styleUrl: './publicaciones-moderador.component.scss',
 })
 export class PublicacionesModeradorComponent {
   private readonly publicationsService = inject(PublicationsService);
   private readonly categoriesService = inject(CategoriesService);
+  private readonly authService = inject(AuthService);
+
+  readonly isAdmin = this.authService.isAdmin;
 
   readonly tab = signal<Tab>('needs');
   readonly isLoading = signal(true);
@@ -28,20 +43,47 @@ export class PublicacionesModeradorComponent {
   readonly processingId = signal<number | null>(null);
   readonly searchTerm = signal('');
 
+  // Por defecto solo se ve lo que corresponde a las localidades asignadas
+  // -- el admin no tiene esta restricción, así que para admin este switch
+  // no cambia nada (siempre ve todo).
+  readonly showOnlyMine = signal(true);
+
+  private readonly myLocalityNames = computed(
+    () => (this.authService.profile()?.localities ?? []).map((l) => l.locality),
+  );
+
+  isInScope(item: { locality?: string; organization?: { ciudad: string } | null }): boolean {
+    if (this.isAdmin() || !this.showOnlyMine()) {
+      return true;
+    }
+
+    const target = item.organization?.ciudad ?? item.locality;
+
+    // Sin dato de zona no podemos acotar -- el backend tampoco lo hace en
+    // ese caso, así que se muestra (mismo criterio de los dos lados).
+    if (!target) {
+      return true;
+    }
+
+    return this.myLocalityNames().some((mine) => localitiesMatch(mine, target));
+  }
+
   readonly filteredNeeds = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
-    if (!term) return this.needs();
-    return this.needs().filter(
-      (n) => n.title.toLowerCase().includes(term) || n.description.toLowerCase().includes(term),
-    );
+    return this.needs().filter((n) => {
+      const matchesTerm =
+        !term || n.title.toLowerCase().includes(term) || n.description.toLowerCase().includes(term);
+      return matchesTerm && this.isInScope(n);
+    });
   });
 
   readonly filteredResources = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
-    if (!term) return this.resources();
-    return this.resources().filter(
-      (r) => r.title.toLowerCase().includes(term) || r.description.toLowerCase().includes(term),
-    );
+    return this.resources().filter((r) => {
+      const matchesTerm =
+        !term || r.title.toLowerCase().includes(term) || r.description.toLowerCase().includes(term);
+      return matchesTerm && this.isInScope(r);
+    });
   });
 
   constructor() {

@@ -39,6 +39,17 @@
   color: var(--danger);
 }
 
+.mod-pub__scope-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.mod-pub__out-of-scope {
+  color: var(--danger);
+  font-weight: 700;
+}
+
 .mod-pub__tabs {
   display: flex;
   gap: 8px;
@@ -117,6 +128,13 @@
   line-height: 1.5;
 }
 
+.mod-pub__resolved-by {
+  margin: 6px 0 0;
+  color: var(--help-color);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
 .mod-pub__status-tag {
   font-weight: 700;
 }
@@ -138,8 +156,17 @@
 .mod-pub__actions {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   flex: 0 0 auto;
+  width: 168px;
+}
+
+.mod-pub__actions .btn {
+  width: 100%;
+  padding: 7px 10px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
 }
 
 .mod-pub__delete {

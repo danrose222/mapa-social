@@ -46,6 +46,60 @@
   font-size: 0.82rem;
 }
 
+.mis-loc__success {
+  margin-top: 10px;
+  color: var(--help-color);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.mis-loc__note {
+  margin: 0 0 14px;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+.mis-loc__request-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+  }
+}
+
+.mis-loc__request-tag {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.mis-loc__request-tag--pending {
+  background: var(--need-color-soft);
+  color: var(--need-color);
+}
+
+.mis-loc__request-tag--approved {
+  background: var(--help-color-soft);
+  color: var(--help-color);
+}
+
+.mis-loc__request-tag--rejected {
+  background: #f8dcd6;
+  color: var(--danger);
+}
+
 .mis-loc__error {
   margin-top: 10px;
   color: var(--danger);

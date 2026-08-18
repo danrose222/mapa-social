@@ -128,6 +128,19 @@
   line-height: 1.6;
 }
 
+.detalle__resolved-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -10px 0 20px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--help-color-soft);
+  color: var(--help-color);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 .detalle__confirm-btn {
   display: flex;
   align-items: center;

@@ -3,18 +3,25 @@
     <a routerLink="/" class="mis-loc__back">← Volver al mapa</a>
     <h1>Mis localidades</h1>
     <p>
-      Solo podés avalar o administrar organizaciones de las localidades que
-      tengas asignadas acá abajo.
+      Solo podés avalar o moderar organizaciones y publicaciones de las
+      localidades que tengas asignadas acá abajo.
     </p>
   </header>
 
   <div class="card mis-loc__card">
-    <h2>Agregar una localidad</h2>
+    <h2>Pedir una localidad</h2>
+    <p class="mis-loc__note">
+      Ya no te la podés asignar directo -- lo tiene que aprobar un admin.
+    </p>
 
-    <app-locality-autocomplete (localitySelected)="addLocality($event)" />
+    <app-locality-autocomplete (localitySelected)="requestLocality($event)" />
 
     @if (isSaving()) {
-      <p class="mis-loc__status">Guardando…</p>
+      <p class="mis-loc__status">Enviando…</p>
+    }
+
+    @if (successMessage()) {
+      <p class="mis-loc__success">{{ successMessage() }}</p>
     }
 
     @if (errorMessage()) {
@@ -22,13 +29,31 @@
     }
   </div>
 
+  @if (myRequests().length > 0) {
+    <div class="card mis-loc__card">
+      <h2>Mis pedidos</h2>
+
+      <ul class="mis-loc__request-list">
+        @for (r of myRequests(); track r.id) {
+          <li>
+            <span>{{ r.locality }}</span>
+            <span class="mis-loc__request-tag mis-loc__request-tag--{{ r.status }}">
+              {{ r.status === 'pending' ? 'Pendiente' : r.status === 'approved' ? 'Aprobado' : 'Rechazado' }}
+            </span>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+
   <div class="card mis-loc__card">
     <h2>Localidades asignadas</h2>
 
     @if (localities().length === 0) {
       <p class="mis-loc__empty">
         Todavía no tenés ninguna localidad asignada — no vas a poder avalar
-        ninguna organización hasta que agregues al menos una.
+        ninguna organización ni moderar publicaciones hasta que se apruebe
+        al menos un pedido.
       </p>
     } @else {
       <ul class="mis-loc__list">

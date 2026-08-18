@@ -1,0 +1,103 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.sol-loc {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px 20px 60px;
+}
+
+.sol-loc__header {
+  padding: 12px 0 24px;
+
+  h1 {
+    margin: 10px 0 6px;
+    font-size: 1.6rem;
+  }
+
+  p {
+    color: var(--ink-soft);
+    font-size: 0.88rem;
+  }
+}
+
+.sol-loc__back {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.sol-loc__status {
+  padding: 60px 20px;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.sol-loc__status--error {
+  color: var(--danger);
+}
+
+.sol-loc__empty {
+  padding: 40px 20px;
+  color: var(--ink-soft);
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.sol-loc__alert {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: #f8dcd6;
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+
+.sol-loc__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sol-loc__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+}
+
+.sol-loc__locality {
+  margin: 0 0 4px;
+  font-weight: 700;
+}
+
+.sol-loc__requester {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+.sol-loc__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 0 0 auto;
+  width: 140px;
+}
+
+.sol-loc__actions .btn {
+  width: 100%;
+  padding: 7px 10px;
+  font-size: 0.78rem;
+}
+
+.sol-loc__reject {
+  color: var(--danger);
+  border-color: var(--danger);
+}

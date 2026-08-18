@@ -1,0 +1,51 @@
+<div class="sol-loc">
+  <header class="sol-loc__header">
+    <a routerLink="/" class="sol-loc__back">← Volver al mapa</a>
+    <h1>Solicitudes de localidad</h1>
+    <p>Pedidos de moderadores para administrar una localidad nueva.</p>
+  </header>
+
+  @if (isLoading()) {
+    <p class="sol-loc__status">Cargando…</p>
+  } @else if (loadError()) {
+    <p class="sol-loc__status sol-loc__status--error">No se pudo conectar con el servidor.</p>
+  } @else if (requests().length === 0) {
+    <p class="sol-loc__empty">No hay solicitudes pendientes.</p>
+  } @else {
+    @if (actionError()) {
+      <p class="sol-loc__alert">{{ actionError() }}</p>
+    }
+
+    <ul class="sol-loc__list">
+      @for (r of requests(); track r.id) {
+        <li class="card sol-loc__item">
+          <div>
+            <p class="sol-loc__locality">{{ r.locality }}</p>
+            <p class="sol-loc__requester">
+              {{ r.user?.firstName }} {{ r.user?.lastName }} · {{ r.user?.email }}
+            </p>
+          </div>
+
+          <div class="sol-loc__actions">
+            <button
+              type="button"
+              class="btn"
+              [disabled]="processingId() === r.id"
+              (click)="respond(r, 'approved')"
+            >
+              Aprobar
+            </button>
+            <button
+              type="button"
+              class="btn btn--ghost sol-loc__reject"
+              [disabled]="processingId() === r.id"
+              (click)="respond(r, 'rejected')"
+            >
+              Rechazar
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</div>

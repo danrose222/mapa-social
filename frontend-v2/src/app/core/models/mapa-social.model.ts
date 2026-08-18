@@ -33,6 +33,8 @@ export interface Need {
   imageUrl?: string;
   requiresSolicitud?: boolean;
   status: string;
+  resolvedBy?: { id: number; firstName: string; lastName: string } | null;
+  resolvedAt?: string | null;
   createdAt: string;
 }
 
@@ -52,6 +54,8 @@ export interface Resource {
   contactInfo?: string;
   imageUrl?: string;
   status: string;
+  resolvedBy?: { id: number; firstName: string; lastName: string } | null;
+  resolvedAt?: string | null;
   createdAt: string;
 }
 

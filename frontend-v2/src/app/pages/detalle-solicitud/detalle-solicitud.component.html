@@ -52,6 +52,19 @@
 
       <p class="detalle__desc">{{ need()!.description }}</p>
 
+      @if (need()!.status === 'resolved') {
+        <p class="detalle__resolved-note">
+          <app-icon name="check" [size]="13" />
+          Marcada como resuelta
+          @if (need()!.resolvedBy) {
+            por {{ need()!.resolvedBy!.firstName }} {{ need()!.resolvedBy!.lastName }}
+          }
+          @if (need()!.resolvedAt) {
+            el {{ need()!.resolvedAt | date: 'dd/MM/yyyy, HH:mm' }}
+          }
+        </p>
+      }
+
       <!-- Caso 1: no está logueado -->
       @if (!currentUser()) {
         <div class="detalle__login-prompt">

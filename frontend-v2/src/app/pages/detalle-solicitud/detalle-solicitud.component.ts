@@ -1,4 +1,5 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -12,7 +13,7 @@ import { IconComponent } from '../../shared/icons/icon.component';
 @Component({
   selector: 'app-detalle-solicitud',
   standalone: true,
-  imports: [RouterLink, IconComponent],
+  imports: [RouterLink, IconComponent, DatePipe],
   templateUrl: './detalle-solicitud.component.html',
   styleUrl: './detalle-solicitud.component.scss',
 })

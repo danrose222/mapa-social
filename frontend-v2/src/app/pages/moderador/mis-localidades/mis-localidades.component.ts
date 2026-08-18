@@ -8,6 +8,10 @@ import {
   ModeratorLocalityRecord,
 } from '../../../core/services/moderator-localities.service';
 import {
+  LocalityRequestRecord,
+  LocalityRequestsService,
+} from '../../../core/services/locality-requests.service';
+import {
   LocalityAutocompleteComponent,
   LocalitySelection,
 } from '../../../shared/components/locality-autocomplete/locality-autocomplete.component';
@@ -22,35 +26,52 @@ import {
 export class MisLocalidadesComponent {
   private readonly authService = inject(AuthService);
   private readonly localitiesService = inject(ModeratorLocalitiesService);
+  private readonly requestsService = inject(LocalityRequestsService);
 
   readonly localities = computed<ModeratorLocalityRecord[]>(
     () => (this.authService.profile()?.localities as ModeratorLocalityRecord[]) ?? [],
   );
 
+  readonly myRequests = signal<LocalityRequestRecord[]>([]);
   readonly isSaving = signal(false);
   readonly errorMessage = signal('');
+  readonly successMessage = signal('');
 
-  addLocality(selection: LocalitySelection): void {
-    const userId = this.authService.profile()?.id;
+  constructor() {
+    this.loadMyRequests();
+  }
 
-    if (!userId || this.isSaving()) {
+  private loadMyRequests(): void {
+    this.requestsService.findMine().subscribe({
+      next: (list) => this.myRequests.set(list),
+      error: () => {},
+    });
+  }
+
+  // Ya no se puede asignar una localidad a uno mismo directamente (lo
+  // bloqueamos a propósito) -- esto crea un PEDIDO, que un admin tiene que
+  // aprobar. Ver /admin/solicitudes-localidad del lado del admin.
+  requestLocality(selection: LocalitySelection): void {
+    if (this.isSaving()) {
       return;
     }
 
     this.isSaving.set(true);
     this.errorMessage.set('');
+    this.successMessage.set('');
 
-    this.localitiesService.add(userId, selection).subscribe({
+    this.requestsService.create(selection).subscribe({
       next: () => {
         this.isSaving.set(false);
-        this.authService.refreshProfile().subscribe();
+        this.successMessage.set(
+          `Pedido enviado para ${selection.locality} — un admin lo tiene que aprobar.`,
+        );
+        this.loadMyRequests();
       },
       error: (error: HttpErrorResponse) => {
         this.isSaving.set(false);
         this.errorMessage.set(
-          error.status === 403
-            ? 'Solo un moderador puede asignar localidades.'
-            : 'No se pudo agregar la localidad. Intentá de nuevo.',
+          error.error?.message ?? 'No se pudo enviar el pedido. Intentá de nuevo.',
         );
       },
     });
@@ -63,9 +84,17 @@ export class MisLocalidadesComponent {
       return;
     }
 
+    this.errorMessage.set('');
+
     this.localitiesService.remove(userId, localityId).subscribe({
       next: () => this.authService.refreshProfile().subscribe(),
-      error: () => this.errorMessage.set('No se pudo quitar la localidad. Intentá de nuevo.'),
+      error: (error: HttpErrorResponse) => {
+        this.errorMessage.set(
+          error.status === 403
+            ? 'No podés quitarte una localidad a vos mismo -- pedile a un admin.'
+            : 'No se pudo quitar la localidad. Intentá de nuevo.',
+        );
+      },
     });
   }
 }

@@ -99,6 +99,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'admin/solicitudes-localidad',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./pages/admin/solicitudes-localidad/solicitudes-localidad.component').then(
+            (m) => m.SolicitudesLocalidadComponent,
+          ),
+      },
+      {
         path: 'moderador/publicaciones',
         canActivate: [moderatorGuard],
         loadComponent: () =>

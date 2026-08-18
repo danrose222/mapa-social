@@ -13,6 +13,7 @@ import { Need } from '../needs/entities/need.entity';
 import { Resource } from '../resources/entities/resource.entity';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
+import { localitiesMatch } from '../../common/utils/locality-match.util';
 
 interface AuthUser {
   id: number;
@@ -113,12 +114,11 @@ export class OrganizationsService {
     });
 
     const targetCity = organization.ciudad.trim().toLowerCase();
-    // Comparación case-insensitive/trim: los datos viejos de 'ciudad' son
-    // texto libre sin normalizar, así que un match exacto sería demasiado
-    // frágil contra mayúsculas/espacios.
-    const isInScope = localities.some(
-      (l) => l.locality.trim().toLowerCase() === targetCity,
-    );
+    // Comparación bidireccional (ver locality-match.util.ts): Georef no
+    // distingue ciudad de barrio, así que "Córdoba" (moderador) y "Nueva
+    // Córdoba" (una organización) tienen que considerarse la misma
+    // jurisdicción.
+    const isInScope = localities.some((l) => localitiesMatch(l.locality, targetCity));
 
     if (!isInScope) {
       throw new ForbiddenException(
