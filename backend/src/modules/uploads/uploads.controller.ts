@@ -11,21 +11,18 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { randomUUID } from 'crypto';
-import { basename, extname, join } from 'path';
-import { existsSync, mkdirSync, unlinkSync } from 'fs';
+import { extname } from 'path';
 
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { DeleteImageDto } from './dto/delete-image.dto';
+import { UploadsService, UPLOADS_DIR } from './uploads.service';
 
-// Directorio de almacenamiento local. Para un volumen mayor de uso real
-// convendría moverlo a un storage externo (S3 o similar); para el alcance
-// actual del proyecto, disco local + servido estático alcanza.
-export const UPLOADS_DIR = join(process.cwd(), 'uploads');
-
-if (!existsSync(UPLOADS_DIR)) {
-  mkdirSync(UPLOADS_DIR, { recursive: true });
+interface AuthUser {
+  id: number;
+  role: string;
 }
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -34,6 +31,8 @@ const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 @ApiTags('Uploads')
 @Controller('uploads')
 export class UploadsController {
+  constructor(private readonly service: UploadsService) {}
+
   @Post('image')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -82,22 +81,16 @@ export class UploadsController {
   @ApiBearerAuth()
   @ApiOperation({
     summary:
-      'Borra una imagen subida que no se llegó a usar (ej: se subió pero la publicación falló). Idempotente: si el archivo ya no existe, no falla.',
+      'Borra una imagen subida. Si está asociada a una necesidad/recurso, solo su dueño o un moderador/admin puede borrarla; si quedó huérfana (subida pero nunca usada), cualquier usuario autenticado puede. Idempotente: si el archivo ya no existe, no falla.',
   })
   @ApiResponse({ status: 200, description: 'Borrada (o ya no existía)' })
   @ApiResponse({ status: 400, description: 'URL inválida' })
   @ApiResponse({ status: 401, description: 'No autenticado' })
-  deleteImage(@Body() dto: DeleteImageDto) {
-    // basename() descarta cualquier segmento de carpeta ('../', '/etc/...'),
-    // así que aunque nos manden una URL manipulada, solo puede apuntar a
-    // un archivo dentro de UPLOADS_DIR -- nunca fuera de esa carpeta.
-    const filename = basename(dto.url);
-    const filePath = join(UPLOADS_DIR, filename);
-
-    if (existsSync(filePath)) {
-      unlinkSync(filePath);
-    }
-
-    return { deleted: true };
+  @ApiResponse({
+    status: 403,
+    description: 'La imagen pertenece a una publicación de otro usuario',
+  })
+  deleteImage(@Body() dto: DeleteImageDto, @CurrentUser() user: AuthUser) {
+    return this.service.deleteImage(dto, user);
   }
 }

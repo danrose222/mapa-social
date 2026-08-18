@@ -6,7 +6,7 @@ import { join } from 'path';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
-import { UPLOADS_DIR } from './modules/uploads/uploads.controller';
+import { UPLOADS_DIR } from './modules/uploads/uploads.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
