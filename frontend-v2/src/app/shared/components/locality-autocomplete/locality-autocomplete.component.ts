@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Output, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
+import { Subject, catchError, debounceTime, distinctUntilChanged, of, switchMap } from 'rxjs';
 
 import { GeorefLocality, GeorefService } from '../../../core/services/georef.service';
 
@@ -35,7 +35,18 @@ export class LocalityAutocompleteComponent {
         distinctUntilChanged(),
         switchMap((term) => {
           this.isSearching.set(true);
-          return this.georefService.searchLocalities(term);
+          // catchError ACÁ (adentro del switchMap), no en el .subscribe()
+          // de afuera: un error del lado de Georef en la fuente interna
+          // corta para siempre la suscripción externa completa -- sin
+          // esto, el primer error de red mataba el autocomplete para el
+          // resto de la vida de este componente, sin ninguna forma de
+          // recuperarse salvo recargar la página.
+          return this.georefService.searchLocalities(term).pipe(
+            catchError(() => {
+              this.isSearching.set(false);
+              return of<GeorefLocality[]>([]);
+            }),
+          );
         }),
       )
       .subscribe({
@@ -43,10 +54,6 @@ export class LocalityAutocompleteComponent {
           this.isSearching.set(false);
           this.results.set(localities);
           this.isOpen.set(localities.length > 0);
-        },
-        error: () => {
-          this.isSearching.set(false);
-          this.results.set([]);
         },
       });
   }
