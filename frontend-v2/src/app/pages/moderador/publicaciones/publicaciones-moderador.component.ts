@@ -6,18 +6,9 @@ import { PublicationsService } from '../../../core/services/publications.service
 import { CategoriesService } from '../../../core/services/categories.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Category, Need, Resource } from '../../../core/models/mapa-social.model';
+import { localitiesMatch } from '../../../shared/utils/locality-match.util';
 
 type Tab = 'needs' | 'resources';
-
-// Misma lógica bidireccional que el backend (locality-match.util.ts) --
-// duplicada acá a propósito, es una función chica y así el filtro visual
-// coincide exacto con lo que el servidor va a permitir o rechazar.
-function localitiesMatch(a: string, b: string): boolean {
-  const na = a.trim().toLowerCase();
-  const nb = b.trim().toLowerCase();
-  if (!na || !nb) return false;
-  return na.includes(nb) || nb.includes(na);
-}
 
 @Component({
   selector: 'app-publicaciones-moderador',

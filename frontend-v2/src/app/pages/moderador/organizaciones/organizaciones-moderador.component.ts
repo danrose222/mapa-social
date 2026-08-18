@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { OrganizationsService } from '../../../core/services/organizations.service';
 import { Organization } from '../../../core/models/mapa-social.model';
+import { localitiesMatch } from '../../../shared/utils/locality-match.util';
 
 @Component({
   selector: 'app-organizaciones-moderador',
@@ -23,20 +24,18 @@ export class OrganizacionesModeradorComponent {
   readonly processingId = signal<number | null>(null);
 
   private readonly myLocalityNames = computed(
-    () =>
-      new Set(
-        (this.authService.profile()?.localities ?? []).map((l) =>
-          l.locality.trim().toLowerCase(),
-        ),
-      ),
+    () => (this.authService.profile()?.localities ?? []).map((l) => l.locality),
   );
 
   // Solo organizaciones de una localidad que este moderador tiene asignada
-  // -- el backend igual lo vuelve a validar en el PATCH/DELETE, esto es
-  // nomás para no mostrar en la lista algo que después va a rebotar con 403.
+  // -- mismo match bidireccional por substring que usa el backend (una
+  // comparación exacta escondía organizaciones que el backend sí dejaba
+  // aprobar, ej. "Nueva Córdoba" vs. "Córdoba"). El backend igual lo
+  // vuelve a validar en el PATCH/DELETE, esto es nomás para no mostrar en
+  // la lista algo que después va a rebotar con 403.
   private readonly inScopeOrganizations = computed(() =>
     this.allOrganizations().filter((org) =>
-      this.myLocalityNames().has(org.ciudad.trim().toLowerCase()),
+      this.myLocalityNames().some((mine) => localitiesMatch(mine, org.ciudad)),
     ),
   );
 
