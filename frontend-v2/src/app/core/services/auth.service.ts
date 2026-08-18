@@ -47,24 +47,17 @@ export class AuthService {
   readonly profile = this.profileSignal.asReadonly();
   readonly profileLoaded = this.profileLoadedSignal.asReadonly();
 
-  // true si es moderador/admin, o si pertenece a una organización ya avalada.
+  // true si es moderador, o si pertenece a una organización ya avalada.
   readonly canPublishResource = computed(() => {
     const profile = this.profileSignal();
     if (!profile) {
       return false;
     }
-    const hasModeratorAccess =
-      profile.role.name === 'moderador' || profile.role.name === 'admin';
-    return hasModeratorAccess || profile.organization?.verified === true;
+    const isModerator = profile.role.name === 'moderador';
+    return isModerator || profile.organization?.verified === true;
   });
 
-  readonly isModerator = computed(
-    () =>
-      this.profileSignal()?.role.name === 'moderador' ||
-      this.profileSignal()?.role.name === 'admin',
-  );
-
-  readonly isAdmin = computed(() => this.profileSignal()?.role.name === 'admin');
+  readonly isModerator = computed(() => this.profileSignal()?.role.name === 'moderador');
 
   // Explica EN QUÉ CONDICIÓN puede (o no puede) publicar -- para mostrarlo
   // en la UI en vez de un simple sí/no.
@@ -73,10 +66,6 @@ export class AuthService {
 
     if (!profile) {
       return null;
-    }
-
-    if (profile.role.name === 'admin') {
-      return 'Podés publicar porque tu cuenta es de administrador.';
     }
 
     if (profile.role.name === 'moderador') {

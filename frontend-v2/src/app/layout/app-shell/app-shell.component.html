@@ -31,15 +31,6 @@
       </a>
     }
 
-    @if (isAdmin()) {
-      <a routerLink="/admin/usuarios" routerLinkActive="is-active" (click)="closeMenu()">
-        Usuarios
-      </a>
-      <a routerLink="/admin/solicitudes-localidad" routerLinkActive="is-active" (click)="closeMenu()">
-        Solicitudes de localidad
-      </a>
-    }
-
     <span class="shell-header__divider" aria-hidden="true"></span>
 
     <a routerLink="/estadisticas" routerLinkActive="is-active" (click)="closeMenu()">

@@ -17,7 +17,6 @@ export class AppShellComponent {
 
   readonly currentUser = this.authService.currentUser;
   readonly isModerator = this.authService.isModerator;
-  readonly isAdmin = this.authService.isAdmin;
 
   readonly isMenuOpen = signal(false);
 

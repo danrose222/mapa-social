@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 
 import { authGuard } from './core/guards/auth.guard';
 import { moderatorGuard } from './core/guards/moderator.guard';
-import { adminGuard } from './core/guards/admin.guard';
 import { AppShellComponent } from './layout/app-shell/app-shell.component';
 
 export const routes: Routes = [
@@ -88,22 +87,6 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/organizacion/crear/crear-organizacion.component').then(
             (m) => m.CrearOrganizacionComponent,
-          ),
-      },
-      {
-        path: 'admin/usuarios',
-        canActivate: [adminGuard],
-        loadComponent: () =>
-          import('./pages/admin/usuarios/usuarios.component').then(
-            (m) => m.AdminUsuariosComponent,
-          ),
-      },
-      {
-        path: 'admin/solicitudes-localidad',
-        canActivate: [adminGuard],
-        loadComponent: () =>
-          import('./pages/admin/solicitudes-localidad/solicitudes-localidad.component').then(
-            (m) => m.SolicitudesLocalidadComponent,
           ),
       },
       {

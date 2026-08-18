@@ -31,8 +31,6 @@ export class PublicacionesModeradorComponent {
   private readonly categoriesService = inject(CategoriesService);
   private readonly authService = inject(AuthService);
 
-  readonly isAdmin = this.authService.isAdmin;
-
   readonly tab = signal<Tab>('needs');
   readonly isLoading = signal(true);
   readonly loadError = signal(false);
@@ -44,8 +42,9 @@ export class PublicacionesModeradorComponent {
   readonly searchTerm = signal('');
 
   // Por defecto solo se ve lo que corresponde a las localidades asignadas
-  // -- el admin no tiene esta restricción, así que para admin este switch
-  // no cambia nada (siempre ve todo).
+  // -- este switch deja ver todo, sin acotar (para tener panorama, no
+  // habilita ninguna acción fuera de jurisdicción: el backend la rechaza
+  // igual).
   readonly showOnlyMine = signal(true);
 
   private readonly myLocalityNames = computed(
@@ -53,7 +52,7 @@ export class PublicacionesModeradorComponent {
   );
 
   isInScope(item: { locality?: string; organization?: { ciudad: string } | null }): boolean {
-    if (this.isAdmin() || !this.showOnlyMine()) {
+    if (!this.showOnlyMine()) {
       return true;
     }
 

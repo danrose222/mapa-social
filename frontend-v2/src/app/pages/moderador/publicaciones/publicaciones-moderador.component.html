@@ -2,11 +2,7 @@
   <header class="mod-pub__header">
     <a routerLink="/" class="mod-pub__back">← Volver al mapa</a>
     <h1>Moderar publicaciones</h1>
-    @if (isAdmin()) {
-      <p>Necesidades y recursos de toda la plataforma — como admin, sin restricción de localidad.</p>
-    } @else {
-      <p>Acotado a tus localidades asignadas — lo de afuera no lo podés moderar aunque lo veas.</p>
-    }
+    <p>Acotado a tus localidades asignadas — lo de afuera no lo podés moderar aunque lo veas.</p>
   </header>
 
   @if (isLoading()) {
@@ -14,26 +10,24 @@
   } @else if (loadError()) {
     <p class="mod-pub__status mod-pub__status--error">No se pudo conectar con el servidor.</p>
   } @else {
-    @if (!isAdmin()) {
-      <div class="mod-pub__scope-toggle">
-        <button
-          type="button"
-          class="chip"
-          [class.is-active]="showOnlyMine()"
-          (click)="showOnlyMine.set(true)"
-        >
-          Solo mis localidades
-        </button>
-        <button
-          type="button"
-          class="chip"
-          [class.is-active]="!showOnlyMine()"
-          (click)="showOnlyMine.set(false)"
-        >
-          Ver todo el país
-        </button>
-      </div>
-    }
+    <div class="mod-pub__scope-toggle">
+      <button
+        type="button"
+        class="chip"
+        [class.is-active]="showOnlyMine()"
+        (click)="showOnlyMine.set(true)"
+      >
+        Solo mis localidades
+      </button>
+      <button
+        type="button"
+        class="chip"
+        [class.is-active]="!showOnlyMine()"
+        (click)="showOnlyMine.set(false)"
+      >
+        Ver todo el país
+      </button>
+    </div>
 
     <div class="mod-pub__tabs">
       <button
@@ -84,7 +78,7 @@
                   @if (need.requiresSolicitud) {
                     · <span class="mod-pub__flag">Contacto oculto (requiere Solicitud)</span>
                   }
-                  @if (!isAdmin() && !isInScope(need)) {
+                  @if (!isInScope(need)) {
                     · <span class="mod-pub__out-of-scope">Fuera de tu jurisdicción</span>
                   }
                 </p>
@@ -102,7 +96,7 @@
                   <button
                     type="button"
                     class="btn btn--ghost"
-                    [disabled]="processingId() === need.id || (!isAdmin() && !isInScope(need))"
+                    [disabled]="processingId() === need.id || !isInScope(need)"
                     (click)="resolveNeed(need)"
                   >
                     Marcar resuelta
@@ -111,7 +105,7 @@
                 <button
                   type="button"
                   class="btn btn--ghost"
-                  [disabled]="processingId() === need.id || (!isAdmin() && !isInScope(need))"
+                  [disabled]="processingId() === need.id || !isInScope(need)"
                   (click)="toggleRequiresSolicitud(need)"
                 >
                   {{ need.requiresSolicitud ? 'Mostrar contacto directo' : 'Ocultar contacto (requerir Solicitud)' }}
@@ -119,7 +113,7 @@
                 <button
                   type="button"
                   class="btn btn--ghost mod-pub__delete"
-                  [disabled]="processingId() === need.id || (!isAdmin() && !isInScope(need))"
+                  [disabled]="processingId() === need.id || !isInScope(need)"
                   (click)="deleteNeed(need)"
                 >
                   Eliminar
@@ -146,7 +140,7 @@
                   @if (resource.organization) {
                     · {{ resource.organization.name }}
                   }
-                  @if (!isAdmin() && !isInScope(resource)) {
+                  @if (!isInScope(resource)) {
                     · <span class="mod-pub__out-of-scope">Fuera de tu jurisdicción</span>
                   }
                 </p>
@@ -164,7 +158,7 @@
                   <button
                     type="button"
                     class="btn btn--ghost"
-                    [disabled]="processingId() === resource.id || (!isAdmin() && !isInScope(resource))"
+                    [disabled]="processingId() === resource.id || !isInScope(resource)"
                     (click)="resolveResource(resource)"
                   >
                     Marcar resuelto
@@ -173,7 +167,7 @@
                 <button
                   type="button"
                   class="btn btn--ghost mod-pub__delete"
-                  [disabled]="processingId() === resource.id || (!isAdmin() && !isInScope(resource))"
+                  [disabled]="processingId() === resource.id || !isInScope(resource)"
                   (click)="deleteResource(resource)"
                 >
                   Eliminar
