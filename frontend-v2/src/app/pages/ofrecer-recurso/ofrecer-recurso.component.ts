@@ -128,6 +128,6 @@ export class OfrecerRecursoComponent {
   }
 
   volverAlMapa(): void {
-    this.router.navigateByUrl('/');
+    this.router.navigateByUrl('/mapa');
   }
 }

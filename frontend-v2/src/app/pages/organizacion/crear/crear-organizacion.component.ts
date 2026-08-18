@@ -75,6 +75,6 @@ export class CrearOrganizacionComponent {
   }
 
   volverAlMapa(): void {
-    this.router.navigateByUrl('/');
+    this.router.navigateByUrl('/mapa');
   }
 }

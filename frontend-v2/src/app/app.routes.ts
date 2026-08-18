@@ -12,6 +12,11 @@ export const routes: Routes = [
       {
         path: '',
         loadComponent: () =>
+          import('./pages/inicio/inicio.component').then((m) => m.InicioComponent),
+      },
+      {
+        path: 'mapa',
+        loadComponent: () =>
           import('./pages/mapa/mapa-home.component').then((m) => m.MapaHomeComponent),
       },
       {

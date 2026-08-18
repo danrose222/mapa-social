@@ -120,6 +120,6 @@ export class NecesitoAyudaComponent {
   }
 
   volverAlMapa(): void {
-    this.router.navigateByUrl('/');
+    this.router.navigateByUrl('/mapa');
   }
 }
