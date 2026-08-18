@@ -1,18 +1,22 @@
 <div class="inicio">
   <section class="inicio__hero">
-    <span class="inicio__eyebrow">Plataforma colaborativa territorial</span>
-    <h1>Conectamos necesidades comunitarias con recursos disponibles</h1>
-    <p>
-      Explorá el mapa, publicá una necesidad o compartí un recurso que pueda
-      ayudar a alguien de tu comunidad.
-    </p>
+    <app-hero-network />
 
-    <div class="inicio__cta-row">
-      <a routerLink="/mapa" class="btn">
-        <app-icon name="pin" [size]="18" />
-        Explorar el mapa
-      </a>
-      <a routerLink="/publicar" class="btn btn--ghost">Quiero publicar</a>
+    <div class="hero-content">
+      <span class="inicio__eyebrow">Plataforma colaborativa territorial</span>
+      <h1>Conectamos necesidades comunitarias con recursos disponibles</h1>
+      <p>
+        Explorá el mapa, publicá una necesidad o compartí un recurso que pueda
+        ayudar a alguien de tu comunidad.
+      </p>
+
+      <div class="inicio__cta-row">
+        <a routerLink="/mapa" class="btn">
+          <app-icon name="pin" [size]="18" />
+          Explorar el mapa
+        </a>
+        <a routerLink="/publicar" class="btn btn--ghost">Quiero publicar</a>
+      </div>
     </div>
   </section>
 
