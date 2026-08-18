@@ -16,6 +16,7 @@ import { Role } from '../roles/entities/role.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AddModeratorLocalityDto } from './dto/add-moderator-locality.dto';
+import { localitiesMatch } from '../../common/utils/locality-match.util';
 
 interface AuthUser {
   id: number;
@@ -233,6 +234,34 @@ export class UsersService {
     };
   }
 
+  // Un moderador solo puede otorgar/quitar jurisdicción sobre localidades
+  // que él mismo ya tiene asignadas -- si no, cualquier moderador podría
+  // darle a otro (o sacarle) jurisdicción sobre una ciudad ajena, pasando
+  // por al lado del flujo de aprobación de locality-requests. Un admin no
+  // tiene esta restricción.
+  private async assertCallerHasLocality(
+    locality: string,
+    currentUser: AuthUser,
+  ) {
+    if (currentUser.role === 'admin') {
+      return;
+    }
+
+    const callerLocalities = await this.localityRepository.find({
+      where: { userId: currentUser.id },
+    });
+
+    const inScope = callerLocalities.some((l) =>
+      localitiesMatch(l.locality, locality),
+    );
+
+    if (!inScope) {
+      throw new ForbiddenException(
+        `No tenés asignada "${locality}" -- no podés otorgar ni quitar jurisdicción sobre una localidad que vos mismo no tenés.`,
+      );
+    }
+  }
+
   async addLocality(
     userId: number,
     dto: AddModeratorLocalityDto,
@@ -253,6 +282,8 @@ export class UsersService {
     await this.findOne(userId);
 
     const normalizedLocality = dto.locality.trim();
+
+    await this.assertCallerHasLocality(normalizedLocality, currentUser);
 
     const existing = await this.localityRepository.findOne({
       where: { userId, locality: normalizedLocality },
@@ -299,6 +330,8 @@ export class UsersService {
         'Esa localidad no está asignada a este usuario',
       );
     }
+
+    await this.assertCallerHasLocality(locality.locality, currentUser);
 
     await this.localityRepository.remove(locality);
 
