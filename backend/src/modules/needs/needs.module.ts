@@ -9,9 +9,14 @@ import { NeedsController } from './needs.controller';
 import { NeedsService } from './needs.service';
 import { SearchService } from './search/search.service';
 import { SolicitudesModule } from '../solicitudes/solicitudes.module';
+import { ResourcesModule } from '../resources/resources.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Need, User, Category]), SolicitudesModule],
+  imports: [
+    TypeOrmModule.forFeature([Need, User, Category]),
+    SolicitudesModule,
+    ResourcesModule,
+  ],
   controllers: [NeedsController],
   providers: [NeedsService, SearchService],
 })

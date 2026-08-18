@@ -136,11 +136,11 @@ export class UsersService {
       );
     }
 
-    if (dto.ciudad !== undefined && !hasModeratorAccess) {
-      throw new ForbiddenException(
-        'No podés asignarte vos mismo una ciudad a administrar',
-      );
-    }
+    // Nota: 'ciudad' ya no está restringido a moderador -- antes significaba
+    // "territorio que administra este moderador", pero eso se mudó a la
+    // tabla moderator_localities. Ahora es un dato de perfil normal (dónde
+    // vivís), así que cualquiera puede editar el propio -- el chequeo de
+    // isOwner-or-moderator de arriba ya cubre que no edites el de otro.
 
     if (dto.roleId) {
       const role = await this.roleRepository.findOne({
@@ -244,6 +244,12 @@ export class UsersService {
       );
     }
 
+    if (userId === currentUser.id) {
+      throw new ForbiddenException(
+        'No podés asignarte una localidad a vos mismo -- tiene que hacerlo otro moderador o admin',
+      );
+    }
+
     await this.findOne(userId);
 
     const normalizedLocality = dto.locality.trim();
@@ -275,6 +281,12 @@ export class UsersService {
     if (currentUser.role !== 'moderador' && currentUser.role !== 'admin') {
       throw new ForbiddenException(
         'Solo un moderador o un admin puede quitar localidades',
+      );
+    }
+
+    if (userId === currentUser.id) {
+      throw new ForbiddenException(
+        'No podés quitarte una localidad a vos mismo -- tiene que hacerlo otro moderador o admin',
       );
     }
 

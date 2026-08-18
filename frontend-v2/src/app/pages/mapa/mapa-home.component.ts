@@ -11,12 +11,22 @@ import {
 import { Router } from '@angular/router';
 import * as L from 'leaflet';
 
+import { AuthService } from '../../core/services/auth.service';
 import { CategoriesService } from '../../core/services/categories.service';
-import { PublicationsService } from '../../core/services/publications.service';
+import { GeorefService } from '../../core/services/georef.service';
+import { NeedLocality, PublicationsService } from '../../core/services/publications.service';
 import { Category, Need, Resource } from '../../core/models/mapa-social.model';
 import { IconComponent } from '../../shared/icons/icon.component';
 
 type FilterKind = 'todos' | 'necesidades' | 'recursos';
+type SearchMode = 'all' | 'locality' | 'radius';
+
+const TERRITORY_PAGE_SIZE = 10;
+const RADIUS_KM = 100;
+const DEFAULT_CENTER: [number, number] = [-31.4201, -64.1888];
+// Si el mapa se movió más de esto desde el último punto buscado, aparece
+// el botón de "Buscar en esta zona".
+const MOVE_THRESHOLD_KM = 5;
 
 @Component({
   selector: 'app-mapa-home',
@@ -29,7 +39,9 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   @ViewChild('mapContainer', { static: true })
   private mapContainer!: ElementRef<HTMLDivElement>;
 
+  private readonly authService = inject(AuthService);
   private readonly categoriesService = inject(CategoriesService);
+  private readonly georefService = inject(GeorefService);
   private readonly publicationsService = inject(PublicationsService);
   private readonly router = inject(Router);
 
@@ -41,8 +53,34 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   readonly categoryFilter = signal<Set<number>>(new Set());
   readonly searchTerm = signal('');
 
+  // 'all' = sin acotar (default si no hay geolocalización ni ciudad).
+  // 'locality' = un barrio elegido a mano en el selector (match exacto).
+  // 'radius' = por cercanía a un punto (geolocalización, ciudad de perfil,
+  // o "buscar en esta zona") -- siempre RADIUS_KM.
+  readonly searchMode = signal<SearchMode>('all');
+  readonly radiusCenter = signal<{ lat: number; lng: number } | null>(null);
+  readonly radiusOrigin = signal<'geolocation' | 'ciudad' | 'manual' | null>(null);
+  readonly showSearchAreaButton = signal(false);
+
+  readonly territories = signal<NeedLocality[]>([]);
+  readonly territoryFilter = signal<string | null>(null);
+  readonly territoryPage = signal(1);
+  readonly territoryTotalPages = signal(1);
+  readonly territoryTotal = signal(0);
+  readonly territoryLoading = signal(false);
+
   private allNeeds: Need[] = [];
   private allResources: Resource[] = [];
+
+  private staticDataLoaded = false;
+  private needsDataLoaded = false;
+
+  // Último punto contra el que se buscó -- referencia para decidir si
+  // mostrar el botón de "Buscar en esta zona" cuando el mapa se mueve.
+  private lastSearchedCenter: { lat: number; lng: number } = {
+    lat: DEFAULT_CENTER[0],
+    lng: DEFAULT_CENTER[1],
+  };
 
   readonly visibleCount = computed(() => {
     const kind = this.kindFilter();
@@ -163,12 +201,13 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.initializeMap();
-    this.loadData();
+    this.loadStaticData();
+    this.attemptSmartInitialLoad();
   }
 
   private initializeMap(): void {
     this.map = L.map(this.mapContainer.nativeElement, {
-      center: [-31.4201, -64.1888],
+      center: DEFAULT_CENTER,
       zoom: 13,
     });
 
@@ -179,26 +218,258 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
 
     this.markersLayer = L.layerGroup().addTo(this.map);
 
+    this.map.on('moveend', () => this.onMapMoved());
+
     requestAnimationFrame(() => this.map?.invalidateSize());
   }
 
-  private loadData(): void {
+  // Categorías, recursos y el listado de localidades no dependen del modo
+  // de búsqueda de necesidades -- se cargan siempre, una sola vez.
+  private loadStaticData(): void {
     Promise.all([
       this.categoriesService.getAll().toPromise(),
-      this.publicationsService.getNeeds().toPromise(),
       this.publicationsService.getResources().toPromise(),
     ])
-      .then(([categories, needs, resources]) => {
+      .then(([categories, resources]) => {
         this.categories.set(categories ?? []);
-        this.allNeeds = (needs ?? []).filter((n) => n.status === 'active');
         this.allResources = (resources ?? []).filter((r) => r.status === 'available');
-        this.isLoading.set(false);
+        this.staticDataLoaded = true;
+        this.checkFullyLoaded();
         this.renderMarkers();
       })
       .catch(() => {
-        this.isLoading.set(false);
         this.loadError.set(true);
+        this.staticDataLoaded = true;
+        this.checkFullyLoaded();
       });
+
+    this.publicationsService.getNeedLocalities().subscribe({
+      next: (list) => this.territories.set(list),
+      error: () => {},
+    });
+  }
+
+  private checkFullyLoaded(): void {
+    if (this.staticDataLoaded && this.needsDataLoaded) {
+      this.isLoading.set(false);
+    }
+  }
+
+  // Al entrar: 1) pide geolocalización al navegador: si la da, busca en
+  // 100km a la redonda tuyo, ahí mismo. 2) si no la da (o no la tenés
+  // habilitada), y estás logueado con una ciudad cargada en el perfil, la
+  // geocodifica contra Georef y busca ahí. 3) si no hay ninguna de las
+  // dos, muestra todo sin acotar -- como era antes.
+  private attemptSmartInitialLoad(): void {
+    if (!navigator.geolocation) {
+      this.fallbackToCityOrAll();
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        this.startRadiusSearch(
+          position.coords.latitude,
+          position.coords.longitude,
+          true,
+          'geolocation',
+        );
+      },
+      () => this.fallbackToCityOrAll(),
+      { timeout: 6000, maximumAge: 5 * 60 * 1000 },
+    );
+  }
+
+  private fallbackToCityOrAll(): void {
+    const ciudad = this.authService.profile()?.ciudad;
+
+    if (!ciudad) {
+      this.loadAllDefault();
+      return;
+    }
+
+    this.georefService.geocodeLocality(ciudad).subscribe({
+      next: (point) => {
+        if (point) {
+          this.startRadiusSearch(point.lat, point.lng, true, 'ciudad');
+        } else {
+          this.loadAllDefault();
+        }
+      },
+      error: () => this.loadAllDefault(),
+    });
+  }
+
+  private loadAllDefault(): void {
+    this.searchMode.set('all');
+    this.territoryFilter.set(null);
+    this.radiusCenter.set(null);
+    this.lastSearchedCenter = { lat: DEFAULT_CENTER[0], lng: DEFAULT_CENTER[1] };
+    this.showSearchAreaButton.set(false);
+
+    this.publicationsService
+      .getNeeds()
+      .toPromise()
+      .then((needs) => {
+        this.allNeeds = (needs ?? []).filter((n) => n.status === 'active');
+        this.needsDataLoaded = true;
+        this.checkFullyLoaded();
+        this.renderMarkers();
+      })
+      .catch(() => {
+        this.loadError.set(true);
+        this.needsDataLoaded = true;
+        this.checkFullyLoaded();
+      });
+  }
+
+  private startRadiusSearch(
+    lat: number,
+    lng: number,
+    recenterMap: boolean,
+    origin: 'geolocation' | 'ciudad' | 'manual',
+  ): void {
+    this.searchMode.set('radius');
+    this.territoryFilter.set(null);
+    this.radiusCenter.set({ lat, lng });
+    this.radiusOrigin.set(origin);
+    this.territoryPage.set(1);
+    this.lastSearchedCenter = { lat, lng };
+    this.showSearchAreaButton.set(false);
+
+    if (recenterMap && this.map) {
+      this.map.setView([lat, lng], 12);
+    }
+
+    this.loadRadiusPage();
+  }
+
+  private loadRadiusPage(): void {
+    const center = this.radiusCenter();
+    if (!center) {
+      return;
+    }
+
+    this.territoryLoading.set(true);
+
+    this.publicationsService
+      .searchNeeds({
+        lat: center.lat,
+        lng: center.lng,
+        radius: RADIUS_KM,
+        page: this.territoryPage(),
+        limit: TERRITORY_PAGE_SIZE,
+      })
+      .subscribe({
+        next: (result) => {
+          this.allNeeds = result.items;
+          this.territoryTotalPages.set(result.totalPages);
+          this.territoryTotal.set(result.total);
+          this.territoryLoading.set(false);
+          this.needsDataLoaded = true;
+          this.checkFullyLoaded();
+          this.renderMarkers();
+        },
+        error: () => {
+          this.territoryLoading.set(false);
+          this.needsDataLoaded = true;
+          this.checkFullyLoaded();
+        },
+      });
+  }
+
+  private loadLocalityPage(): void {
+    const locality = this.territoryFilter();
+    if (!locality) {
+      return;
+    }
+
+    this.territoryLoading.set(true);
+
+    this.publicationsService
+      .searchNeeds({ locality, page: this.territoryPage(), limit: TERRITORY_PAGE_SIZE })
+      .subscribe({
+        next: (result) => {
+          this.allNeeds = result.items;
+          this.territoryTotalPages.set(result.totalPages);
+          this.territoryTotal.set(result.total);
+          this.territoryLoading.set(false);
+          this.needsDataLoaded = true;
+          this.checkFullyLoaded();
+          this.renderMarkers();
+        },
+        error: () => {
+          this.territoryLoading.set(false);
+          this.needsDataLoaded = true;
+          this.checkFullyLoaded();
+        },
+      });
+  }
+
+  setTerritoryFilter(locality: string): void {
+    if (!locality) {
+      this.loadAllDefault();
+      return;
+    }
+
+    this.searchMode.set('locality');
+    this.territoryFilter.set(locality);
+    this.radiusCenter.set(null);
+    this.territoryPage.set(1);
+    this.loadLocalityPage();
+  }
+
+  goToTerritoryPage(page: number): void {
+    if (page < 1 || page > this.territoryTotalPages()) {
+      return;
+    }
+
+    this.territoryPage.set(page);
+
+    if (this.searchMode() === 'locality') {
+      this.loadLocalityPage();
+    } else if (this.searchMode() === 'radius') {
+      this.loadRadiusPage();
+    }
+  }
+
+  // El botón flotante de "Buscar en esta zona": toma el centro actual del
+  // mapa (a donde sea que el usuario haya arrastrado/zoomeado) y busca ahí,
+  // con el mismo radio de 100km.
+  searchThisArea(): void {
+    if (!this.map) {
+      return;
+    }
+
+    const center = this.map.getCenter();
+    this.startRadiusSearch(center.lat, center.lng, false, 'manual');
+  }
+
+  private onMapMoved(): void {
+    if (!this.map) {
+      return;
+    }
+
+    const center = this.map.getCenter();
+    const distanceKm = this.haversineKm(
+      center.lat,
+      center.lng,
+      this.lastSearchedCenter.lat,
+      this.lastSearchedCenter.lng,
+    );
+
+    this.showSearchAreaButton.set(distanceKm > MOVE_THRESHOLD_KM);
+  }
+
+  private haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371;
+    const toRad = (deg: number) => (deg * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
   setKindFilter(kind: FilterKind): void {

@@ -58,7 +58,7 @@
         <div class="necesito__row">
           <div class="field">
             <label for="need-locality">Barrio / localidad (opcional)</label>
-            <input id="need-locality" type="text" formControlName="locality" />
+            <app-locality-autocomplete (localitySelected)="onLocalitySelected($event)" />
           </div>
 
           <div class="field">

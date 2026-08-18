@@ -43,4 +43,14 @@ export class CreateUserDto {
   @IsString()
   @MaxLength(30)
   phone?: string;
+
+  @ApiProperty({
+    example: 'Río Segundo',
+    description: 'Ciudad donde vive -- se usa para centrar el mapa y priorizar resultados cercanos',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  ciudad?: string;
 }

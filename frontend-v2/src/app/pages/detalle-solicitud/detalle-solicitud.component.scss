@@ -301,6 +301,73 @@
   }
 }
 
+.detalle__matches-card {
+  padding: 22px 26px;
+  margin-top: 8px;
+
+  h2 {
+    margin-bottom: 4px;
+    font-size: 1.05rem;
+  }
+}
+
+.detalle__matches-caption {
+  margin: 0 0 14px;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+.detalle__matches-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.detalle__match-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.detalle__match-title {
+  margin: 0 0 3px;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.detalle__match-org {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 2px;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+}
+
+.detalle__match-meta {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+}
+
+.detalle__match-has-contact {
+  flex: 0 0 auto;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--help-color-soft);
+  color: var(--help-color);
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .detalle__footer-links {
   display: flex;
   align-items: center;

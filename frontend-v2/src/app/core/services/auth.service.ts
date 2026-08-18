@@ -26,6 +26,7 @@ export interface UserProfile {
   firstName: string;
   lastName: string;
   email: string;
+  ciudad?: string | null;
   role: { id: number; name: string };
   organization?: { id: number; name: string; verified: boolean } | null;
   localities?: { id: number; locality: string; provincia?: string }[];
@@ -130,6 +131,7 @@ export class AuthService {
     email: string;
     password: string;
     phone?: string;
+    ciudad?: string;
   }): Observable<unknown> {
     return this.http.post('/api/users', payload);
   }

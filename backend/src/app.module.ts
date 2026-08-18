@@ -12,6 +12,7 @@ import { ResourcesModule } from './modules/resources/resources.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { SolicitudesModule } from './modules/solicitudes/solicitudes.module';
+import { StatsModule } from './modules/stats/stats.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -38,6 +39,7 @@ import { SolicitudesModule } from './modules/solicitudes/solicitudes.module';
     OrganizationsModule,
     UploadsModule,
     SolicitudesModule,
+    StatsModule,
     // MatchesModule
   ],
   controllers: [AppController],

@@ -8,6 +8,11 @@ export class SearchNeedsDto {
   @IsString()
   category?: string;
 
+  @ApiPropertyOptional({ description: 'Filtrar por localidad (barrio/ciudad)' })
+  @IsOptional()
+  @IsString()
+  locality?: string;
+
   @ApiPropertyOptional({ description: 'Latitud del usuario' })
   @IsOptional()
   @Type(() => Number)
@@ -20,11 +25,26 @@ export class SearchNeedsDto {
   @IsNumber()
   lng?: number;
 
-  @ApiPropertyOptional({ description: 'Radio de búsqueda en kilómetros (0.1 a 50)' })
+  @ApiPropertyOptional({ description: 'Radio de búsqueda en kilómetros (0.1 a 100)' })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(0.1)
-  @Max(50)
+  @Max(100)
   radius?: number;
+
+  @ApiPropertyOptional({ description: 'Número de página (empieza en 1)', default: 1 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  page?: number;
+
+  @ApiPropertyOptional({ description: 'Resultados por página (máx 100)', default: 20 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  @Max(100)
+  limit?: number;
 }

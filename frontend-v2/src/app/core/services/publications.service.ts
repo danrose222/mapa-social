@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -10,6 +10,19 @@ import {
   Solicitud,
 } from '../models/mapa-social.model';
 
+export interface NeedLocality {
+  locality: string;
+  count: number;
+}
+
+export interface PaginatedNeeds {
+  items: Need[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PublicationsService {
   private readonly needsUrl = '/api/needs';
@@ -19,6 +32,41 @@ export class PublicationsService {
 
   getNeeds(): Observable<Need[]> {
     return this.http.get<Need[]>(this.needsUrl);
+  }
+
+  getNeedLocalities(): Observable<NeedLocality[]> {
+    return this.http.get<NeedLocality[]>(`${this.needsUrl}/localities`);
+  }
+
+  searchNeeds(params: {
+    locality?: string;
+    category?: string;
+    lat?: number;
+    lng?: number;
+    radius?: number;
+    page?: number;
+    limit?: number;
+  }): Observable<PaginatedNeeds> {
+    let httpParams = new HttpParams();
+    if (params.locality) httpParams = httpParams.set('locality', params.locality);
+    if (params.category) httpParams = httpParams.set('category', params.category);
+    if (params.lat !== undefined) httpParams = httpParams.set('lat', params.lat);
+    if (params.lng !== undefined) httpParams = httpParams.set('lng', params.lng);
+    if (params.radius !== undefined) httpParams = httpParams.set('radius', params.radius);
+    if (params.page) httpParams = httpParams.set('page', params.page);
+    if (params.limit) httpParams = httpParams.set('limit', params.limit);
+
+    return this.http.get<PaginatedNeeds>(`${this.needsUrl}/search`, { params: httpParams });
+  }
+
+  // Matching: recursos sugeridos para una necesidad (misma categoría,
+  // dentro de un radio -- default 15km del lado del backend).
+  getMatches(needId: number, radius?: number): Observable<Resource[]> {
+    let httpParams = new HttpParams();
+    if (radius !== undefined) httpParams = httpParams.set('radius', radius);
+    return this.http.get<Resource[]>(`${this.needsUrl}/${needId}/matches`, {
+      params: httpParams,
+    });
   }
 
   getNeed(id: number): Observable<Need> {

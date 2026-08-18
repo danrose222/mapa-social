@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, map, of } from 'rxjs';
+import { Observable, catchError, map, of } from 'rxjs';
 
 export interface GeorefLocality {
   nombre: string;
@@ -9,6 +9,15 @@ export interface GeorefLocality {
 
 interface GeorefLocalidadesResponse {
   localidades: GeorefLocality[];
+}
+
+interface GeorefCentroideResponse {
+  localidades: { nombre: string; centroide: { lat: number; lon: number } }[];
+}
+
+export interface GeoPoint {
+  lat: number;
+  lng: number;
 }
 
 // API pública del gobierno argentino para normalizar nombres de
@@ -37,5 +46,33 @@ export class GeorefService {
     return this.http
       .get<GeorefLocalidadesResponse>(`${GEOREF_BASE_URL}/localidades?${params.toString()}`)
       .pipe(map((response) => response.localidades));
+  }
+
+  // Convierte un nombre de localidad (ej: la 'ciudad' guardada en el
+  // perfil de un vecino) en coordenadas -- para poder centrar el mapa y
+  // usarla como punto de búsqueda por radio, igual que la geolocalización
+  // del navegador. Devuelve null si no la encuentra, en vez de romper.
+  geocodeLocality(name: string): Observable<GeoPoint | null> {
+    const term = name.trim();
+
+    if (!term) {
+      return of(null);
+    }
+
+    const params = new URLSearchParams({
+      nombre: term,
+      campos: 'nombre,centroide',
+      max: '1',
+    });
+
+    return this.http
+      .get<GeorefCentroideResponse>(`${GEOREF_BASE_URL}/localidades?${params.toString()}`)
+      .pipe(
+        map((response) => {
+          const first = response.localidades[0];
+          return first ? { lat: first.centroide.lat, lng: first.centroide.lon } : null;
+        }),
+        catchError(() => of(null)),
+      );
   }
 }

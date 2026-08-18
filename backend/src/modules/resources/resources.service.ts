@@ -131,4 +131,35 @@ export class ResourcesService {
       message: 'Recurso eliminado',
     };
   }
+
+  // Matching: recursos de la MISMA categoría que una necesidad, dentro de
+  // un radio -- misma fórmula de Haversine que ByDistanceStrategy (needs),
+  // aplicada acá sobre resources para no tener dos versiones del cálculo
+  // que puedan desincronizarse.
+  async findNearbyByCategory(
+    lat: number,
+    lng: number,
+    categoryId: number,
+    radiusKm: number,
+    limit: number,
+  ) {
+    const distanceExpr = `(6371 * acos(
+        cos(radians(:lat)) * cos(radians(entity.latitude))
+        * cos(radians(entity.longitude) - radians(:lng))
+        + sin(radians(:lat)) * sin(radians(entity.latitude))
+      ))`;
+
+    return this.repository
+      .createQueryBuilder('entity')
+      .leftJoinAndSelect('entity.category', 'category')
+      .leftJoinAndSelect('entity.user', 'user')
+      .leftJoinAndSelect('entity.organization', 'organization')
+      .where('entity.status = :status', { status: 'available' })
+      .andWhere('entity.categoryId = :categoryId', { categoryId })
+      .andWhere(`${distanceExpr} < :radius`)
+      .setParameters({ lat, lng, radius: radiusKm })
+      .orderBy(distanceExpr, 'ASC')
+      .limit(limit)
+      .getMany();
+  }
 }

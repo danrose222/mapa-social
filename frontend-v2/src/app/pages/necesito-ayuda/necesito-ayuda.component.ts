@@ -9,11 +9,21 @@ import { UploadsService } from '../../core/services/uploads.service';
 import { Category } from '../../core/models/mapa-social.model';
 import { LocationPickerComponent } from '../../shared/components/location-picker/location-picker.component';
 import { ImageUploadFieldComponent } from '../../shared/components/image-upload-field/image-upload-field.component';
+import {
+  LocalityAutocompleteComponent,
+  LocalitySelection,
+} from '../../shared/components/locality-autocomplete/locality-autocomplete.component';
 
 @Component({
   selector: 'app-necesito-ayuda',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, LocationPickerComponent, ImageUploadFieldComponent],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    LocationPickerComponent,
+    ImageUploadFieldComponent,
+    LocalityAutocompleteComponent,
+  ],
   templateUrl: './necesito-ayuda.component.html',
   styleUrl: './necesito-ayuda.component.scss',
 })
@@ -51,6 +61,10 @@ export class NecesitoAyudaComponent {
 
   onLocationSelected(location: { lat: number; lng: number }): void {
     this.form.patchValue({ latitude: location.lat, longitude: location.lng });
+  }
+
+  onLocalitySelected(selection: LocalitySelection): void {
+    this.form.patchValue({ locality: selection.locality });
   }
 
   submit(): void {

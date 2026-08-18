@@ -57,14 +57,43 @@ export class NeedsService {
       },
     });
   }
-  search(dto: SearchNeedsDto) {
+  async search(dto: SearchNeedsDto) {
+    const page = dto.page ?? 1;
+    const limit = dto.limit ?? 20;
+
     const qb = this.repository
       .createQueryBuilder('entity')
       .leftJoinAndSelect('entity.category', 'category')
       .leftJoinAndSelect('entity.user', 'user')
       .leftJoinAndSelect('entity.organization', 'organization')
       .where('entity.status = :status', { status: 'active' });
-    return this.searchService.applyFilters(qb, dto).getMany();
+
+    const [items, total] = await this.searchService
+      .applyFilters(qb, dto)
+      .orderBy('entity.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return { items, total, page, limit, totalPages: Math.ceil(total / limit) || 1 };
+  }
+
+  // Localidades que tienen al menos una necesidad activa, con cuántas --
+  // es lo que arma el selector de territorio del lado del frontend, así
+  // el filtro solo ofrece opciones que realmente tienen algo cargado.
+  async localities() {
+    const rows = await this.repository
+      .createQueryBuilder('entity')
+      .select('entity.locality', 'locality')
+      .addSelect('COUNT(*)', 'count')
+      .where('entity.status = :status', { status: 'active' })
+      .andWhere('entity.locality IS NOT NULL')
+      .andWhere("entity.locality != ''")
+      .groupBy('entity.locality')
+      .orderBy('count', 'DESC')
+      .getRawMany<{ locality: string; count: string }>();
+
+    return rows.map((r) => ({ locality: r.locality, count: Number(r.count) }));
   }
   findOne(id: number) {
     return this.repository.findOne({

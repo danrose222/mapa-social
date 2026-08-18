@@ -134,7 +134,20 @@ export class OrganizationsService {
       currentUser.role === 'moderador' || currentUser.role === 'admin';
 
     if (hasModeratorAccess) {
+      // Hay que validar las DOS ciudades si 'ciudad' viene en el mismo
+      // request: la actual (para poder tocar esta organización) y la
+      // nueva (para poder reubicarla ahí) -- validar solo una de las dos
+      // deja abierta una mitad del mismo problema: o bien reubicar+avalar
+      // fuera de tu jurisdicción, o bien "reclamar" una organización ajena
+      // moviéndola hacia adentro de tu ciudad.
       await this.assertCityInModeratorScope(organization, currentUser);
+
+      if (dto.ciudad !== undefined && dto.ciudad !== organization.ciudad) {
+        await this.assertCityInModeratorScope(
+          { ...organization, ciudad: dto.ciudad },
+          currentUser,
+        );
+      }
     } else {
       // Autoservicio: un miembro de la propia organización puede editar su
       // perfil (nombre, descripción, contacto, dirección), pero JAMÁS

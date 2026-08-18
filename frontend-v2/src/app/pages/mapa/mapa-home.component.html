@@ -8,6 +8,59 @@
     />
   </div>
 
+  <div class="mapa__territory">
+    <select
+      class="mapa__territory-select"
+      [value]="territoryFilter() ?? ''"
+      (change)="setTerritoryFilter($any($event.target).value)"
+    >
+      <option value="">Todo el mapa</option>
+      @for (t of territories(); track t.locality) {
+        <option [value]="t.locality">{{ t.locality }} ({{ t.count }})</option>
+      }
+    </select>
+
+    @if (territoryFilter() || searchMode() === 'radius') {
+      <div class="mapa__pagination">
+        @if (territoryLoading()) {
+          <span class="mapa__pagination-status">Cargando…</span>
+        } @else if (searchMode() === 'radius') {
+          <span class="mapa__pagination-status">
+            {{ territoryTotal() }} necesidad{{ territoryTotal() === 1 ? '' : 'es' }} a menos de 100km
+            @if (radiusOrigin() === 'geolocation') { (cerca tuyo) }
+            @if (radiusOrigin() === 'ciudad') { (cerca de tu ciudad) }
+          </span>
+        } @else {
+          <span class="mapa__pagination-status">
+            {{ territoryTotal() }} necesidad{{ territoryTotal() === 1 ? '' : 'es' }} en {{ territoryFilter() }}
+          </span>
+        }
+
+        @if (territoryTotalPages() > 1) {
+          <div class="mapa__pagination-controls">
+            <button
+              type="button"
+              class="mapa__page-btn"
+              [disabled]="territoryPage() === 1"
+              (click)="goToTerritoryPage(territoryPage() - 1)"
+            >
+              ‹
+            </button>
+            <span>Página {{ territoryPage() }} de {{ territoryTotalPages() }}</span>
+            <button
+              type="button"
+              class="mapa__page-btn"
+              [disabled]="territoryPage() === territoryTotalPages()"
+              (click)="goToTerritoryPage(territoryPage() + 1)"
+            >
+              ›
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
   <div class="mapa__chips">
     <button
       type="button"
@@ -72,6 +125,13 @@
     }
 
     <div #mapContainer class="mapa__canvas"></div>
+
+    @if (showSearchAreaButton()) {
+      <button type="button" class="mapa__search-area-btn" (click)="searchThisArea()">
+        <app-icon name="pin" [size]="15" />
+        Buscar en esta zona
+      </button>
+    }
 
     <div class="mapa__count">{{ visibleCount() }} puntos visibles</div>
   </div>

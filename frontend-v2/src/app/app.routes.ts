@@ -45,6 +45,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'estadisticas',
+        loadComponent: () =>
+          import('./pages/estadisticas/estadisticas.component').then(
+            (m) => m.EstadisticasComponent,
+          ),
+      },
+      {
         path: 'quienes-somos',
         loadComponent: () =>
           import('./pages/quienes-somos/quienes-somos.component').then(

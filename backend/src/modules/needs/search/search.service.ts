@@ -5,12 +5,14 @@ import { SearchNeedsDto } from '../dto/search-needs.dto';
 import { SearchStrategy } from './search-strategy.interface';
 import { ByCategoryStrategy } from './by-category.strategy';
 import { ByDistanceStrategy } from './by-distance.strategy';
+import { ByLocalityStrategy } from './by-locality.strategy';
 
 @Injectable()
 export class SearchService {
   private readonly strategies: SearchStrategy[] = [
     new ByCategoryStrategy(),
     new ByDistanceStrategy(),
+    new ByLocalityStrategy(),
   ];
 
   applyFilters(

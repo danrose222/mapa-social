@@ -36,6 +36,11 @@
       </div>
 
       <div class="field">
+        <label>¿En qué ciudad vivís? (opcional)</label>
+        <app-locality-autocomplete (localitySelected)="onCiudadSelected($event)" />
+      </div>
+
+      <div class="field">
         <label for="reg-password">Contraseña</label>
         <input
           id="reg-password"

@@ -181,6 +181,44 @@
       }
     </div>
 
+    @if (matchesLoading()) {
+      <div class="card detalle__matches-card">
+        <p class="detalle__status">Buscando recursos cerca…</p>
+      </div>
+    } @else if (matches().length > 0) {
+      <div class="card detalle__matches-card">
+        <h2>Recursos que podrían ayudarte</h2>
+        <p class="detalle__matches-caption">
+          Misma categoría, cerca de esta necesidad.
+        </p>
+
+        <ul class="detalle__matches-list">
+          @for (resource of matches(); track resource.id) {
+            <li class="detalle__match-item">
+              <div>
+                <p class="detalle__match-title">{{ resource.title }}</p>
+                @if (resource.organization) {
+                  <p class="detalle__match-org">
+                    🏢 {{ resource.organization.name }}
+                    @if (resource.organization.verified) {
+                      <span class="badge-verified">✓</span>
+                    }
+                  </p>
+                }
+                @if (resource.schedule) {
+                  <p class="detalle__match-meta">🕒 {{ resource.schedule }}</p>
+                }
+              </div>
+
+              @if (resource.contactInfo) {
+                <span class="detalle__match-has-contact">Con contacto</span>
+              }
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
     <p class="detalle__footer-links">
       <a routerLink="/publicar/quiero-ayudar">Atrás</a>
       <span aria-hidden="true">·</span>

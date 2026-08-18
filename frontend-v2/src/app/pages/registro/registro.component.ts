@@ -5,11 +5,15 @@ import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
 import { IconComponent } from '../../shared/icons/icon.component';
+import {
+  LocalityAutocompleteComponent,
+  LocalitySelection,
+} from '../../shared/components/locality-autocomplete/locality-autocomplete.component';
 
 @Component({
   selector: 'app-registro',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, IconComponent],
+  imports: [ReactiveFormsModule, RouterLink, IconComponent, LocalityAutocompleteComponent],
   templateUrl: './registro.component.html',
   styleUrl: './registro.component.scss',
 })
@@ -24,10 +28,15 @@ export class RegistroComponent {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
     phone: ['', [Validators.maxLength(30)]],
+    ciudad: [''],
   });
 
   readonly isSubmitting = signal(false);
   readonly errorMessage = signal('');
+
+  onCiudadSelected(selection: LocalitySelection): void {
+    this.form.patchValue({ ciudad: selection.locality });
+  }
 
   submit(): void {
     if (this.form.invalid || this.isSubmitting()) {
@@ -35,7 +44,7 @@ export class RegistroComponent {
       return;
     }
 
-    const { firstName, lastName, email, password, phone } = this.form.getRawValue();
+    const { firstName, lastName, email, password, phone, ciudad } = this.form.getRawValue();
 
     this.isSubmitting.set(true);
     this.errorMessage.set('');
@@ -47,6 +56,7 @@ export class RegistroComponent {
         email: email!,
         password: password!,
         phone: phone || undefined,
+        ciudad: ciudad || undefined,
       })
       .subscribe({
         next: () => {

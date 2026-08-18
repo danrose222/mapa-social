@@ -6,7 +6,7 @@ import { switchMap } from 'rxjs';
 
 import { PublicationsService } from '../../core/services/publications.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Need, Solicitud } from '../../core/models/mapa-social.model';
+import { Need, Resource, Solicitud } from '../../core/models/mapa-social.model';
 import { IconComponent } from '../../shared/icons/icon.component';
 
 @Component({
@@ -63,7 +63,12 @@ export class DetalleSolicitudComponent {
   readonly loadingSolicitudes = signal(false);
   readonly processingSolicitudId = signal<number | null>(null);
 
+  // --- Matching: recursos sugeridos para esta necesidad ---
+  readonly matches = signal<Resource[]>([]);
+  readonly matchesLoading = signal(false);
+
   private lastLoadedKey = '';
+  private lastMatchesNeedId: number | null = null;
 
   constructor() {
     // Reacciona a que 'need' (y el usuario) tengan un valor real -- no a
@@ -72,6 +77,11 @@ export class DetalleSolicitudComponent {
     effect(() => {
       const need = this.need();
       const user = this.currentUser();
+
+      if (need && need.id !== this.lastMatchesNeedId) {
+        this.lastMatchesNeedId = need.id;
+        this.loadMatches(need.id);
+      }
 
       if (!need || !user) {
         return;
@@ -84,6 +94,20 @@ export class DetalleSolicitudComponent {
       this.lastLoadedKey = key;
 
       this.loadRelevantData(need, user.id);
+    });
+  }
+
+  private loadMatches(needId: number): void {
+    this.matchesLoading.set(true);
+
+    this.publicationsService.getMatches(needId).subscribe({
+      next: (resources) => {
+        this.matches.set(resources);
+        this.matchesLoading.set(false);
+      },
+      error: () => {
+        this.matchesLoading.set(false);
+      },
     });
   }
 
