@@ -6,7 +6,13 @@
 .shell-header {
   position: sticky;
   top: 0;
-  z-index: 100;
+  // 1300, no 100: el botón flotante de "Publicar" del mapa
+  // (mapa-home.component.scss) usa position:fixed + z-index:1200 -- al
+  // ser ambos position:fixed/sticky, compiten en el mismo stacking
+  // context raíz. Con z-index:100 el header (y el menú hamburguesa, que
+  // es descendiente suyo) quedaba POR DEBAJO de ese botón, así que en la
+  // vista del mapa el FAB se filtraba encima del menú abierto.
+  z-index: 1300;
   display: flex;
   align-items: center;
   justify-content: space-between;

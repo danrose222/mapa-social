@@ -1,10 +1,14 @@
 <header class="shell-header">
-  <a routerLink="/mapa" class="shell-header__brand" (click)="closeMenu()">
+  <a routerLink="/" class="shell-header__brand" (click)="closeMenu()">
     <app-icon name="heart" [size]="20" [filled]="true" />
     Mapa Social
   </a>
 
   <nav class="shell-header__nav" [class.shell-header__nav--open]="isMenuOpen()">
+    <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">
+      Inicio
+    </a>
+
     <a routerLink="/mapa" routerLinkActive="is-active" (click)="closeMenu()">
       Mapa
     </a>
