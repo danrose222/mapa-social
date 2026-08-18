@@ -9,8 +9,10 @@ import { Repository } from 'typeorm';
 
 import { Solicitud } from './entities/solicitud.entity';
 import { Need } from '../needs/entities/need.entity';
+import { ModeratorLocality } from '../users/entities/moderator-locality.entity';
 import { CreateSolicitudDto } from './dto/create-solicitud.dto';
 import { UpdateSolicitudDto } from './dto/update-solicitud.dto';
+import { localitiesMatch } from '../../common/utils/locality-match.util';
 
 interface AuthUser {
   id: number;
@@ -29,16 +31,54 @@ export class SolicitudesService {
 
     @InjectRepository(Need)
     private readonly needRepository: Repository<Need>,
+
+    @InjectRepository(ModeratorLocality)
+    private readonly localityRepository: Repository<ModeratorLocality>,
   ) {}
 
   private async findNeedOrFail(needId: number): Promise<Need> {
-    const need = await this.needRepository.findOne({ where: { id: needId } });
+    const need = await this.needRepository.findOne({
+      where: { id: needId },
+      relations: ['organization'],
+    });
 
     if (!need) {
       throw new NotFoundException('Necesidad inexistente');
     }
 
     return need;
+  }
+
+  // Mismo criterio que NeedsService.assertModeratorJurisdiction: un
+  // moderador solo puede gestionar Solicitudes de necesidades dentro de su
+  // propia jurisdicción -- si no, cualquier moderador podía ver quién se
+  // ofreció y aceptar/rechazar pedidos de cualquier localidad del país.
+  private async assertModeratorJurisdiction(
+    need: Need,
+    currentUser: AuthUser,
+  ) {
+    if (currentUser.role === 'admin') {
+      return;
+    }
+
+    const targetLocality = need.organization?.ciudad ?? need.locality;
+    if (!targetLocality) {
+      return;
+    }
+
+    const localities = await this.localityRepository.find({
+      where: { userId: currentUser.id },
+    });
+
+    const inScope = localities.some((l) =>
+      localitiesMatch(l.locality, targetLocality),
+    );
+
+    if (!inScope) {
+      throw new ForbiddenException(
+        `No tenés asignada "${targetLocality}" -- no podés gestionar solicitudes de esta necesidad.`,
+      );
+    }
   }
 
   async create(needId: number, dto: CreateSolicitudDto, currentUser: AuthUser) {
@@ -84,6 +124,10 @@ export class SolicitudesService {
       );
     }
 
+    if (!isOwner) {
+      await this.assertModeratorJurisdiction(need, currentUser);
+    }
+
     return this.repository.find({
       where: { needId },
       relations: ['helper'],
@@ -105,6 +149,10 @@ export class SolicitudesService {
       throw new ForbiddenException(
         'Solo el dueño de la necesidad (o un moderador) puede aceptar o rechazar',
       );
+    }
+
+    if (!isOwner) {
+      await this.assertModeratorJurisdiction(need, currentUser);
     }
 
     const solicitud = await this.repository.findOne({
