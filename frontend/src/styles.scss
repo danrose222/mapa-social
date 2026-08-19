@@ -149,6 +149,7 @@ select:focus-visible,
   flex-direction: column;
   gap: 6px;
   margin-bottom: 16px;
+  min-width: 0;
 
   label {
     font-size: 0.82rem;
