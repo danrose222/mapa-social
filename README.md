@@ -13,7 +13,8 @@ Plataforma colaborativa territorial para conectar necesidades comunitarias con r
 
 ```
 backend/    API REST (NestJS), migraciones y seed de datos de ejemplo
-frontend/   Aplicación Angular (mapa, formularios, inicio, login)
+frontend/   Aplicación Angular (inicio, mapa, matching, estadísticas,
+            solicitudes, perfil de organización, paneles de moderador)
 database/   Script de inicialización de MySQL
 ```
 
@@ -114,15 +115,15 @@ npx nest g service <nombre>
 
 ## API
 
-Módulos activos, todos bajo el prefijo `/api`: `roles`, `users`, `categories`, `needs`, `resources`. Cada uno expone el CRUD estándar (`POST`, `GET`, `GET /:id`, `PATCH /:id`, `DELETE /:id`).
+Módulos activos, todos bajo el prefijo `/api`: `roles`, `users`, `categories`, `needs`, `resources`, `organizations`, `solicitudes`, `stats`, `uploads`. Cada uno expone el CRUD estándar (`POST`, `GET`, `GET /:id`, `PATCH /:id`, `DELETE /:id`) donde corresponde.
 
-`needs` además expone `GET /api/needs/search`, con filtros opcionales por `category`, y por cercanía geográfica combinando `lat`, `lng` y `radius` (en kilómetros, hasta 50).
+`needs` además expone `GET /api/needs/search` (filtros por `category` y cercanía geográfica combinando `lat`, `lng` y `radius`, en kilómetros, hasta 50) y `GET /api/needs/:id/matches` (recursos disponibles de la misma categoría, ordenados por distancia).
 
 El detalle completo de cada endpoint, con sus esquemas de entrada y salida, está en Swagger (`/docs`).
 
 ## Frontend
 
-Rutas disponibles: `/` (inicio), `/mapa` (mapa interactivo centrado en Córdoba, con pines de necesidades y recursos), `/registrar-necesidad`, `/ofrecer-recurso` y `/login`.
+Rutas principales: `/` (inicio), `/mapa` (mapa interactivo centrado en Córdoba, con pines de necesidades y recursos), `/publicar/necesito-ayuda`, `/publicar/ofrecer-recurso`, `/organizacion/:id` (perfil público), `/estadisticas`, `/mis-solicitudes`, `/entrar` y `/registro`. Los paneles de moderador (`/moderador/publicaciones`, `/moderador/organizaciones`, `/moderador/mis-localidades`) requieren sesión con rol moderador.
 
 ## Flujo de trabajo
 

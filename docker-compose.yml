@@ -45,17 +45,6 @@ services:
       - backend
     restart: unless-stopped
 
-  # Nuevo: segundo frontend (prototipo), mismo backend, puerto aparte.
-  frontend-v2:
-    build:
-      context: ./frontend-v2
-    container_name: mapa_social_frontend_v2
-    ports:
-      - "90:8080"
-    depends_on:
-      - backend
-    restart: unless-stopped
-
 volumes:
   db_data:
   backend_uploads:

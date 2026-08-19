@@ -7,9 +7,12 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json package-lock.json* ./
+COPY package.json package-lock.json ./
 
-RUN npm install
+# npm ci en vez de npm install: instala exactamente las versiones fijadas
+# en package-lock.json (build reproducible) en vez de resolver de nuevo el
+# árbol de dependencias en cada build.
+RUN npm ci
 
 COPY . .
 
@@ -22,7 +25,7 @@ RUN npm run build -- --configuration production
 # ---------------------------------------------------------------------------
 FROM nginxinc/nginx-unprivileged:alpine AS runner
 
-COPY --from=builder --chown=nginx:nginx /app/dist/frontend-v2/browser /usr/share/nginx/html
+COPY --from=builder --chown=nginx:nginx /app/dist/frontend/browser /usr/share/nginx/html
 
 COPY --chown=nginx:nginx nginx.conf /etc/nginx/conf.d/default.conf
 
