@@ -28,7 +28,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         wasAuthenticated
       ) {
         authService.logout();
-        router.navigateByUrl('/login');
+        router.navigateByUrl('/entrar');
       }
 
       return throwError(() => error);
