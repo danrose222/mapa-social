@@ -50,6 +50,7 @@ export const routes: Routes = [
       },
       {
         path: 'estadisticas',
+        canActivate: [moderatorGuard],
         loadComponent: () =>
           import('./pages/estadisticas/estadisticas.component').then(
             (m) => m.EstadisticasComponent,
