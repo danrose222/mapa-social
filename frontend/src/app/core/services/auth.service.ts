@@ -2,6 +2,8 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, of, tap } from 'rxjs';
 
+export type OrganizationType = 'ong' | 'comunidad';
+
 export interface AuthUser {
   id: number;
   firstName: string;
@@ -9,6 +11,7 @@ export interface AuthUser {
   email: string;
   role: string;
   ciudad?: string | null;
+  organizationType?: OrganizationType | null;
 }
 
 export interface LoginResponse {
@@ -28,7 +31,7 @@ export interface UserProfile {
   email: string;
   ciudad?: string | null;
   role: { id: number; name: string };
-  organization?: { id: number; name: string; verified: boolean } | null;
+  organization?: { id: number; name: string; type: OrganizationType; verified: boolean } | null;
   localities?: { id: number; locality: string; provincia?: string }[];
 }
 

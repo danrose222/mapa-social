@@ -100,7 +100,10 @@ export class UsersService {
   async findByEmail(email: string) {
     return this.userRepository.findOne({
       where: { email },
-      relations: ['role'],
+      // 'organization' se agrega para que AuthService.login() pueda emitir
+      // organizationType sin una query aparte -- único caller de este
+      // método (verificado), así que no afecta a nadie más.
+      relations: ['role', 'organization'],
     });
   }
 

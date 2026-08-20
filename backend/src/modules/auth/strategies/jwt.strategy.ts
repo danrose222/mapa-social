@@ -45,6 +45,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       email: user.email,
       role: user.role.name,
       organizationId: user.organizationId ?? null,
+      // Igual que organizationId: resuelto fresco acá, no confiado desde
+      // el JWT. Habilita reglas asimétricas por tipo de organización
+      // (Comunidad/ONG) sin sumar un rol nuevo en la tabla roles ni tocar
+      // los guards @Roles('moderador') existentes.
+      organizationType: user.organization?.type ?? null,
     };
   }
 }
