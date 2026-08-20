@@ -63,6 +63,16 @@ export class ResourcesController {
     return resources.map((r) => hideResourceContactUnlessAuthorized(r, user));
   }
 
+  @Get('mias')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Listar mis propios recursos publicados' })
+  @ApiResponse({ status: 200, description: 'Listado de mis recursos' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  findMine(@CurrentUser() user: AuthUser) {
+    return this.service.findMine(user.id);
+  }
+
   @Get(':id')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()

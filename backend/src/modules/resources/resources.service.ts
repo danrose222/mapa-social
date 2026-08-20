@@ -95,6 +95,18 @@ export class ResourcesService {
       },
     });
   }
+  // Los propios recursos de un usuario -- ver el comentario equivalente en
+  // needs.service.ts.
+  findMine(userId: number) {
+    return this.repository.find({
+      where: { userId },
+      relations: ['category', 'organization', 'resolvedBy'],
+      select: {
+        resolvedBy: PUBLIC_USER_FIELDS,
+      },
+      order: { id: 'DESC' },
+    });
+  }
   private assertCanModify(resource: Resource, currentUser: AuthUser) {
     const isOwner = resource.userId === currentUser.id;
     const isModerator = currentUser.role === 'moderador';

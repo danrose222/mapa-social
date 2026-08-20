@@ -101,6 +101,16 @@ export class NeedsController {
     return this.service.localities();
   }
 
+  @Get('mias')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Listar mis propias necesidades publicadas' })
+  @ApiResponse({ status: 200, description: 'Listado de mis necesidades' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  findMine(@CurrentUser() user: AuthUser) {
+    return this.service.findMine(user.id);
+  }
+
   @Get(':id/matches')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()

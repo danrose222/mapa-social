@@ -81,6 +81,14 @@ export class PublicationsService {
     return this.http.get<Resource[]>(this.resourcesUrl);
   }
 
+  getMyNeeds(): Observable<Need[]> {
+    return this.http.get<Need[]>(`${this.needsUrl}/mias`);
+  }
+
+  getMyResources(): Observable<Resource[]> {
+    return this.http.get<Resource[]>(`${this.resourcesUrl}/mias`);
+  }
+
   createResource(payload: CreateResourcePayload): Observable<Resource> {
     return this.http.post<Resource>(this.resourcesUrl, payload);
   }

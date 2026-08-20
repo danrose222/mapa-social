@@ -79,6 +79,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'mis-publicaciones',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./pages/mis-publicaciones/mis-publicaciones.component').then(
+            (m) => m.MisPublicacionesComponent,
+          ),
+      },
+      {
         path: 'organizacion/mi-organizacion',
         canActivate: [authGuard],
         loadComponent: () =>

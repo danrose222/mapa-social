@@ -119,6 +119,19 @@ export class NeedsService {
       },
     });
   }
+  // Las propias necesidades de un usuario -- no hace falta la relación
+  // 'user' acá (ya sabemos de quién son), solo resolvedBy si un moderador
+  // ya la resolvió.
+  findMine(userId: number) {
+    return this.repository.find({
+      where: { userId },
+      relations: ['category', 'organization', 'resolvedBy'],
+      select: {
+        resolvedBy: PUBLIC_USER_FIELDS,
+      },
+      order: { id: 'DESC' },
+    });
+  }
   private assertCanModify(need: Need, currentUser: AuthUser) {
     const isOwner = need.userId === currentUser.id;
     const isModerator = currentUser.role === 'moderador';

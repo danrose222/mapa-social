@@ -18,6 +18,9 @@
     </a>
 
     @if (currentUser()) {
+      <a routerLink="/mis-publicaciones" routerLinkActive="is-active" (click)="closeMenu()">
+        Mis publicaciones
+      </a>
       <a routerLink="/mis-solicitudes" routerLinkActive="is-active" (click)="closeMenu()">
         Mis solicitudes
       </a>
