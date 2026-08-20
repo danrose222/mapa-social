@@ -5,6 +5,12 @@ import { User } from '../../users/entities/user.entity';
 import { Need } from '../../needs/entities/need.entity';
 import { Resource } from '../../resources/entities/resource.entity';
 
+// Estructuralmente Comunidad y ONG son la misma entidad (mismas columnas);
+// lo que las distingue es de comportamiento -- a quién le piden, a quién
+// le rinden cuentas -- así que se resuelve por este discriminador en vez
+// de separarlas en tablas o en una jerarquía de herencia.
+export type OrganizationType = 'ong' | 'comunidad';
+
 @Entity('organizations')
 export class Organization extends BaseEntity {
   @Column({
@@ -34,7 +40,7 @@ export class Organization extends BaseEntity {
   @Column({
     length: 20,
   })
-  type!: string;
+  type!: OrganizationType;
 
   @Column({
     length: 100,
