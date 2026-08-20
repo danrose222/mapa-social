@@ -3,7 +3,11 @@ import * as bcrypt from 'bcrypt';
 import datasource from '../datasource';
 
 const SEED_PASSWORD = 'seed-password';
-const MODERATOR_PASSWORD = 'moderador123';
+// En cualquier ambiente real hay que fijar SEED_MODERATOR_PASSWORD -- este
+// valor por default es a propósito débil y público (queda en el repo), solo
+// pensado para levantar el stack local con docker-compose.
+const MODERATOR_PASSWORD =
+  process.env.SEED_MODERATOR_PASSWORD || 'moderador123';
 
 async function seed(): Promise<void> {
   await datasource.initialize();
@@ -56,11 +60,10 @@ async function seed(): Promise<void> {
 
     await queryRunner.commitTransaction();
 
-    // eslint-disable-next-line no-console
     console.log('Seed ejecutado con éxito.');
   } catch (error) {
     await queryRunner.rollbackTransaction();
-    // eslint-disable-next-line no-console
+
     console.error('Error al ejecutar seed:', error);
     process.exitCode = 1;
   } finally {
@@ -70,7 +73,6 @@ async function seed(): Promise<void> {
 }
 
 seed().catch((error) => {
-  // eslint-disable-next-line no-console
   console.error('Error inesperado en seed:', error);
   process.exit(1);
 });
