@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Patch,
@@ -14,10 +15,14 @@ import { SearchNeedsDto } from './dto/search-needs.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { NeedsService } from './needs.service';
-import { Need } from './entities/need.entity';
+import { SolicitudesService } from '../solicitudes/solicitudes.service';
+import { ResourcesService } from '../resources/resources.service';
+import { hideNeedContactUnlessAuthorized } from './needs-contact.util';
+import { hideResourceContactUnlessAuthorized } from '../resources/resource-contact.util';
 
 import { CreateNeedDto } from './dto/create-need.dto';
 import { UpdateNeedDto } from './dto/update-need.dto';
+import { MatchesQueryDto } from './dto/matches-query.dto';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
@@ -31,22 +36,11 @@ interface AuthUser {
 @ApiTags('Needs')
 @Controller('needs')
 export class NeedsController {
-  constructor(private readonly service: NeedsService) {}
-
-  private hideContactUnlessAuthorized(
-    item: Need,
-    user: AuthUser | null,
-  ): Need {
-    const isModerator = user?.role === 'moderador';
-    const isOwner = user?.id === item.userId;
-    const belongsToOrganization = item.organizationId != null;
-
-    if (isModerator || isOwner || belongsToOrganization) {
-      return item;
-    }
-
-    return { ...item, contactName: undefined, contactInfo: undefined };
-  }
+  constructor(
+    private readonly service: NeedsService,
+    private readonly solicitudesService: SolicitudesService,
+    private readonly resourcesService: ResourcesService,
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -69,20 +63,73 @@ export class NeedsController {
   @ApiResponse({ status: 200, description: 'Listado de necesidades' })
   async findAll(@CurrentUser() user: AuthUser | null) {
     const needs = await this.service.findAll();
-    return needs.map((n) => this.hideContactUnlessAuthorized(n, user));
+    const acceptedNeedIds = user
+      ? await this.solicitudesService.findAcceptedNeedIds(user.id)
+      : new Set<number>();
+    return needs.map((n) => hideNeedContactUnlessAuthorized(n, user, acceptedNeedIds));
   }
 
   @Get('search')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Buscar necesidades activas con filtros (público)' })
-  @ApiResponse({ status: 200, description: 'Resultados de la búsqueda' })
+  @ApiOperation({ summary: 'Buscar necesidades activas con filtros, paginado (público)' })
+  @ApiResponse({ status: 200, description: 'Resultados de la búsqueda, paginados' })
   async search(
     @Query() dto: SearchNeedsDto,
     @CurrentUser() user: AuthUser | null,
   ) {
-    const needs = await this.service.search(dto);
-    return needs.map((n) => this.hideContactUnlessAuthorized(n, user));
+    const { items, total, page, limit, totalPages } = await this.service.search(dto);
+    const acceptedNeedIds = user
+      ? await this.solicitudesService.findAcceptedNeedIds(user.id)
+      : new Set<number>();
+
+    return {
+      items: items.map((n) => hideNeedContactUnlessAuthorized(n, user, acceptedNeedIds)),
+      total,
+      page,
+      limit,
+      totalPages,
+    };
+  }
+
+  @Get('localities')
+  @ApiOperation({
+    summary: 'Localidades con al menos una necesidad activa, con cuántas hay en cada una',
+  })
+  @ApiResponse({ status: 200, description: 'Listado de localidades' })
+  localities() {
+    return this.service.localities();
+  }
+
+  @Get(':id/matches')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Matching: recursos disponibles de la misma categoría que esta necesidad, dentro de un radio (default 15km)',
+  })
+  @ApiResponse({ status: 200, description: 'Recursos sugeridos, ordenados por cercanía' })
+  @ApiResponse({ status: 404, description: 'Necesidad inexistente' })
+  async matches(
+    @Param('id', ParseIntPipe) id: number,
+    @Query() dto: MatchesQueryDto,
+    @CurrentUser() user: AuthUser | null,
+  ) {
+    const need = await this.service.findOne(id);
+
+    if (!need) {
+      throw new NotFoundException('Necesidad inexistente');
+    }
+
+    const resources = await this.resourcesService.findNearbyByCategory(
+      need.latitude,
+      need.longitude,
+      need.categoryId,
+      dto.radius ?? 15,
+      dto.limit ?? 10,
+    );
+
+    return resources.map((r) => hideResourceContactUnlessAuthorized(r, user));
   }
 
   @Get(':id')
@@ -96,7 +143,16 @@ export class NeedsController {
     @CurrentUser() user: AuthUser | null,
   ) {
     const need = await this.service.findOne(id);
-    return need ? this.hideContactUnlessAuthorized(need, user) : need;
+
+    if (!need) {
+      return need;
+    }
+
+    const acceptedNeedIds = user
+      ? await this.solicitudesService.findAcceptedNeedIds(user.id)
+      : new Set<number>();
+
+    return hideNeedContactUnlessAuthorized(need, user, acceptedNeedIds);
   }
 
   @Patch(':id')

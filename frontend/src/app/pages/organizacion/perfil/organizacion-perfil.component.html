@@ -1,0 +1,77 @@
+<div class="org-perfil">
+  <header class="org-perfil__header">
+    <a routerLink="/mapa" class="org-perfil__back">← Volver al mapa</a>
+  </header>
+
+  @if (isLoading()) {
+    <p class="org-perfil__status">Cargando…</p>
+  } @else if (errorMessage()) {
+    <p class="org-perfil__status org-perfil__status--error">{{ errorMessage() }}</p>
+  } @else if (organization(); as org) {
+    <div class="card org-perfil__card">
+      @if (!org.verified) {
+        <p class="org-perfil__pending">Pendiente de aprobación por un moderador</p>
+      } @else {
+        <span class="badge-verified">✓ Verificada</span>
+      }
+
+      <p class="org-perfil__eyebrow">
+        {{ org.type === 'ong' ? 'ONG' : 'Comunidad' }} · {{ org.ciudad }}
+      </p>
+
+      <h1>{{ org.name }}</h1>
+
+      @if (org.description) {
+        <p class="org-perfil__description">{{ org.description }}</p>
+      }
+
+      <div class="org-perfil__contact">
+        @if (org.address) {
+          <span><strong>Dirección:</strong> {{ org.address }}</span>
+        }
+        @if (org.contactInfo) {
+          <span><strong>Contacto:</strong> {{ org.contactInfo }}</span>
+        }
+      </div>
+    </div>
+
+    <div class="card org-perfil__card">
+      <h2>Recursos que ofrece ({{ resources().length }})</h2>
+
+      @if (resources().length === 0) {
+        <p class="org-perfil__empty">Todavía no publicó ningún recurso.</p>
+      } @else {
+        <ul class="org-perfil__list">
+          @for (resource of resources(); track resource.id) {
+            <li>
+              <p class="org-perfil__item-title">{{ resource.title }}</p>
+              <p class="org-perfil__item-category">{{ categoryName(resource.categoryId) }}</p>
+              <p class="org-perfil__item-description">{{ resource.description }}</p>
+              @if (resource.schedule) {
+                <p class="org-perfil__item-detail"><strong>Horario:</strong> {{ resource.schedule }}</p>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <div class="card org-perfil__card">
+      <h2>Necesidades que tiene ({{ needs().length }})</h2>
+
+      @if (needs().length === 0) {
+        <p class="org-perfil__empty">No tiene necesidades activas.</p>
+      } @else {
+        <ul class="org-perfil__list">
+          @for (need of needs(); track need.id) {
+            <li>
+              <p class="org-perfil__item-title">{{ need.title }}</p>
+              <p class="org-perfil__item-category">{{ categoryName(need.categoryId) }}</p>
+              <p class="org-perfil__item-description">{{ need.description }}</p>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,102 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.mis-sol {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 20px 20px 60px;
+}
+
+.mis-sol__header {
+  padding: 12px 0 22px;
+
+  h1 {
+    margin: 10px 0 4px;
+    font-size: 1.5rem;
+  }
+
+  p {
+    color: var(--ink-soft);
+    font-size: 0.88rem;
+  }
+}
+
+.mis-sol__back {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.mis-sol__status {
+  padding: 60px 20px;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.mis-sol__status--error {
+  color: var(--danger);
+}
+
+.mis-sol__empty {
+  padding: 32px 24px;
+  text-align: center;
+
+  p {
+    margin-bottom: 14px;
+    color: var(--ink-soft);
+  }
+}
+
+.mis-sol__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mis-sol__item {
+  padding: 0;
+  overflow: hidden;
+
+  a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+  }
+}
+
+.mis-sol__title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.mis-sol__status-tag {
+  margin: 0;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.74rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.mis-sol__status-tag--pending {
+  background: var(--need-color-soft);
+  color: var(--need-color);
+}
+
+.mis-sol__status-tag--accepted {
+  background: var(--help-color-soft);
+  color: var(--help-color);
+}
+
+.mis-sol__status-tag--rejected {
+  background: #f8dcd6;
+  color: var(--danger);
+}

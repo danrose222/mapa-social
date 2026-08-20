@@ -1,0 +1,113 @@
+@if (submitted()) {
+  <div class="confirm">
+    <div class="card confirm__card">
+      <span class="confirm__icon" aria-hidden="true">✓</span>
+      <h1>¡Tu recurso ya está publicado!</h1>
+      <p>Ya aparece en el mapa para que la comunidad lo vea.</p>
+      <button type="button" class="btn" (click)="volverAlMapa()">Ver el mapa</button>
+    </div>
+  </div>
+} @else if (!profileLoaded()) {
+  <p class="recurso__loading">Comprobando tu cuenta…</p>
+} @else if (forbidden() || !canPublish()) {
+  <div class="confirm">
+    <div class="card confirm__card">
+      <span class="confirm__icon confirm__icon--blocked" aria-hidden="true">✕</span>
+      <h1>Esto requiere una organización avalada</h1>
+      <p>{{ publishReason() ?? 'Solo un moderador, o alguien de una organización ya avalada por el municipio, puede publicar un recurso.' }}</p>
+      <p class="recurso__sub-note">
+        Si representás una organización, el primer paso es registrarla —
+        después queda pendiente hasta que un moderador de esa localidad la avale.
+      </p>
+      <a routerLink="/organizacion/crear" class="btn">Registrar mi organización</a>
+      <button type="button" class="btn btn--ghost" (click)="volverAlMapa()">Volver al mapa</button>
+    </div>
+  </div>
+} @else {
+  <div class="recurso">
+    <header class="recurso__header">
+      <a routerLink="/publicar" class="recurso__back">← Volver</a>
+      <h1>Ofrecer un recurso</h1>
+      <p>Contanos qué podés ofrecer a la comunidad.</p>
+    </header>
+
+    <p class="recurso__notice">
+      {{ publishReason() }}
+    </p>
+
+    <div class="card recurso__card">
+      @if (errorMessage()) {
+        <p class="recurso__alert">{{ errorMessage() }}</p>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="field">
+          <label for="res-title">¿Qué ofrecés?</label>
+          <input
+            id="res-title"
+            type="text"
+            formControlName="title"
+            placeholder="Ej: Banco de alimentos"
+          />
+        </div>
+
+        <div class="field">
+          <label for="res-category">Categoría</label>
+          <select id="res-category" formControlName="categoryId">
+            <option [ngValue]="null" disabled>Elegí una categoría</option>
+            @for (category of categories(); track category.id) {
+              <option [ngValue]="category.id">{{ category.name }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="res-description">Descripción</label>
+          <textarea
+            id="res-description"
+            formControlName="description"
+            placeholder="Describí el recurso, a quién está dirigido, qué se necesita para acceder"
+          ></textarea>
+        </div>
+
+        <div class="field">
+          <label>Ubicación</label>
+          <app-location-picker (locationSelected)="onLocationSelected($event)" />
+        </div>
+
+        <div class="recurso__row">
+          <div class="field">
+            <label for="res-schedule">Horario de atención (opcional)</label>
+            <input id="res-schedule" type="text" formControlName="schedule" placeholder="Lun a Vie 9:00–17:00" />
+          </div>
+
+          <div class="field">
+            <label for="res-address">Referencia de dirección (opcional)</label>
+            <input id="res-address" type="text" formControlName="address" />
+          </div>
+        </div>
+
+        <div class="recurso__row">
+          <div class="field">
+            <label for="res-contact-name">Nombre de contacto (opcional)</label>
+            <input id="res-contact-name" type="text" formControlName="contactName" />
+          </div>
+
+          <div class="field">
+            <label for="res-contact-info">Teléfono o email (opcional)</label>
+            <input id="res-contact-info" type="text" formControlName="contactInfo" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Foto (opcional)</label>
+          <app-image-upload-field (urlChange)="imageUrl.set($event)" />
+        </div>
+
+        <button type="submit" class="btn btn--block" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'Publicando…' : 'Publicar recurso' }}
+        </button>
+      </form>
+    </div>
+  </div>
+}

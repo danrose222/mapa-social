@@ -13,7 +13,6 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { ResourcesService } from './resources.service';
-import { Resource } from './entities/resource.entity';
 
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
@@ -21,6 +20,7 @@ import { UpdateResourceDto } from './dto/update-resource.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { hideResourceContactUnlessAuthorized } from './resource-contact.util';
 
 interface AuthUser {
   id: number;
@@ -31,21 +31,6 @@ interface AuthUser {
 @Controller('resources')
 export class ResourcesController {
   constructor(private readonly service: ResourcesService) {}
-
-  private hideContactUnlessAuthorized(
-    item: Resource,
-    user: AuthUser | null,
-  ): Resource {
-    const isModerator = user?.role === 'moderador';
-    const isOwner = user?.id === item.userId;
-    const belongsToOrganization = item.organizationId != null;
-
-    if (isModerator || isOwner || belongsToOrganization) {
-      return item;
-    }
-
-    return { ...item, contactName: undefined, contactInfo: undefined };
-  }
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -75,7 +60,7 @@ export class ResourcesController {
   @ApiResponse({ status: 200, description: 'Listado de recursos' })
   async findAll(@CurrentUser() user: AuthUser | null) {
     const resources = await this.service.findAll();
-    return resources.map((r) => this.hideContactUnlessAuthorized(r, user));
+    return resources.map((r) => hideResourceContactUnlessAuthorized(r, user));
   }
 
   @Get(':id')
@@ -90,7 +75,7 @@ export class ResourcesController {
   ) {
     const resource = await this.service.findOne(id);
     return resource
-      ? this.hideContactUnlessAuthorized(resource, user)
+      ? hideResourceContactUnlessAuthorized(resource, user)
       : resource;
   }
 

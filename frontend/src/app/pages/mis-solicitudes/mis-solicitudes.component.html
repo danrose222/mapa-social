@@ -1,0 +1,31 @@
+<div class="mis-sol">
+  <header class="mis-sol__header">
+    <a routerLink="/mapa" class="mis-sol__back">← Volver al mapa</a>
+    <h1>Mis solicitudes</h1>
+    <p>Necesidades donde te ofreciste a ayudar.</p>
+  </header>
+
+  @if (isLoading()) {
+    <p class="mis-sol__status">Cargando…</p>
+  } @else if (loadError()) {
+    <p class="mis-sol__status mis-sol__status--error">No se pudo conectar con el servidor.</p>
+  } @else if (solicitudes().length === 0) {
+    <div class="card mis-sol__empty">
+      <p>Todavía no te ofreciste a ayudar con ninguna necesidad.</p>
+      <a routerLink="/publicar/quiero-ayudar" class="btn">Ver necesidades</a>
+    </div>
+  } @else {
+    <ul class="mis-sol__list">
+      @for (s of solicitudes(); track s.id) {
+        <li class="card mis-sol__item">
+          <a [routerLink]="['/publicar/quiero-ayudar', s.needId]">
+            <p class="mis-sol__title">{{ s.need?.title }}</p>
+            <p class="mis-sol__status-tag mis-sol__status-tag--{{ s.status }}">
+              {{ s.status === 'pending' ? 'Pendiente' : s.status === 'accepted' ? 'Aceptada' : 'Rechazada' }}
+            </p>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</div>

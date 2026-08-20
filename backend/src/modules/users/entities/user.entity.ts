@@ -15,6 +15,7 @@ import { Role } from '../../roles/entities/role.entity';
 import { Need } from '../../needs/entities/need.entity';
 import { Resource } from '../../resources/entities/resource.entity';
 import { Organization } from '../../organizations/entities/organization.entity';
+import { ModeratorLocality } from './moderator-locality.entity';
 
 @Entity('users')
 export class User extends BaseEntity {
@@ -87,6 +88,12 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Resource, (resource) => resource.user)
   resources!: Resource[];
+
+  // Ciudades que este usuario (moderador) puede administrar. Reemplaza al
+  // viejo campo único 'ciudad' para ese propósito -- ese campo se mantiene
+  // solo como dato de perfil, no se usa más para autorizar nada.
+  @OneToMany(() => ModeratorLocality, (locality) => locality.user)
+  localities!: ModeratorLocality[];
 
   @Exclude()
   private previousPasswordHash?: string;

@@ -13,6 +13,7 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AddModeratorLocalityDto } from './dto/add-moderator-locality.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -112,5 +113,48 @@ export class UsersController {
     id: number,
   ) {
     return this.service.remove(id);
+  }
+
+  @Post(':id/localities')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('moderador')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Asignarle una localidad a un moderador (solo otro moderador puede hacerlo)',
+  })
+  @ApiResponse({ status: 201, description: 'Localidad asignada' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({ status: 403, description: 'No tiene rol moderador' })
+  @ApiResponse({ status: 404, description: 'Usuario inexistente' })
+  addLocality(
+    @Param('id', ParseIntPipe)
+    id: number,
+    @Body()
+    dto: AddModeratorLocalityDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.addLocality(id, dto, user);
+  }
+
+  @Delete(':id/localities/:localityId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('moderador')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Quitarle una localidad a un moderador (solo otro moderador)',
+  })
+  @ApiResponse({ status: 200, description: 'Localidad quitada' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({ status: 403, description: 'No tiene rol moderador' })
+  @ApiResponse({ status: 404, description: 'La localidad no está asignada a ese usuario' })
+  removeLocality(
+    @Param('id', ParseIntPipe)
+    id: number,
+    @Param('localityId', ParseIntPipe)
+    localityId: number,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.removeLocality(id, localityId, user);
   }
 }

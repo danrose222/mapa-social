@@ -65,6 +65,12 @@ export class Resource extends BaseEntity {
     default: 'available',
   })
   status!: string;
+  @Column({
+    name: 'image_url',
+    length: 500,
+    nullable: true,
+  })
+  imageUrl?: string;
   // Ver el comentario equivalente en need.entity.ts: "number | null"
   // (no solo undefined) porque TypeORM necesita null explícito para
   // limpiar la columna en el UPDATE.

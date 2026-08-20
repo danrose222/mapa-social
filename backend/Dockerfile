@@ -36,6 +36,12 @@ FROM node:20-alpine AS runner
 ENV NODE_ENV=production
 WORKDIR /app
 
+# uploads.service.ts crea este directorio en runtime si no existe (para el
+# storage local de imágenes) -- como usuario "node" no puede crear nada
+# directo bajo /app (queda owned por root), hay que dejarlo hecho acá con
+# el owner correcto antes de bajar privilegios.
+RUN mkdir -p uploads && chown node:node uploads
+
 # Las imágenes oficiales node:*-alpine ya incluyen un usuario sin privilegios
 # llamado "node". Ejecutar la app con ese usuario (en vez del root por
 # defecto) reduce el impacto de una eventual RCE dentro del contenedor.

@@ -1,0 +1,113 @@
+<div class="about">
+  <header class="about__header">
+    <a routerLink="/mapa" class="about__back">
+      <app-icon name="arrowLeft" [size]="16" />
+      Volver al mapa
+    </a>
+  </header>
+
+  <section class="about__hero">
+    <svg class="about__hero-art" viewBox="0 0 600 320" role="img" aria-label="Ilustración de una red de vecinos conectados">
+      <ellipse cx="300" cy="170" rx="270" ry="140" fill="var(--brand-soft)" />
+
+      <line x1="300" y1="160" x2="150" y2="90" stroke="var(--border)" stroke-width="2" stroke-dasharray="5 6" />
+      <line x1="300" y1="160" x2="460" y2="80" stroke="var(--border)" stroke-width="2" stroke-dasharray="5 6" />
+      <line x1="300" y1="160" x2="120" y2="230" stroke="var(--border)" stroke-width="2" stroke-dasharray="5 6" />
+      <line x1="300" y1="160" x2="470" y2="240" stroke="var(--border)" stroke-width="2" stroke-dasharray="5 6" />
+
+      <circle cx="300" cy="160" r="46" fill="var(--brand)" />
+      <path
+        d="M300 178c-16-11-28-20-28-32a13 13 0 0 1 24-8 13 13 0 0 1 24 8c0 12-12 21-28 32Z"
+        fill="#fff"
+      />
+
+      <g>
+        <circle cx="150" cy="90" r="26" fill="var(--need-color)" />
+        <path d="M150 78v18M141 87h18" stroke="#fff" stroke-width="3" stroke-linecap="round" />
+      </g>
+
+      <g>
+        <circle cx="460" cy="80" r="24" fill="var(--help-color)" />
+        <path d="M451 80c0-6 5-10 9-10s9 4 9 10-9 15-9 15-9-9-9-15Z" fill="#fff" />
+      </g>
+
+      <g>
+        <circle cx="120" cy="230" r="22" fill="var(--danger)" />
+        <path d="M111 230h18M120 221v18" stroke="#fff" stroke-width="3" stroke-linecap="round" />
+      </g>
+
+      <g>
+        <circle cx="470" cy="240" r="24" fill="#7a5fb0" />
+        <path d="M460 244c0-8 4-13 10-13s10 5 10 13" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" />
+        <circle cx="470" cy="228" r="4" fill="#fff" />
+      </g>
+    </svg>
+  </section>
+
+  <section class="about__intro">
+    <span class="about__eyebrow">Quiénes somos</span>
+    <h1>Un mapa hecho entre vecinos</h1>
+    <p>
+      Mapa Social conecta a quien necesita una mano con quien puede darla, en el mismo
+      barrio. No hay intermediarios burocráticos: cualquier persona puede publicar una
+      necesidad, y las organizaciones avaladas por el municipio pueden ofrecer recursos
+      de forma visible para toda la comunidad.
+    </p>
+  </section>
+
+  <section class="about__actions">
+    <a routerLink="/mapa" class="card about__action-card">
+      <span class="about__action-icon" style="background: var(--brand-soft); color: var(--brand-dark)">
+        <app-icon name="pin" [size]="20" />
+      </span>
+      <div>
+        <h3>Ver el mapa</h3>
+        <p>Recorré las necesidades y recursos activos cerca tuyo.</p>
+      </div>
+    </a>
+
+    <a routerLink="/publicar/necesito-ayuda" class="card about__action-card">
+      <span class="about__action-icon" style="background: var(--need-color-soft); color: var(--need-color)">
+        <app-icon name="hands" [size]="20" />
+      </span>
+      <div>
+        <h3>Necesito ayuda</h3>
+        <p>Publicá tu necesidad para que la comunidad la vea.</p>
+      </div>
+    </a>
+
+    <a routerLink="/publicar/quiero-ayudar" class="card about__action-card">
+      <span class="about__action-icon" style="background: var(--help-color-soft); color: var(--help-color)">
+        <app-icon name="helpingHand" [size]="20" />
+      </span>
+      <div>
+        <h3>Quiero ayudar</h3>
+        <p>Mirá necesidades activas y ofrecé una mano.</p>
+      </div>
+    </a>
+  </section>
+
+  <section class="about__how">
+    <h2>Cómo funciona</h2>
+
+    <ol class="about__steps">
+      <li>
+        <span class="about__step-number">1</span>
+        <p>Te registrás — sin restricción de rol, cualquiera puede pedir o dar ayuda.</p>
+      </li>
+      <li>
+        <span class="about__step-number">2</span>
+        <p>Publicás una necesidad, u ofrecés ayuda respondiendo a una que ya existe.</p>
+      </li>
+      <li>
+        <span class="about__step-number">3</span>
+        <p>Se ponen en contacto directo para coordinar la ayuda.</p>
+      </li>
+    </ol>
+
+    <p class="about__note">
+      Las organizaciones que ofrecen recursos pasan primero por una revisión del
+      municipio — por eso vas a ver el sello "Verificada" en algunas publicaciones.
+    </p>
+  </section>
+</div>

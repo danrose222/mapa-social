@@ -1,0 +1,79 @@
+<div class="mi-org">
+  <header class="mi-org__header">
+    <a routerLink="/mapa" class="mi-org__back">← Volver al mapa</a>
+    <h1>Mi organización</h1>
+  </header>
+
+  @if (isLoading()) {
+    <p class="mi-org__status">Cargando…</p>
+  } @else if (loadError()) {
+    <p class="mi-org__status mi-org__status--error">No se pudo conectar con el servidor.</p>
+  } @else if (!organization()) {
+    <div class="card mi-org__empty">
+      <p>Todavía no pertenecés a ninguna organización.</p>
+      <a routerLink="/organizacion/crear" class="btn">Registrar una organización</a>
+    </div>
+  } @else {
+    <div class="card mi-org__card">
+      <div class="mi-org__badge-row">
+        @if (organization()!.verified) {
+          <span class="badge-verified">✓ Verificada</span>
+        } @else {
+          <span class="mi-org__pending">Pendiente de aprobación</span>
+        }
+      </div>
+
+      @if (saveMessage()) {
+        <p class="mi-org__saved">{{ saveMessage() }}</p>
+      }
+
+      @if (errorMessage()) {
+        <p class="mi-org__alert">{{ errorMessage() }}</p>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <div class="field">
+          <label for="mo-name">Nombre</label>
+          <input id="mo-name" type="text" formControlName="name" />
+        </div>
+
+        <div class="field">
+          <label for="mo-description">Descripción</label>
+          <textarea id="mo-description" formControlName="description"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="mo-address">Dirección</label>
+          <input id="mo-address" type="text" formControlName="address" />
+        </div>
+
+        <div class="field">
+          <label for="mo-contact">Contacto</label>
+          <input id="mo-contact" type="text" formControlName="contactInfo" />
+        </div>
+
+        <button type="submit" class="btn" [disabled]="isSaving()">
+          {{ isSaving() ? 'Guardando…' : 'Guardar cambios' }}
+        </button>
+      </form>
+    </div>
+
+    <div class="card mi-org__card">
+      <h2>Nuestros recursos ({{ myResources().length }})</h2>
+
+      @if (myResources().length === 0) {
+        <p class="mi-org__empty-resources">Todavía no publicaron ningún recurso.</p>
+      } @else {
+        <ul class="mi-org__resource-list">
+          @for (resource of myResources(); track resource.id) {
+            <li>{{ resource.title }}</li>
+          }
+        </ul>
+      }
+
+      <a routerLink="/publicar/ofrecer-recurso" class="btn btn--ghost mi-org__add-resource">
+        + Publicar un recurso
+      </a>
+    </div>
+  }
+</div>

@@ -29,6 +29,8 @@ services:
       - DB_NAME=mapa_social
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES=${JWT_EXPIRES:-7d}
+    volumes:
+      - backend_uploads:/app/uploads
     depends_on:
       - db
     restart: unless-stopped
@@ -45,3 +47,4 @@ services:
 
 volumes:
   db_data:
+  backend_uploads:

@@ -1,0 +1,113 @@
+<div class="stats">
+  <header class="stats__header">
+    <a routerLink="/mapa" class="stats__back">← Volver al mapa</a>
+    <h1>Mapa Social en números</h1>
+    <p>Cómo se está usando la plataforma, en vivo.</p>
+  </header>
+
+  @if (isLoading()) {
+    <p class="stats__status">Cargando…</p>
+  } @else if (loadError()) {
+    <p class="stats__status stats__status--error">No se pudo conectar con el servidor.</p>
+  } @else {
+    @if (resolution(); as r) {
+      <section class="stats__hero">
+        <div class="card stats__hero-card">
+          <span class="stats__hero-number">{{ r.needs.total }}</span>
+          <span class="stats__hero-label">Necesidades publicadas</span>
+        </div>
+        <div class="card stats__hero-card">
+          <span class="stats__hero-number">{{ r.needs.resolved }}</span>
+          <span class="stats__hero-label">Necesidades resueltas</span>
+        </div>
+        <div class="card stats__hero-card">
+          <span class="stats__hero-number">{{ r.resources.total }}</span>
+          <span class="stats__hero-label">Recursos publicados</span>
+        </div>
+      </section>
+
+      <section class="card stats__section">
+        <h2>% resuelto</h2>
+
+        <div class="stats__resolution-row">
+          <span class="stats__resolution-label">Necesidades</span>
+          <div class="stats__resolution-track">
+            <div
+              class="stats__resolution-fill stats__resolution-fill--need"
+              [style.width.%]="r.needs.resolvedPercentage"
+            ></div>
+          </div>
+          <span class="stats__resolution-pct">{{ r.needs.resolvedPercentage }}%</span>
+        </div>
+
+        <div class="stats__resolution-row">
+          <span class="stats__resolution-label">Recursos</span>
+          <div class="stats__resolution-track">
+            <div
+              class="stats__resolution-fill stats__resolution-fill--resource"
+              [style.width.%]="r.resources.resolvedPercentage"
+            ></div>
+          </div>
+          <span class="stats__resolution-pct">{{ r.resources.resolvedPercentage }}%</span>
+        </div>
+      </section>
+    }
+
+    <section class="card stats__section">
+      <h2>Por categoría</h2>
+
+      <div class="stats__legend">
+        <span class="stats__legend-item"><span class="stats__dot stats__dot--need"></span> Necesidades</span>
+        <span class="stats__legend-item"><span class="stats__dot stats__dot--resource"></span> Recursos</span>
+      </div>
+
+      <div class="stats__category-list">
+        @for (c of byCategory(); track c.categoryId) {
+          <div class="stats__category-row">
+            <span class="stats__category-name">{{ c.categoryName }}</span>
+
+            <div class="stats__category-bars">
+              <div class="stats__bar-track">
+                <div
+                  class="stats__bar-fill stats__bar-fill--need"
+                  [style.width]="barWidth(c.needsCount, maxCategoryCount())"
+                ></div>
+                <span class="stats__bar-value">{{ c.needsCount }}</span>
+              </div>
+              <div class="stats__bar-track">
+                <div
+                  class="stats__bar-fill stats__bar-fill--resource"
+                  [style.width]="barWidth(c.resourcesCount, maxCategoryCount())"
+                ></div>
+                <span class="stats__bar-value">{{ c.resourcesCount }}</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+
+    <section class="card stats__section">
+      <h2>Por localidad</h2>
+
+      @if (byLocality().length === 0) {
+        <p class="stats__empty">Todavía no hay necesidades con localidad cargada.</p>
+      } @else {
+        <div class="stats__locality-list">
+          @for (l of byLocality(); track l.locality) {
+            <div class="stats__locality-row">
+              <span class="stats__locality-name">{{ l.locality }}</span>
+              <div class="stats__bar-track">
+                <div
+                  class="stats__bar-fill stats__bar-fill--need"
+                  [style.width]="barWidth(l.count, maxLocalityCount())"
+                ></div>
+                <span class="stats__bar-value">{{ l.count }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  }
+</div>

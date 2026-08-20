@@ -10,10 +10,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { User } from './entities/user.entity';
+import { ModeratorLocality } from './entities/moderator-locality.entity';
 import { Role } from '../roles/entities/role.entity';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AddModeratorLocalityDto } from './dto/add-moderator-locality.dto';
+import { localitiesMatch } from '../../common/utils/locality-match.util';
 
 interface AuthUser {
   id: number;
@@ -30,6 +33,9 @@ export class UsersService {
 
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+
+    @InjectRepository(ModeratorLocality)
+    private readonly localityRepository: Repository<ModeratorLocality>,
   ) {}
 
   async create(dto: CreateUserDto) {
@@ -71,7 +77,7 @@ export class UsersService {
 
   findAll() {
     return this.userRepository.find({
-      relations: ['role', 'organization'],
+      relations: ['role', 'organization', 'localities'],
       order: {
         id: 'ASC',
       },
@@ -81,7 +87,7 @@ export class UsersService {
   async findOne(id: number) {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['role', 'organization'],
+      relations: ['role', 'organization', 'localities'],
     });
 
     if (!user) {
@@ -120,11 +126,11 @@ export class UsersService {
       );
     }
 
-    if (dto.ciudad !== undefined && !isModerator) {
-      throw new ForbiddenException(
-        'No podés asignarte vos mismo una ciudad a administrar',
-      );
-    }
+    // Nota: 'ciudad' ya no está restringido a moderador -- antes significaba
+    // "territorio que administra este moderador", pero eso se mudó a la
+    // tabla moderator_localities. Ahora es un dato de perfil normal (dónde
+    // vivís), así que cualquiera puede editar el propio -- el chequeo de
+    // isOwner-or-moderator de arriba ya cubre que no edites el de otro.
 
     if (dto.roleId) {
       const role = await this.roleRepository.findOne({
@@ -154,5 +160,103 @@ export class UsersService {
     return {
       message: 'Usuario eliminado',
     };
+  }
+
+  // Un moderador solo puede otorgar/quitar jurisdicción sobre localidades
+  // que él mismo ya tiene asignadas -- si no, cualquier moderador podría
+  // darle a otro (o sacarle) jurisdicción sobre una ciudad ajena.
+  private async assertCallerHasLocality(
+    locality: string,
+    currentUser: AuthUser,
+  ) {
+    const callerLocalities = await this.localityRepository.find({
+      where: { userId: currentUser.id },
+    });
+
+    const inScope = callerLocalities.some((l) =>
+      localitiesMatch(l.locality, locality),
+    );
+
+    if (!inScope) {
+      throw new ForbiddenException(
+        `No tenés asignada "${locality}" -- no podés otorgar ni quitar jurisdicción sobre una localidad que vos mismo no tenés.`,
+      );
+    }
+  }
+
+  async addLocality(
+    userId: number,
+    dto: AddModeratorLocalityDto,
+    currentUser: AuthUser,
+  ) {
+    if (currentUser.role !== 'moderador') {
+      throw new ForbiddenException(
+        'Solo un moderador puede asignar localidades',
+      );
+    }
+
+    if (userId === currentUser.id) {
+      throw new ForbiddenException(
+        'No podés asignarte una localidad a vos mismo -- tiene que hacerlo otro moderador',
+      );
+    }
+
+    await this.findOne(userId);
+
+    const normalizedLocality = dto.locality.trim();
+
+    await this.assertCallerHasLocality(normalizedLocality, currentUser);
+
+    const existing = await this.localityRepository.findOne({
+      where: { userId, locality: normalizedLocality },
+    });
+
+    if (existing) {
+      // Ya la tiene asignada -- no es un error, devolvemos la fila
+      // existente en vez de duplicarla o romper con un 409.
+      return existing;
+    }
+
+    const locality = this.localityRepository.create({
+      userId,
+      locality: normalizedLocality,
+      provincia: dto.provincia?.trim(),
+    });
+
+    return this.localityRepository.save(locality);
+  }
+
+  async removeLocality(
+    userId: number,
+    localityId: number,
+    currentUser: AuthUser,
+  ) {
+    if (currentUser.role !== 'moderador') {
+      throw new ForbiddenException(
+        'Solo un moderador puede quitar localidades',
+      );
+    }
+
+    if (userId === currentUser.id) {
+      throw new ForbiddenException(
+        'No podés quitarte una localidad a vos mismo -- tiene que hacerlo otro moderador',
+      );
+    }
+
+    const locality = await this.localityRepository.findOne({
+      where: { id: localityId, userId },
+    });
+
+    if (!locality) {
+      throw new NotFoundException(
+        'Esa localidad no está asignada a este usuario',
+      );
+    }
+
+    await this.assertCallerHasLocality(locality.locality, currentUser);
+
+    await this.localityRepository.remove(locality);
+
+    return { message: 'Localidad quitada' };
   }
 }

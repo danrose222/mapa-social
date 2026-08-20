@@ -1,0 +1,68 @@
+<div class="inicio">
+  <section class="inicio__hero">
+    <app-hero-network />
+
+    <div class="hero-content">
+      <span class="inicio__eyebrow">Plataforma colaborativa territorial</span>
+      <h1>Conectamos necesidades comunitarias con recursos disponibles</h1>
+      <p>
+        Explorá el mapa, publicá una necesidad o compartí un recurso que pueda
+        ayudar a alguien de tu comunidad.
+      </p>
+
+      <div class="inicio__cta-row">
+        <a routerLink="/mapa" class="btn">
+          <app-icon name="pin" [size]="18" />
+          Explorar el mapa
+        </a>
+        <a routerLink="/publicar" class="btn btn--ghost">Quiero publicar</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="inicio__actions">
+    <a routerLink="/mapa" class="card inicio__action-card">
+      <span class="inicio__action-icon" style="background: var(--brand-soft); color: var(--brand-dark)">
+        <app-icon name="pin" [size]="20" />
+      </span>
+      <div>
+        <h3>Ver el mapa</h3>
+        <p>Recorré las necesidades y recursos activos cerca tuyo.</p>
+      </div>
+    </a>
+
+    <a routerLink="/publicar/necesito-ayuda" class="card inicio__action-card">
+      <span class="inicio__action-icon" style="background: var(--need-color-soft); color: var(--need-color)">
+        <app-icon name="hands" [size]="20" />
+      </span>
+      <div>
+        <h3>Necesito ayuda</h3>
+        <p>Publicá tu necesidad para que la comunidad la vea.</p>
+      </div>
+    </a>
+
+    <a routerLink="/publicar/quiero-ayudar" class="card inicio__action-card">
+      <span class="inicio__action-icon" style="background: var(--help-color-soft); color: var(--help-color)">
+        <app-icon name="helpingHand" [size]="20" />
+      </span>
+      <div>
+        <h3>Quiero ayudar</h3>
+        <p>Mirá necesidades activas y ofrecé una mano.</p>
+      </div>
+    </a>
+
+    <a routerLink="/publicar/ofrecer-recurso" class="card inicio__action-card">
+      <span class="inicio__action-icon" style="background: var(--help-color-soft); color: var(--verified)">
+        <app-icon name="building" [size]="20" />
+      </span>
+      <div>
+        <h3>Ofrecer un recurso</h3>
+        <p>Como moderador u organización avalada, publicá lo que tenés disponible.</p>
+      </div>
+    </a>
+  </section>
+
+  <p class="inicio__more">
+    <a routerLink="/quienes-somos">¿Cómo funciona Mapa Social? →</a>
+  </p>
+</div>

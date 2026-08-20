@@ -4,13 +4,20 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Need } from './entities/need.entity';
 import { User } from '../users/entities/user.entity';
 import { Category } from '../categories/entities/category.entity';
+import { ModeratorLocality } from '../users/entities/moderator-locality.entity';
 
 import { NeedsController } from './needs.controller';
 import { NeedsService } from './needs.service';
 import { SearchService } from './search/search.service';
+import { SolicitudesModule } from '../solicitudes/solicitudes.module';
+import { ResourcesModule } from '../resources/resources.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Need, User, Category])],
+  imports: [
+    TypeOrmModule.forFeature([Need, User, Category, ModeratorLocality]),
+    SolicitudesModule,
+    ResourcesModule,
+  ],
   controllers: [NeedsController],
   providers: [NeedsService, SearchService],
 })

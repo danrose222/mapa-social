@@ -10,6 +10,8 @@ import { Repository } from 'typeorm';
 import { Need } from './entities/need.entity';
 import { User } from '../users/entities/user.entity';
 import { Category } from '../categories/entities/category.entity';
+import { ModeratorLocality } from '../users/entities/moderator-locality.entity';
+import { localitiesMatch } from '../../common/utils/locality-match.util';
 import { CreateNeedDto } from './dto/create-need.dto';
 import { UpdateNeedDto } from './dto/update-need.dto';
 interface AuthUser {
@@ -26,6 +28,8 @@ export class NeedsService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
+    @InjectRepository(ModeratorLocality)
+    private readonly localityRepository: Repository<ModeratorLocality>,
     private readonly searchService: SearchService,
   ) {}
   async create(userId: number, dto: CreateNeedDto) {
@@ -57,14 +61,43 @@ export class NeedsService {
       },
     });
   }
-  search(dto: SearchNeedsDto) {
+  async search(dto: SearchNeedsDto) {
+    const page = dto.page ?? 1;
+    const limit = dto.limit ?? 20;
+
     const qb = this.repository
       .createQueryBuilder('entity')
       .leftJoinAndSelect('entity.category', 'category')
       .leftJoinAndSelect('entity.user', 'user')
       .leftJoinAndSelect('entity.organization', 'organization')
       .where('entity.status = :status', { status: 'active' });
-    return this.searchService.applyFilters(qb, dto).getMany();
+
+    const [items, total] = await this.searchService
+      .applyFilters(qb, dto)
+      .orderBy('entity.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return { items, total, page, limit, totalPages: Math.ceil(total / limit) || 1 };
+  }
+
+  // Localidades que tienen al menos una necesidad activa, con cuántas --
+  // es lo que arma el selector de territorio del lado del frontend, así
+  // el filtro solo ofrece opciones que realmente tienen algo cargado.
+  async localities() {
+    const rows = await this.repository
+      .createQueryBuilder('entity')
+      .select('entity.locality', 'locality')
+      .addSelect('COUNT(*)', 'count')
+      .where('entity.status = :status', { status: 'active' })
+      .andWhere('entity.locality IS NOT NULL')
+      .andWhere("entity.locality != ''")
+      .groupBy('entity.locality')
+      .orderBy('count', 'DESC')
+      .getRawMany<{ locality: string; count: string }>();
+
+    return rows.map((r) => ({ locality: r.locality, count: Number(r.count) }));
   }
   findOne(id: number) {
     return this.repository.findOne({
@@ -81,9 +114,42 @@ export class NeedsService {
       );
     }
   }
+
+  // Si un moderador (no el dueño) está actuando sobre esta
+  // necesidad, tiene que tener asignada la localidad que le corresponde --
+  // la de la organización si está vinculada, si no la propia 'locality'.
+  // Sin ninguna de las dos (dato viejo, o nunca cargado) no podemos acotar,
+  // así que se permite -- mejor eso que dejar contenido que nadie pueda
+  // moderar.
+  private async assertModeratorJurisdiction(need: Need, currentUser: AuthUser) {
+    const isOwner = need.userId === currentUser.id;
+    if (isOwner) {
+      return;
+    }
+
+    const targetLocality = need.organization?.ciudad ?? need.locality;
+    if (!targetLocality) {
+      return;
+    }
+
+    const localities = await this.localityRepository.find({
+      where: { userId: currentUser.id },
+    });
+
+    const normalized = targetLocality.trim().toLowerCase();
+    const inScope = localities.some((l) => localitiesMatch(l.locality, normalized));
+
+    if (!inScope) {
+      throw new ForbiddenException(
+        `No tenés asignada "${targetLocality}" -- no podés moderar esta publicación.`,
+      );
+    }
+  }
+
   async update(id: number, dto: UpdateNeedDto, currentUser: AuthUser) {
     const need = await this.repository.findOne({
       where: { id },
+      relations: ['organization'],
     });
     if (!need) {
       throw new NotFoundException('Necesidad inexistente');
@@ -94,6 +160,14 @@ export class NeedsService {
       throw new ForbiddenException(
         'Solo un moderador puede cambiar el estado de la publicación',
       );
+    }
+    if (dto.requiresSolicitud !== undefined && !isModerator) {
+      throw new ForbiddenException(
+        'Solo un moderador puede cambiar si esta necesidad requiere Solicitud',
+      );
+    }
+    if (dto.status !== undefined || dto.requiresSolicitud !== undefined) {
+      await this.assertModeratorJurisdiction(need, currentUser);
     }
     const previousStatus = need.status;
     Object.assign(need, dto);
@@ -114,11 +188,13 @@ export class NeedsService {
   async remove(id: number, currentUser: AuthUser) {
     const need = await this.repository.findOne({
       where: { id },
+      relations: ['organization'],
     });
     if (!need) {
       throw new NotFoundException('Necesidad inexistente');
     }
     this.assertCanModify(need, currentUser);
+    await this.assertModeratorJurisdiction(need, currentUser);
     await this.repository.remove(need);
     return {
       message: 'Necesidad eliminada',
