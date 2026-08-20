@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Need } from './entities/need.entity';
 import { User } from '../users/entities/user.entity';
+import { PUBLIC_USER_FIELDS } from '../users/public-user-fields.util';
 import { Category } from '../categories/entities/category.entity';
 import { ModeratorLocality } from '../users/entities/moderator-locality.entity';
 import { localitiesMatch } from '../../common/utils/locality-match.util';
@@ -56,6 +57,14 @@ export class NeedsService {
   findAll() {
     return this.repository.find({
       relations: ['user', 'category', 'organization', 'resolvedBy'],
+      // Sin esto, el user/resolvedBy completo (con email y phone reales)
+      // viaja en un endpoint público -- el contacto para publicaciones
+      // pasa por contactName/contactInfo (ver needs-contact.util.ts), no
+      // por los datos de la cuenta.
+      select: {
+        user: PUBLIC_USER_FIELDS,
+        resolvedBy: PUBLIC_USER_FIELDS,
+      },
       order: {
         id: 'ASC',
       },
@@ -68,7 +77,8 @@ export class NeedsService {
     const qb = this.repository
       .createQueryBuilder('entity')
       .leftJoinAndSelect('entity.category', 'category')
-      .leftJoinAndSelect('entity.user', 'user')
+      .leftJoin('entity.user', 'user')
+      .addSelect(['user.id', 'user.firstName', 'user.lastName'])
       .leftJoinAndSelect('entity.organization', 'organization')
       .where('entity.status = :status', { status: 'active' });
 
@@ -103,6 +113,10 @@ export class NeedsService {
     return this.repository.findOne({
       where: { id },
       relations: ['user', 'category', 'organization', 'resolvedBy'],
+      select: {
+        user: PUBLIC_USER_FIELDS,
+        resolvedBy: PUBLIC_USER_FIELDS,
+      },
     });
   }
   private assertCanModify(need: Need, currentUser: AuthUser) {
