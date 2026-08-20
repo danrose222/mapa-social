@@ -25,9 +25,18 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload) {
-    const user = await this.usersService.findByEmail(payload.email);
+    // Resolvemos por id (sub), no por email: un email puede liberarse y
+    // reasignarse a otra cuenta si la original se borra, y ahí un token
+    // viejo (todavía no vencido) terminaría autenticando a la cuenta nueva.
+    let user: Awaited<ReturnType<typeof this.usersService.findOne>>;
 
-    if (!user || !user.active) {
+    try {
+      user = await this.usersService.findOne(payload.sub);
+    } catch {
+      throw new UnauthorizedException('Token inválido o usuario inactivo');
+    }
+
+    if (!user.active) {
       throw new UnauthorizedException('Token inválido o usuario inactivo');
     }
 
