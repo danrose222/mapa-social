@@ -90,12 +90,12 @@ const ORGANIZATIONS: OrganizationSeed[] = [
   {
     id: 2,
     name: 'Comedor Comunitario San Vicente',
-    description: 'Comedor barrial, todavía pendiente de aprobación del municipio.',
+    description: 'Comedor barrial que brinda almuerzo diario a la comunidad de San Vicente.',
     contactInfo: '(351) 555-0199',
     address: 'Barrio San Vicente, Córdoba',
     type: 'comunidad',
     ciudad: 'Córdoba',
-    verified: false,
+    verified: true,
   },
 ];
 
