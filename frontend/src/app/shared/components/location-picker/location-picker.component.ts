@@ -96,6 +96,16 @@ export class LocationPickerComponent implements AfterViewInit, OnDestroy {
     this.marker = L.marker([lat, lng], { icon: this.icon }).addTo(this.map!);
   }
 
+  // Permite recentrar el mapa y confirmar una ubicación desde afuera (ej:
+  // al elegir una localidad en el autocomplete) sin que el usuario tenga
+  // que tocar el mapa. Reusa el mismo emit que el click manual, así el
+  // padre no necesita dos caminos distintos para enterarse de la ubicación.
+  moveTo(lat: number, lng: number): void {
+    this.map?.setView([lat, lng], 14);
+    this.setMarker(lat, lng);
+    this.locationSelected.emit({ lat, lng });
+  }
+
   ngOnDestroy(): void {
     this.map?.remove();
     this.map = undefined;

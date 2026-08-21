@@ -39,6 +39,10 @@ export class OfrecerRecursoComponent {
   readonly submitted = signal(false);
   readonly imageUrl = signal<string | null>(null);
 
+  // Sin esto, publicar sin tocar el mapa guardaba el recurso en el
+  // default del form (Córdoba capital) en vez de donde está la organización.
+  private readonly locationConfirmed = signal(false);
+
   readonly form = this.fb.group({
     title: ['', [Validators.required, Validators.maxLength(255)]],
     categoryId: [null as number | null, [Validators.required]],
@@ -62,11 +66,17 @@ export class OfrecerRecursoComponent {
 
   onLocationSelected(location: { lat: number; lng: number }): void {
     this.form.patchValue({ latitude: location.lat, longitude: location.lng });
+    this.locationConfirmed.set(true);
   }
 
   submit(): void {
     if (this.form.invalid || this.isSubmitting()) {
       this.form.markAllAsTouched();
+      return;
+    }
+
+    if (!this.locationConfirmed()) {
+      this.errorMessage.set('Marcá la ubicación del recurso en el mapa antes de publicar.');
       return;
     }
 
