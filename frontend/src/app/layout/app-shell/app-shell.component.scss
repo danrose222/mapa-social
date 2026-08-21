@@ -45,6 +45,7 @@
     color: rgb(255 255 255 / 82%);
     font-size: 0.88rem;
     font-weight: 600;
+    white-space: nowrap;
 
     &:hover {
       color: #fff;
@@ -58,6 +59,64 @@
   }
 }
 
+.shell-header__dropdown {
+  position: relative;
+}
+
+.shell-header__dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: rgb(255 255 255 / 82%);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    color: #fff;
+  }
+}
+
+.shell-header__chevron {
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.shell-header__dropdown-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 1400;
+  min-width: 190px;
+  padding: 8px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 12px;
+  background: var(--ink);
+  box-shadow: 0 12px 30px rgb(0 0 0 / 24%);
+
+  a {
+    display: block;
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+
+    &:hover {
+      background: rgb(255 255 255 / 8%);
+    }
+
+    &.is-active {
+      background: rgb(255 255 255 / 10%);
+      text-decoration: none;
+    }
+  }
+}
+
 .shell-header__divider {
   width: 1px;
   height: 18px;
@@ -67,6 +126,7 @@
 .shell-header__user {
   color: rgb(255 255 255 / 82%);
   font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .shell-header__logout {
@@ -78,6 +138,7 @@
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
 
   &:hover {
     background: rgb(255 255 255 / 12%);
@@ -113,6 +174,16 @@
   min-height: calc(100vh - 60px);
 }
 
+@media (max-width: 1100px) {
+  .shell-header {
+    padding-inline: 20px;
+  }
+
+  .shell-header__nav {
+    gap: 12px;
+  }
+}
+
 @media (max-width: 860px) {
   .shell-header__hamburger {
     display: flex;
@@ -132,8 +203,16 @@
 
     a,
     .shell-header__logout,
-    .shell-header__user {
+    .shell-header__user,
+    .shell-header__dropdown,
+    .shell-header__dropdown-trigger {
       width: 100%;
+    }
+
+    a,
+    .shell-header__logout,
+    .shell-header__user,
+    .shell-header__dropdown-trigger {
       padding: 12px 8px;
     }
 
@@ -153,6 +232,30 @@
 
   .shell-header__nav--open {
     transform: translateX(0);
+  }
+
+  .shell-header__dropdown-trigger {
+    justify-content: space-between;
+    border-radius: var(--radius-sm);
+
+    &:hover {
+      background: rgb(255 255 255 / 8%);
+    }
+  }
+
+  .shell-header__dropdown-menu {
+    position: static;
+    min-width: 0;
+    margin: 0 0 6px;
+    padding: 4px 0 4px 14px;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+
+    a {
+      padding: 10px 12px;
+      font-size: 0.84rem;
+    }
   }
 
   .shell-header__divider {
