@@ -17,33 +17,6 @@
       Quiero ayudar
     </a>
 
-    @if (currentUser()) {
-      <a routerLink="/mis-publicaciones" routerLinkActive="is-active" (click)="closeMenu()">
-        Mis publicaciones
-      </a>
-      <a routerLink="/mis-solicitudes" routerLinkActive="is-active" (click)="closeMenu()">
-        Mis solicitudes
-      </a>
-      <a routerLink="/organizacion/mi-organizacion" routerLinkActive="is-active" (click)="closeMenu()">
-        Mi organización
-      </a>
-    }
-
-    @if (isModerator()) {
-      <span class="shell-header__divider" aria-hidden="true"></span>
-      <a routerLink="/moderador/publicaciones" routerLinkActive="is-active" (click)="closeMenu()">
-        Publicaciones
-      </a>
-      <a routerLink="/moderador/organizaciones" routerLinkActive="is-active" (click)="closeMenu()">
-        Organizaciones
-      </a>
-      <a routerLink="/moderador/mis-localidades" routerLinkActive="is-active" (click)="closeMenu()">
-        Mis localidades
-      </a>
-    }
-
-    <span class="shell-header__divider" aria-hidden="true"></span>
-
     <a routerLink="/estadisticas" routerLinkActive="is-active" (click)="closeMenu()">
       Estadísticas
     </a>
@@ -53,12 +26,75 @@
     </a>
 
     @if (currentUser()) {
+      <div class="shell-header__dropdown">
+        <button
+          type="button"
+          class="shell-header__dropdown-trigger"
+          (click)="toggleUserMenu()"
+          [attr.aria-expanded]="isUserMenuOpen()"
+        >
+          Mi espacio
+          <span class="shell-header__chevron">⌄</span>
+        </button>
+
+        @if (isUserMenuOpen()) {
+          <div class="shell-header__dropdown-menu">
+            <a routerLink="/mis-publicaciones" routerLinkActive="is-active" (click)="closeMenu()">
+              Mis publicaciones
+            </a>
+
+            <a routerLink="/mis-solicitudes" routerLinkActive="is-active" (click)="closeMenu()">
+              Mis solicitudes
+            </a>
+
+            <a routerLink="/organizacion/mi-organizacion" routerLinkActive="is-active" (click)="closeMenu()">
+              Mi organización
+            </a>
+          </div>
+        }
+      </div>
+    }
+
+    @if (isModerator()) {
+      <div class="shell-header__dropdown">
+        <button
+          type="button"
+          class="shell-header__dropdown-trigger"
+          (click)="toggleModeratorMenu()"
+          [attr.aria-expanded]="isModeratorMenuOpen()"
+        >
+          Moderación
+          <span class="shell-header__chevron">⌄</span>
+        </button>
+
+        @if (isModeratorMenuOpen()) {
+          <div class="shell-header__dropdown-menu">
+            <a routerLink="/moderador/publicaciones" routerLinkActive="is-active" (click)="closeMenu()">
+              Publicaciones
+            </a>
+
+            <a routerLink="/moderador/organizaciones" routerLinkActive="is-active" (click)="closeMenu()">
+              Organizaciones
+            </a>
+
+            <a routerLink="/moderador/mis-localidades" routerLinkActive="is-active" (click)="closeMenu()">
+              Mis localidades
+            </a>
+          </div>
+        }
+      </div>
+    }
+
+    @if (currentUser()) {
       <span class="shell-header__user">{{ currentUser()?.firstName }}</span>
+
       <button type="button" class="shell-header__logout" (click)="logout()">
         Cerrar sesión
       </button>
     } @else {
-      <a routerLink="/entrar" class="shell-header__cta" (click)="closeMenu()">Entrar</a>
+      <a routerLink="/entrar" class="shell-header__cta" (click)="closeMenu()">
+        Entrar
+      </a>
     }
   </nav>
 

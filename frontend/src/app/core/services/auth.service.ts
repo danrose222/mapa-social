@@ -50,14 +50,25 @@ export class AuthService {
   // true si es moderador, o si pertenece a una organización ya avalada.
   readonly canPublishResource = computed(() => {
     const profile = this.profileSignal();
+
     if (!profile) {
       return false;
     }
+
     const isModerator = profile.role.name === 'moderador';
+
     return isModerator || profile.organization?.verified === true;
   });
 
-  readonly isModerator = computed(() => this.profileSignal()?.role.name === 'moderador');
+  readonly isModerator = computed(() => {
+    const profile = this.profileSignal();
+
+    if (profile) {
+      return profile.role.name === 'moderador';
+    }
+
+    return this.currentUserSignal()?.role === 'moderador';
+  });
 
   // Explica EN QUÉ CONDICIÓN puede (o no puede) publicar -- para mostrarlo
   // en la UI en vez de un simple sí/no.
@@ -109,6 +120,7 @@ export class AuthService {
       catchError(() => {
         this.profileSignal.set(null);
         this.profileLoadedSignal.set(true);
+
         return of(null);
       }),
     );
@@ -139,6 +151,7 @@ export class AuthService {
 
   private readStoredUser(): AuthUser | null {
     const raw = sessionStorage.getItem(USER_KEY);
+
     return raw ? (JSON.parse(raw) as AuthUser) : null;
   }
 }

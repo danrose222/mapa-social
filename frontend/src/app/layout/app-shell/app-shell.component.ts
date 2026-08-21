@@ -19,13 +19,27 @@ export class AppShellComponent {
   readonly isModerator = this.authService.isModerator;
 
   readonly isMenuOpen = signal(false);
+  readonly isUserMenuOpen = signal(false);
+  readonly isModeratorMenuOpen = signal(false);
 
   toggleMenu(): void {
     this.isMenuOpen.update((open) => !open);
   }
 
+  toggleUserMenu(): void {
+    this.isUserMenuOpen.update((open) => !open);
+    this.isModeratorMenuOpen.set(false);
+  }
+
+  toggleModeratorMenu(): void {
+    this.isModeratorMenuOpen.update((open) => !open);
+    this.isUserMenuOpen.set(false);
+  }
+
   closeMenu(): void {
     this.isMenuOpen.set(false);
+    this.isUserMenuOpen.set(false);
+    this.isModeratorMenuOpen.set(false);
   }
 
   logout(): void {
