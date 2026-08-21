@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PublicationsService } from '../../core/services/publications.service';
 import { CategoriesService } from '../../core/services/categories.service';
-import { AuthService } from '../../core/services/auth.service'; // 👈 Asegurate de importar tu AuthService
+import { AuthService } from '../../core/services/auth.service';
 import { Category, Need, Resource } from '../../core/models/mapa-social.model';
 
 type Tab = 'needs' | 'resources';
@@ -18,7 +18,7 @@ type Tab = 'needs' | 'resources';
 export class MisPublicacionesComponent {
   private readonly publicationsService = inject(PublicationsService);
   private readonly categoriesService = inject(CategoriesService);
-  private readonly authService = inject(AuthService); // 👈 Inyección de AuthService
+  private readonly authService = inject(AuthService);
 
   readonly tab = signal<Tab>('needs');
   readonly isLoading = signal(true);
@@ -29,10 +29,10 @@ export class MisPublicacionesComponent {
   readonly actionError = signal('');
   readonly processingId = signal<number | null>(null);
 
-  // 👈 Signal computado para verificar si puede resolver (si no es ciudadano común)
+  // Oculta la opción si el usuario es un rol base ('seed-role')
   readonly canResolve = computed(() => {
-    const user = this.authService.currentUser(); // O la propiedad/método que uses en tu AuthService
-    return user?.role !== 'ciudadano' && user?.role !== 'vecino'; // Ajustá según el nombre exacto del rol en tu app
+    const user = this.authService.currentUser();
+    return user?.role !== 'seed-role';
   });
 
   constructor() {
@@ -71,18 +71,11 @@ export class MisPublicacionesComponent {
     return this.categories().find((c) => c.id === categoryId)?.name ?? '—';
   }
 
-  resolveNeed(need: any): void {
-    const targetId = need?.id ?? need?._id ?? need?.id_need;
-
-    if (!targetId) {
-      this.actionError.set('No se encontró el ID de la necesidad.');
-      return;
-    }
-
-    this.processingId.set(targetId);
+  resolveNeed(need: Need): void {
+    this.processingId.set(need.id);
     this.actionError.set('');
 
-    this.publicationsService.updateNeedStatus(targetId, 'resolved').subscribe({
+    this.publicationsService.updateNeedStatus(need.id, 'resolved').subscribe({
       next: () => {
         this.processingId.set(null);
         this.load();
@@ -94,22 +87,15 @@ export class MisPublicacionesComponent {
     });
   }
 
-  deleteNeed(need: any): void {
-    const targetId = need?.id ?? need?._id ?? need?.id_need;
-
-    if (!targetId) {
-      this.actionError.set('No se encontró el ID de la necesidad.');
-      return;
-    }
-
+  deleteNeed(need: Need): void {
     if (!confirm(`¿Eliminar la necesidad "${need.title}"? No se puede deshacer.`)) {
       return;
     }
 
-    this.processingId.set(targetId);
+    this.processingId.set(need.id);
     this.actionError.set('');
 
-    this.publicationsService.removeNeed(targetId).subscribe({
+    this.publicationsService.removeNeed(need.id).subscribe({
       next: () => {
         this.processingId.set(null);
         this.load();
@@ -121,18 +107,11 @@ export class MisPublicacionesComponent {
     });
   }
 
-  resolveResource(resource: any): void {
-    const targetId = resource?.id ?? resource?._id ?? resource?.id_resource;
-
-    if (!targetId) {
-      this.actionError.set('No se encontró el ID del recurso.');
-      return;
-    }
-
-    this.processingId.set(targetId);
+  resolveResource(resource: Resource): void {
+    this.processingId.set(resource.id);
     this.actionError.set('');
 
-    this.publicationsService.updateResourceStatus(targetId, 'resolved').subscribe({
+    this.publicationsService.updateResourceStatus(resource.id, 'resolved').subscribe({
       next: () => {
         this.processingId.set(null);
         this.load();
@@ -144,22 +123,15 @@ export class MisPublicacionesComponent {
     });
   }
 
-  deleteResource(resource: any): void {
-    const targetId = resource?.id ?? resource?._id ?? resource?.id_resource;
-
-    if (!targetId) {
-      this.actionError.set('No se encontró el ID del recurso.');
-      return;
-    }
-
+  deleteResource(resource: Resource): void {
     if (!confirm(`¿Eliminar el recurso "${resource.title}"? No se puede deshacer.`)) {
       return;
     }
 
-    this.processingId.set(targetId);
+    this.processingId.set(resource.id);
     this.actionError.set('');
 
-    this.publicationsService.removeResource(targetId).subscribe({
+    this.publicationsService.removeResource(resource.id).subscribe({
       next: () => {
         this.processingId.set(null);
         this.load();
