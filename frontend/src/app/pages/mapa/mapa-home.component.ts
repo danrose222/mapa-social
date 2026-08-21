@@ -24,6 +24,7 @@ type SearchMode = 'all' | 'locality' | 'radius';
 const TERRITORY_PAGE_SIZE = 10;
 const RADIUS_KM = 100;
 const DEFAULT_CENTER: [number, number] = [-31.4201, -64.1888];
+
 // Si el mapa se movió más de esto desde el último punto buscado, aparece
 // el botón de "Buscar en esta zona".
 const MOVE_THRESHOLD_KM = 5;
@@ -90,6 +91,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     const kind = this.kindFilter();
     const needs = kind === 'recursos' ? 0 : this.filteredNeeds().length;
     const resources = kind === 'necesidades' ? 0 : this.filteredResources().length;
+
     return needs + resources;
   });
 
@@ -101,24 +103,35 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     return this.applyFilters(this.allResources());
   }
 
-  private applyFilters<T extends { categoryId: number; title: string; description: string }>(
-    items: T[],
-  ): T[] {
+  private applyFilters<
+    T extends {
+      categoryId: number;
+      title: string;
+      description: string;
+    },
+  >(items: T[]): T[] {
     const categories = this.categoryFilter();
     const term = this.searchTerm().trim().toLowerCase();
 
     return items.filter((item) => {
-      const matchesCategory = categories.size === 0 || categories.has(item.categoryId);
+      const matchesCategory =
+        categories.size === 0 || categories.has(item.categoryId);
+
       const matchesTerm =
         term === '' ||
         item.title.toLowerCase().includes(term) ||
         item.description.toLowerCase().includes(term);
+
       return matchesCategory && matchesTerm;
     });
   }
 
   private map?: L.Map;
   private markersLayer?: L.LayerGroup;
+
+  // Marcador independiente para la ubicación actual del usuario.
+  // No forma parte de markersLayer para que no desaparezca al cambiar filtros.
+  private userLocationMarker?: L.CircleMarker;
 
   // Colores pensados para las categorías del seed. Cualquier categoría nueva
   // que agregue un moderador y no esté acá cae en el fallback determinístico
@@ -146,7 +159,9 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   ];
 
   categoryColor(categoryId: number): string {
-    const name = this.categories().find((c) => c.id === categoryId)?.name ?? '';
+    const name =
+      this.categories().find((c) => c.id === categoryId)?.name ?? '';
+
     const key = name.trim().toLowerCase();
 
     if (this.categoryColors[key]) {
@@ -154,11 +169,14 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     }
 
     let hash = 0;
+
     for (let i = 0; i < key.length; i++) {
       hash = key.charCodeAt(i) + ((hash << 5) - hash);
     }
 
-    return this.fallbackPalette[Math.abs(hash) % this.fallbackPalette.length];
+    return this.fallbackPalette[
+      Math.abs(hash) % this.fallbackPalette.length
+    ];
   }
 
   // Necesidad = corazón. Recurso = mano en alto. El color siempre es el
@@ -236,7 +254,13 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     ])
       .then(([categories, resources]) => {
         this.categories.set(categories ?? []);
-        this.allResources.set((resources ?? []).filter((r) => r.status === 'available'));
+
+        this.allResources.set(
+          (resources ?? []).filter(
+            (resource) => resource.status === 'available',
+          ),
+        );
+
         this.staticDataLoaded = true;
         this.checkFullyLoaded();
         this.renderMarkers();
@@ -280,7 +304,10 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
         );
       },
       () => this.fallbackToCityOrAll(),
-      { timeout: 6000, maximumAge: 5 * 60 * 1000 },
+      {
+        timeout: 6000,
+        maximumAge: 5 * 60 * 1000,
+      },
     );
   }
 
@@ -295,7 +322,12 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     this.georefService.geocodeLocality(ciudad).subscribe({
       next: (point) => {
         if (point) {
-          this.startRadiusSearch(point.lat, point.lng, true, 'ciudad');
+          this.startRadiusSearch(
+            point.lat,
+            point.lng,
+            true,
+            'ciudad',
+          );
         } else {
           this.loadAllDefault();
         }
@@ -308,14 +340,24 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     this.searchMode.set('all');
     this.territoryFilter.set(null);
     this.radiusCenter.set(null);
-    this.lastSearchedCenter = { lat: DEFAULT_CENTER[0], lng: DEFAULT_CENTER[1] };
+
+    this.lastSearchedCenter = {
+      lat: DEFAULT_CENTER[0],
+      lng: DEFAULT_CENTER[1],
+    };
+
     this.showSearchAreaButton.set(false);
 
     this.publicationsService
       .getNeeds()
       .toPromise()
       .then((needs) => {
-        this.allNeeds.set((needs ?? []).filter((n) => n.status === 'active'));
+        this.allNeeds.set(
+          (needs ?? []).filter(
+            (need) => need.status === 'active',
+          ),
+        );
+
         this.needsDataLoaded = true;
         this.checkFullyLoaded();
         this.renderMarkers();
@@ -341,6 +383,21 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     this.lastSearchedCenter = { lat, lng };
     this.showSearchAreaButton.set(false);
 
+    if (origin === 'geolocation' && this.map) {
+      this.userLocationMarker?.remove();
+
+      this.userLocationMarker = L.circleMarker([lat, lng], {
+        radius: 8,
+        fillColor: '#2563eb',
+        color: '#ffffff',
+        weight: 3,
+        opacity: 1,
+        fillOpacity: 1,
+      })
+        .addTo(this.map)
+        .bindPopup('Tu ubicación actual');
+    }
+
     if (recenterMap && this.map) {
       this.map.setView([lat, lng], 12);
     }
@@ -350,6 +407,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
 
   private loadRadiusPage(): void {
     const center = this.radiusCenter();
+
     if (!center) {
       return;
     }
@@ -384,6 +442,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
 
   private loadLocalityPage(): void {
     const locality = this.territoryFilter();
+
     if (!locality) {
       return;
     }
@@ -391,7 +450,11 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     this.territoryLoading.set(true);
 
     this.publicationsService
-      .searchNeeds({ locality, page: this.territoryPage(), limit: TERRITORY_PAGE_SIZE })
+      .searchNeeds({
+        locality,
+        page: this.territoryPage(),
+        limit: TERRITORY_PAGE_SIZE,
+      })
       .subscribe({
         next: (result) => {
           this.allNeeds.set(result.items);
@@ -424,7 +487,10 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   }
 
   goToTerritoryPage(page: number): void {
-    if (page < 1 || page > this.territoryTotalPages()) {
+    if (
+      page < 1 ||
+      page > this.territoryTotalPages()
+    ) {
       return;
     }
 
@@ -446,7 +512,13 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     }
 
     const center = this.map.getCenter();
-    this.startRadiusSearch(center.lat, center.lng, false, 'manual');
+
+    this.startRadiusSearch(
+      center.lat,
+      center.lng,
+      false,
+      'manual',
+    );
   }
 
   private onMapMoved(): void {
@@ -455,6 +527,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     }
 
     const center = this.map.getCenter();
+
     const distanceKm = this.haversineKm(
       center.lat,
       center.lng,
@@ -462,18 +535,38 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       this.lastSearchedCenter.lng,
     );
 
-    this.showSearchAreaButton.set(distanceKm > MOVE_THRESHOLD_KM);
+    this.showSearchAreaButton.set(
+      distanceKm > MOVE_THRESHOLD_KM,
+    );
   }
 
-  private haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  private haversineKm(
+    lat1: number,
+    lng1: number,
+    lat2: number,
+    lng2: number,
+  ): number {
     const R = 6371;
-    const toRad = (deg: number) => (deg * Math.PI) / 180;
+    const toRad = (deg: number) =>
+      (deg * Math.PI) / 180;
+
     const dLat = toRad(lat2 - lat1);
     const dLng = toRad(lng2 - lng1);
+
     const a =
       Math.sin(dLat / 2) ** 2 +
-      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      Math.cos(toRad(lat1)) *
+        Math.cos(toRad(lat2)) *
+        Math.sin(dLng / 2) ** 2;
+
+    return (
+      R *
+      2 *
+      Math.atan2(
+        Math.sqrt(a),
+        Math.sqrt(1 - a),
+      )
+    );
   }
 
   setKindFilter(kind: FilterKind): void {
@@ -521,20 +614,35 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       this.filteredNeeds().forEach((need) => {
         const icon = this.buildNeedIcon();
 
-        L.marker([need.latitude, need.longitude], { icon }).addTo(this.markersLayer!).on('click', () => {
-          this.router.navigate(['/publicar/quiero-ayudar', need.id]);
-        });
+        L.marker(
+          [need.latitude, need.longitude],
+          { icon },
+        )
+          .addTo(this.markersLayer!)
+          .on('click', () => {
+            this.router.navigate([
+              '/publicar/quiero-ayudar',
+              need.id,
+            ]);
+          });
       });
     }
 
     if (kind !== 'necesidades') {
-      this.filteredResources().forEach((resource) => {
-        const icon = this.buildResourceIcon();
+      this.filteredResources().forEach(
+        (resource) => {
+          const icon = this.buildResourceIcon();
 
-        L.marker([resource.latitude, resource.longitude], { icon })
-          .addTo(this.markersLayer!)
-          .bindPopup(this.buildResourcePopupHtml(resource));
-      });
+          L.marker(
+            [resource.latitude, resource.longitude],
+            { icon },
+          )
+            .addTo(this.markersLayer!)
+            .bindPopup(
+              this.buildResourcePopupHtml(resource),
+            );
+        },
+      );
     }
   }
 
@@ -546,39 +654,62 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       .replace(/"/g, '&quot;');
   }
 
-  private buildResourcePopupHtml(resource: Resource): string {
-    const title = this.escapeHtml(resource.title);
-    const description = this.escapeHtml(resource.description);
+  private buildResourcePopupHtml(
+    resource: Resource,
+  ): string {
+    const title = this.escapeHtml(
+      resource.title,
+    );
+
+    const description = this.escapeHtml(
+      resource.description,
+    );
 
     const imageHtml = resource.imageUrl
-      ? `<img class="v2map-popup__img" src="${this.escapeHtml(resource.imageUrl)}" alt="" />`
+      ? `<img class="v2map-popup__img" src="${this.escapeHtml(
+          resource.imageUrl,
+        )}" alt="" />`
       : '';
 
     const orgHtml = resource.organization
       ? `<div class="v2map-popup__org">
           🏢 ${this.escapeHtml(resource.organization.name)}
-          ${resource.organization.verified ? '<span class="v2map-popup__verified">✓ Verificada</span>' : ''}
+          ${
+            resource.organization.verified
+              ? '<span class="v2map-popup__verified">✓ Verificada</span>'
+              : ''
+          }
         </div>`
       : '';
 
     const scheduleHtml = resource.schedule
-      ? `<div class="v2map-popup__row">🕒 ${this.escapeHtml(resource.schedule)}</div>`
+      ? `<div class="v2map-popup__row">🕒 ${this.escapeHtml(
+          resource.schedule,
+        )}</div>`
       : '';
 
-    let contactHtml = '<p class="v2map-popup__no-contact">Sin contacto público disponible.</p>';
+    let contactHtml =
+      '<p class="v2map-popup__no-contact">Sin contacto público disponible.</p>';
 
     if (resource.contactInfo) {
       const raw = resource.contactInfo;
       const digits = raw.replace(/[^\d+]/g, '');
       const isEmail = raw.includes('@');
-      const isPhone = !isEmail && digits.length >= 6;
+      const isPhone =
+        !isEmail &&
+        digits.length >= 6;
 
       if (isPhone) {
-        contactHtml = `<a class="v2map-popup__contact-btn" href="tel:${digits}">📞 Llamar — ${this.escapeHtml(raw)}</a>`;
+        contactHtml =
+          `<a class="v2map-popup__contact-btn" ` +
+          `href="tel:${digits}">📞 Llamar — ${this.escapeHtml(raw)}</a>`;
       } else if (isEmail) {
-        contactHtml = `<a class="v2map-popup__contact-btn" href="mailto:${raw}">✉️ Escribir — ${this.escapeHtml(raw)}</a>`;
+        contactHtml =
+          `<a class="v2map-popup__contact-btn" ` +
+          `href="mailto:${raw}">✉️ Escribir — ${this.escapeHtml(raw)}</a>`;
       } else {
-        contactHtml = `<p class="v2map-popup__row">${this.escapeHtml(raw)}</p>`;
+        contactHtml =
+          `<p class="v2map-popup__row">${this.escapeHtml(raw)}</p>`;
       }
     }
 
@@ -599,6 +730,9 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.userLocationMarker?.remove();
+    this.userLocationMarker = undefined;
+
     this.map?.remove();
     this.map = undefined;
   }
