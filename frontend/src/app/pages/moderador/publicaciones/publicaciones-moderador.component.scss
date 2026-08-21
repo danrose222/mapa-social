@@ -173,3 +173,31 @@
   color: var(--danger);
   border-color: var(--danger);
 }
+@media (max-width: 560px) {
+  .mod-pub {
+    padding: 16px 14px 48px;
+  }
+
+  .mod-pub__scope-toggle,
+  .mod-pub__tabs {
+    flex-wrap: wrap;
+  }
+
+  .mod-pub__item {
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .mod-pub__desc {
+    max-width: none;
+  }
+
+  .mod-pub__actions {
+    width: 100%;
+  }
+
+  .mod-pub__actions .btn {
+    width: 100%;
+  }
+}
