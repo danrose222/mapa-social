@@ -4,6 +4,7 @@
       <app-icon name="arrowLeft" [size]="16" />
       Volver
     </a>
+
     <div class="swipe__brand">
       <app-icon name="heart" [size]="18" [filled]="true" />
       Mapa Social
@@ -11,7 +12,9 @@
   </header>
 
   @if (isLoading()) {
-    <p class="swipe__status">Buscando necesidades cerca tuyo…</p>
+    <p class="swipe__status">
+      Buscando necesidades activas de organizaciones…
+    </p>
   } @else if (loadError()) {
     <p class="swipe__status swipe__status--error">
       No se pudo conectar con el servidor. Probá de nuevo en un momento.
@@ -19,14 +22,27 @@
   } @else if (!currentNeed()) {
     <div class="swipe__empty">
       <app-icon name="hands" [size]="40" />
-      <p>Por ahora no hay necesidades activas publicadas.</p>
-      <a routerLink="/mapa" class="btn btn--ghost">Ver el mapa</a>
+
+      <p>
+        Por ahora no hay organizaciones con necesidades activas
+        y contacto disponible.
+      </p>
+
+      <a routerLink="/mapa" class="btn btn--ghost">
+        Ver el mapa
+      </a>
     </div>
   } @else {
     <div class="swipe__stage">
       <article
         class="card swipe__card"
-        [style.transform]="'translateX(' + dragOffset() + 'px) rotate(' + dragOffset() / 24 + 'deg)'"
+        [style.transform]="
+          'translateX(' +
+          dragOffset() +
+          'px) rotate(' +
+          dragOffset() / 24 +
+          'deg)'
+        "
         (pointerdown)="onPointerDown($event)"
         (pointermove)="onPointerMove($event)"
         (pointerup)="onPointerUp()"
@@ -57,9 +73,28 @@
         </div>
 
         <div class="swipe__card-body">
-          <span class="chip">{{ categoryName() }}</span>
-          <h2>{{ currentNeed()?.title }}</h2>
-          <p class="swipe__card-desc">{{ currentNeed()?.description }}</p>
+          <span class="chip">
+            {{ categoryName() }}
+          </span>
+
+          @if (organizationName()) {
+            <button
+              type="button"
+              class="swipe__organization"
+              (click)="verOrganizacion()"
+            >
+              <app-icon name="building" [size]="15" />
+              {{ organizationName() }}
+            </button>
+          }
+
+          <h2>
+            {{ currentNeed()?.title }}
+          </h2>
+
+          <p class="swipe__card-desc">
+            {{ currentNeed()?.description }}
+          </p>
 
           @if (currentNeed()?.locality) {
             <p class="swipe__card-locality">
@@ -67,15 +102,42 @@
               {{ currentNeed()?.locality }}
             </p>
           }
+
+          @if (contactInfo()) {
+            <div class="swipe__contact">
+              <strong>Contacto directo</strong>
+
+              @if (currentNeed()?.contactName) {
+                <span>
+                  {{ currentNeed()?.contactName }}
+                </span>
+              }
+
+              <span>
+                {{ contactInfo() }}
+              </span>
+            </div>
+          }
         </div>
 
-        <button type="button" class="btn btn--block swipe__help-btn" (click)="ayudar()">
-          <app-icon name="heart" [size]="16" [filled]="true" />
-          Ayudar
+        <button
+          type="button"
+          class="btn btn--block swipe__help-btn"
+          (click)="ayudar()"
+        >
+          <app-icon
+            name="heart"
+            [size]="16"
+            [filled]="true"
+          />
+
+          Quiero ayudar / Donar
         </button>
       </article>
     </div>
 
-    <p class="swipe__hint">Deslizá o tocá las flechas para ver más</p>
+    <p class="swipe__hint">
+      Deslizá o tocá las flechas para ver más
+    </p>
   }
 </div>
