@@ -1,9 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-
 import { PublicationsService } from '../../core/services/publications.service';
 import { CategoriesService } from '../../core/services/categories.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Category, Need, Resource } from '../../core/models/mapa-social.model';
 
 type Tab = 'needs' | 'resources';
@@ -18,6 +18,7 @@ type Tab = 'needs' | 'resources';
 export class MisPublicacionesComponent {
   private readonly publicationsService = inject(PublicationsService);
   private readonly categoriesService = inject(CategoriesService);
+  private readonly authService = inject(AuthService);
 
   readonly tab = signal<Tab>('needs');
   readonly isLoading = signal(true);
@@ -27,6 +28,12 @@ export class MisPublicacionesComponent {
   readonly categories = signal<Category[]>([]);
   readonly actionError = signal('');
   readonly processingId = signal<number | null>(null);
+
+  // Oculta la opción si el usuario es un rol base ('seed-role')
+  readonly canResolve = computed(() => {
+    const user = this.authService.currentUser();
+    return user?.role !== 'seed-role';
+  });
 
   constructor() {
     this.categoriesService.getAll().subscribe({

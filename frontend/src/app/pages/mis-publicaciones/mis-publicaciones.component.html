@@ -15,16 +15,14 @@
         type="button"
         class="chip"
         [class.is-active]="tab() === 'needs'"
-        (click)="setTab('needs')"
-      >
+        (click)="setTab('needs')">
         Mis necesidades ({{ needs().length }})
       </button>
       <button
         type="button"
         class="chip"
         [class.is-active]="tab() === 'resources'"
-        (click)="setTab('resources')"
-      >
+        (click)="setTab('resources')">
         Mis recursos ({{ resources().length }})
       </button>
     </div>
@@ -64,13 +62,12 @@
               </div>
 
               <div class="mis-pub__actions">
-                @if (need.status === 'active') {
+                @if (need.status === 'active' && canResolve()) {
                   <button
                     type="button"
                     class="btn btn--ghost"
                     [disabled]="processingId() === need.id"
-                    (click)="resolveNeed(need)"
-                  >
+                    (click)="resolveNeed(need)">
                     Marcar resuelta
                   </button>
                 }
@@ -78,8 +75,7 @@
                   type="button"
                   class="btn btn--ghost mis-pub__delete"
                   [disabled]="processingId() === need.id"
-                  (click)="deleteNeed(need)"
-                >
+                  (click)="deleteNeed(need)">
                   Eliminar
                 </button>
               </div>
@@ -115,13 +111,12 @@
               </div>
 
               <div class="mis-pub__actions">
-                @if (resource.status === 'available') {
+                @if (resource.status === 'available' && canResolve()) {
                   <button
                     type="button"
                     class="btn btn--ghost"
                     [disabled]="processingId() === resource.id"
-                    (click)="resolveResource(resource)"
-                  >
+                    (click)="resolveResource(resource)">
                     Marcar resuelto
                   </button>
                 }
@@ -129,8 +124,7 @@
                   type="button"
                   class="btn btn--ghost mis-pub__delete"
                   [disabled]="processingId() === resource.id"
-                  (click)="deleteResource(resource)"
-                >
+                  (click)="deleteResource(resource)">
                   Eliminar
                 </button>
               </div>
