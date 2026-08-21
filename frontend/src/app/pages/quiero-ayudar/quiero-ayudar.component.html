@@ -103,7 +103,7 @@
             </p>
           }
 
-          @if (currentNeed()?.contactInfo) {
+          @if (contactInfo()) {
             <div class="swipe__contact">
               <strong>Contacto directo</strong>
 
@@ -114,7 +114,7 @@
               }
 
               <span>
-                {{ currentNeed()?.contactInfo }}
+                {{ contactInfo() }}
               </span>
             </div>
           }

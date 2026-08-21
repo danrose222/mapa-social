@@ -55,6 +55,16 @@ export class QuieroAyudarComponent {
     return this.currentNeed()?.organizationId ?? null;
   });
 
+  readonly contactInfo = computed(() => {
+    const need = this.currentNeed();
+
+    return (
+      need?.contactInfo?.trim() ||
+      need?.organization?.contactInfo?.trim() ||
+      ''
+    );
+  });
+
   private dragStartX: number | null = null;
 
   readonly dragOffset = signal(0);
@@ -74,8 +84,7 @@ export class QuieroAyudarComponent {
           (need) =>
             need.status === 'active' &&
             need.organizationId != null &&
-            need.organization != null &&
-            !!need.contactInfo?.trim(),
+            need.organization != null,
         );
 
         this.needs.set(donationNeeds);
