@@ -41,7 +41,7 @@
         </div>
       } @else {
         <ul class="mis-pub__list">
-          @for (need of needs(); track need.id) {
+          @for (need of needs(); track (need.id ?? need._id ?? need.id_need)) {
             <li class="card mis-pub__item">
               <div>
                 <p class="mis-pub__title">{{ need.title }}</p>
@@ -64,11 +64,11 @@
               </div>
 
               <div class="mis-pub__actions">
-                @if (need.status === 'active') {
+                @if (need.status === 'active' && canResolve()) {
                   <button
                     type="button"
                     class="btn btn--ghost"
-                    [disabled]="processingId() === need.id"
+                    [disabled]="processingId() === (need.id ?? need._id ?? need.id_need)"
                     (click)="resolveNeed(need)"
                   >
                     Marcar resuelta
@@ -77,7 +77,7 @@
                 <button
                   type="button"
                   class="btn btn--ghost mis-pub__delete"
-                  [disabled]="processingId() === need.id"
+                  [disabled]="processingId() === (need.id ?? need._id ?? need.id_need)"
                   (click)="deleteNeed(need)"
                 >
                   Eliminar
@@ -95,7 +95,7 @@
         </div>
       } @else {
         <ul class="mis-pub__list">
-          @for (resource of resources(); track resource.id) {
+          @for (resource of resources(); track (resource.id ?? resource._id ?? resource.id_resource)) {
             <li class="card mis-pub__item">
               <div>
                 <p class="mis-pub__title">{{ resource.title }}</p>
@@ -115,11 +115,11 @@
               </div>
 
               <div class="mis-pub__actions">
-                @if (resource.status === 'available') {
+                @if (resource.status === 'available' && canResolve()) {
                   <button
                     type="button"
                     class="btn btn--ghost"
-                    [disabled]="processingId() === resource.id"
+                    [disabled]="processingId() === (resource.id ?? resource._id ?? resource.id_resource)"
                     (click)="resolveResource(resource)"
                   >
                     Marcar resuelto
@@ -128,7 +128,7 @@
                 <button
                   type="button"
                   class="btn btn--ghost mis-pub__delete"
-                  [disabled]="processingId() === resource.id"
+                  [disabled]="processingId() === (resource.id ?? resource._id ?? resource.id_resource)"
                   (click)="deleteResource(resource)"
                 >
                   Eliminar

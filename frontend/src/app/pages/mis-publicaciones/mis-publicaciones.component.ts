@@ -1,8 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PublicationsService } from '../../core/services/publications.service';
 import { CategoriesService } from '../../core/services/categories.service';
+import { AuthService } from '../../core/services/auth.service'; // 👈 Asegurate de importar tu AuthService
 import { Category, Need, Resource } from '../../core/models/mapa-social.model';
 
 type Tab = 'needs' | 'resources';
@@ -17,6 +18,7 @@ type Tab = 'needs' | 'resources';
 export class MisPublicacionesComponent {
   private readonly publicationsService = inject(PublicationsService);
   private readonly categoriesService = inject(CategoriesService);
+  private readonly authService = inject(AuthService); // 👈 Inyección de AuthService
 
   readonly tab = signal<Tab>('needs');
   readonly isLoading = signal(true);
@@ -26,6 +28,12 @@ export class MisPublicacionesComponent {
   readonly categories = signal<Category[]>([]);
   readonly actionError = signal('');
   readonly processingId = signal<number | null>(null);
+
+  // 👈 Signal computado para verificar si puede resolver (si no es ciudadano común)
+  readonly canResolve = computed(() => {
+    const user = this.authService.currentUser(); // O la propiedad/método que uses en tu AuthService
+    return user?.role !== 'ciudadano' && user?.role !== 'vecino'; // Ajustá según el nombre exacto del rol en tu app
+  });
 
   constructor() {
     this.categoriesService.getAll().subscribe({
