@@ -1,7 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-
 import { PublicationsService } from '../../core/services/publications.service';
 import { CategoriesService } from '../../core/services/categories.service';
 import { Category, Need, Resource } from '../../core/models/mapa-social.model';
@@ -64,11 +63,18 @@ export class MisPublicacionesComponent {
     return this.categories().find((c) => c.id === categoryId)?.name ?? '—';
   }
 
-  resolveNeed(need: Need): void {
-    this.processingId.set(need.id);
+  resolveNeed(need: any): void {
+    const targetId = need?.id ?? need?._id ?? need?.id_need;
+
+    if (!targetId) {
+      this.actionError.set('No se encontró el ID de la necesidad.');
+      return;
+    }
+
+    this.processingId.set(targetId);
     this.actionError.set('');
 
-    this.publicationsService.updateNeedStatus(need.id, 'resolved').subscribe({
+    this.publicationsService.updateNeedStatus(targetId, 'resolved').subscribe({
       next: () => {
         this.processingId.set(null);
         this.load();
@@ -80,15 +86,22 @@ export class MisPublicacionesComponent {
     });
   }
 
-  deleteNeed(need: Need): void {
+  deleteNeed(need: any): void {
+    const targetId = need?.id ?? need?._id ?? need?.id_need;
+
+    if (!targetId) {
+      this.actionError.set('No se encontró el ID de la necesidad.');
+      return;
+    }
+
     if (!confirm(`¿Eliminar la necesidad "${need.title}"? No se puede deshacer.`)) {
       return;
     }
 
-    this.processingId.set(need.id);
+    this.processingId.set(targetId);
     this.actionError.set('');
 
-    this.publicationsService.removeNeed(need.id).subscribe({
+    this.publicationsService.removeNeed(targetId).subscribe({
       next: () => {
         this.processingId.set(null);
         this.load();
@@ -100,11 +113,18 @@ export class MisPublicacionesComponent {
     });
   }
 
-  resolveResource(resource: Resource): void {
-    this.processingId.set(resource.id);
+  resolveResource(resource: any): void {
+    const targetId = resource?.id ?? resource?._id ?? resource?.id_resource;
+
+    if (!targetId) {
+      this.actionError.set('No se encontró el ID del recurso.');
+      return;
+    }
+
+    this.processingId.set(targetId);
     this.actionError.set('');
 
-    this.publicationsService.updateResourceStatus(resource.id, 'resolved').subscribe({
+    this.publicationsService.updateResourceStatus(targetId, 'resolved').subscribe({
       next: () => {
         this.processingId.set(null);
         this.load();
@@ -116,15 +136,22 @@ export class MisPublicacionesComponent {
     });
   }
 
-  deleteResource(resource: Resource): void {
+  deleteResource(resource: any): void {
+    const targetId = resource?.id ?? resource?._id ?? resource?.id_resource;
+
+    if (!targetId) {
+      this.actionError.set('No se encontró el ID del recurso.');
+      return;
+    }
+
     if (!confirm(`¿Eliminar el recurso "${resource.title}"? No se puede deshacer.`)) {
       return;
     }
 
-    this.processingId.set(resource.id);
+    this.processingId.set(targetId);
     this.actionError.set('');
 
-    this.publicationsService.removeResource(resource.id).subscribe({
+    this.publicationsService.removeResource(targetId).subscribe({
       next: () => {
         this.processingId.set(null);
         this.load();
