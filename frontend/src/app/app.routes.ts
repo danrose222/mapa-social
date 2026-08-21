@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 
 import { authGuard } from './core/guards/auth.guard';
 import { moderatorGuard } from './core/guards/moderator.guard';
-import { roleGuard } from './guards/role-guard';
+import { roleGuard } from './guards/role-guard'; // 👈 Ruta real respetada
 import { AppShellComponent } from './layout/app-shell/app-shell.component';
 
 export const routes: Routes = [
@@ -20,24 +20,24 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/mapa/mapa-home.component').then((m) => m.MapaHomeComponent),
       },
-  // --- DASHBOARDS POR ROL ---
-  {
-    path: 'dashboard-organizacion',
-    canActivate: [roleGuard(['ong', 'comunidad'])],
-    loadComponent: () =>
-      import('./pages/dashboard-organizacion/dashboard-organizacion').then(
-        (m) => m.DashboardOrganizacion,
-      ),
-  },
-  {
-    path: 'dashboard-moderador',
-    canActivate: [roleGuard(['moderador'])],
-    loadComponent: () =>
-      import('./pages/dashboard-moderador/dashboard-moderador').then(
-        (m) => m.DashboardModeradorComponent, // Corregido agregando Component
-      ),
-  },
-      // --------------------------
+      // --- DASHBOARDS Y PANELES POR ROL ---
+      {
+        path: 'dashboard-organizacion',
+        canActivate: [roleGuard(['ong', 'comunidad', 'municipio'])],
+        loadComponent: () =>
+          import('./pages/dashboard-organizacion/dashboard-organizacion').then(
+            (m) => m.DashboardOrganizacion,
+          ),
+      },
+      {
+        path: 'dashboard-moderador',
+        canActivate: [roleGuard(['moderador'])],
+        loadComponent: () =>
+          import('./pages/dashboard-moderador/dashboard-moderador').then(
+            (m) => m.DashboardModeradorComponent,
+          ),
+      },
+      // ------------------------------------
       {
         path: 'publicar',
         loadComponent: () =>
