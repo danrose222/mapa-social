@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import { authGuard } from './core/guards/auth.guard';
 import { moderatorGuard } from './core/guards/moderator.guard';
+import { roleGuard } from './guards/role-guard';
 import { AppShellComponent } from './layout/app-shell/app-shell.component';
 
 export const routes: Routes = [
@@ -19,6 +20,24 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/mapa/mapa-home.component').then((m) => m.MapaHomeComponent),
       },
+  // --- DASHBOARDS POR ROL ---
+  {
+    path: 'dashboard-organizacion',
+    canActivate: [roleGuard(['ong', 'comunidad'])],
+    loadComponent: () =>
+      import('./pages/dashboard-organizacion/dashboard-organizacion').then(
+        (m) => m.DashboardOrganizacion,
+      ),
+  },
+  {
+    path: 'dashboard-moderador',
+    canActivate: [roleGuard(['moderador'])],
+    loadComponent: () =>
+      import('./pages/dashboard-moderador/dashboard-moderador').then(
+        (m) => m.DashboardModeradorComponent, // Corregido agregando Component
+      ),
+  },
+      // --------------------------
       {
         path: 'publicar',
         loadComponent: () =>
@@ -104,10 +123,6 @@ export const routes: Routes = [
           ),
       },
       {
-        // Va DESPUÉS de mi-organizacion y crear -- Angular matchea rutas en
-        // el orden del array, no por especificidad, así que si ':id'
-        // estuviera antes capturaría '/organizacion/mi-organizacion' como
-        // si "mi-organizacion" fuera un id.
         path: 'organizacion/:id',
         loadComponent: () =>
           import('./pages/organizacion/perfil/organizacion-perfil.component').then(

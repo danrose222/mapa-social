@@ -102,3 +102,17 @@ export interface CreateResourcePayload {
   contactInfo?: string;
   imageUrl?: string;
 }
+
+export interface Need {
+  id: number;
+  _id?: number | string;
+  id_need?: number;
+  // ... resto de campos
+}
+
+export interface Resource {
+  id: number;
+  _id?: number | string;
+  id_resource?: number;
+  // ... resto de campos
+}

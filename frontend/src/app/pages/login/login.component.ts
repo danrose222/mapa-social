@@ -29,7 +29,7 @@ export class LoginComponent {
 
   readonly returnPath = computed(() => {
     const volver = this.queryParams()?.get('volver');
-    return volver ? `/${volver}` : '/';
+    return volver ? `/${volver}` : null;
   });
 
   readonly isSubmitting = signal(false);
@@ -49,7 +49,24 @@ export class LoginComponent {
     this.authService.login(email!, password!).subscribe({
       next: () => {
         this.isSubmitting.set(false);
-        this.router.navigateByUrl(this.returnPath());
+
+        // 1. Si venía de una ruta protegida previa, mantenemos ese destino
+        const customReturn = this.returnPath();
+        if (customReturn) {
+          this.router.navigateByUrl(customReturn);
+          return;
+        }
+
+        // 2. Si no hay ruta previa, leemos el rol de la Signal para redirigir
+        const userRole = this.authService.profile()?.role?.name;
+
+        if (userRole === 'moderador') {
+          this.router.navigate(['/dashboard-moderador']);
+        } else if (userRole === 'ong' || userRole === 'comunidad') {
+          this.router.navigate(['/dashboard-organizacion']);
+        } else {
+          this.router.navigate(['/']);
+        }
       },
       error: (error: HttpErrorResponse) => {
         this.isSubmitting.set(false);

@@ -41,7 +41,7 @@
         </div>
       } @else {
         <ul class="mis-pub__list">
-          @for (need of needs(); track (need.id ?? need._id ?? need.id_need)) {
+          @for (need of needs(); track need.id) {
             <li class="card mis-pub__item">
               <div>
                 <p class="mis-pub__title">{{ need.title }}</p>
@@ -68,7 +68,7 @@
                   <button
                     type="button"
                     class="btn btn--ghost"
-                    [disabled]="processingId() === (need.id ?? need._id ?? need.id_need)"
+                    [disabled]="processingId() === need.id"
                     (click)="resolveNeed(need)"
                   >
                     Marcar resuelta
@@ -77,7 +77,7 @@
                 <button
                   type="button"
                   class="btn btn--ghost mis-pub__delete"
-                  [disabled]="processingId() === (need.id ?? need._id ?? need.id_need)"
+                  [disabled]="processingId() === need.id"
                   (click)="deleteNeed(need)"
                 >
                   Eliminar
@@ -95,7 +95,7 @@
         </div>
       } @else {
         <ul class="mis-pub__list">
-          @for (resource of resources(); track (resource.id ?? resource._id ?? resource.id_resource)) {
+          @for (resource of resources(); track resource.id) {
             <li class="card mis-pub__item">
               <div>
                 <p class="mis-pub__title">{{ resource.title }}</p>
@@ -119,7 +119,7 @@
                   <button
                     type="button"
                     class="btn btn--ghost"
-                    [disabled]="processingId() === (resource.id ?? resource._id ?? resource.id_resource)"
+                    [disabled]="processingId() === resource.id"
                     (click)="resolveResource(resource)"
                   >
                     Marcar resuelto
@@ -128,7 +128,7 @@
                 <button
                   type="button"
                   class="btn btn--ghost mis-pub__delete"
-                  [disabled]="processingId() === (resource.id ?? resource._id ?? resource.id_resource)"
+                  [disabled]="processingId() === resource.id"
                   (click)="deleteResource(resource)"
                 >
                   Eliminar

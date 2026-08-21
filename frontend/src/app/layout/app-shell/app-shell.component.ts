@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
@@ -17,6 +17,19 @@ export class AppShellComponent {
 
   readonly currentUser = this.authService.currentUser;
   readonly isModerator = this.authService.isModerator;
+
+  // Signal computada: obtiene la URL del dashboard según el rol del perfil
+  readonly dashboardUrl = computed(() => {
+    const role = this.authService.profile()?.role?.name;
+
+    if (role === 'moderador') {
+      return '/dashboard-moderador';
+    }
+    if (role === 'ong' || role === 'comunidad') {
+      return '/dashboard-organizacion';
+    }
+    return null;
+  });
 
   readonly isMenuOpen = signal(false);
 

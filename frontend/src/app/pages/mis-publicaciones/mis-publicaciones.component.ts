@@ -1,9 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { PublicationsService } from '../../core/services/publications.service';
 import { CategoriesService } from '../../core/services/categories.service';
-import { AuthService } from '../../core/services/auth.service'; // 👈 Asegurate de importar tu AuthService
+import { AuthService } from '../../core/services/auth.service';
 import { Category, Need, Resource } from '../../core/models/mapa-social.model';
 
 type Tab = 'needs' | 'resources';
@@ -18,7 +19,7 @@ type Tab = 'needs' | 'resources';
 export class MisPublicacionesComponent {
   private readonly publicationsService = inject(PublicationsService);
   private readonly categoriesService = inject(CategoriesService);
-  private readonly authService = inject(AuthService); // 👈 Inyección de AuthService
+  private readonly authService = inject(AuthService);
 
   readonly tab = signal<Tab>('needs');
   readonly isLoading = signal(true);
@@ -29,10 +30,9 @@ export class MisPublicacionesComponent {
   readonly actionError = signal('');
   readonly processingId = signal<number | null>(null);
 
-  // 👈 Signal computado para verificar si puede resolver (si no es ciudadano común)
   readonly canResolve = computed(() => {
-    const user = this.authService.currentUser(); // O la propiedad/método que uses en tu AuthService
-    return user?.role !== 'ciudadano' && user?.role !== 'vecino'; // Ajustá según el nombre exacto del rol en tu app
+    const user = this.authService.currentUser();
+    return user?.role !== 'ciudadano' && user?.role !== 'vecino';
   });
 
   constructor() {
@@ -44,23 +44,32 @@ export class MisPublicacionesComponent {
     this.load();
   }
 
-  private load(): void {
+  private getEntityId(item: any): number | null {
+    const rawId = item?.id ?? item?._id ?? item?.id_need ?? item?.id_resource;
+    if (rawId === null || rawId === undefined) {
+      return null;
+    }
+    const parsedId = Number(rawId);
+    return isNaN(parsedId) ? null : parsedId;
+  }
+
+  private async load(): Promise<void> {
     this.isLoading.set(true);
     this.loadError.set(false);
 
-    Promise.all([
-      this.publicationsService.getMyNeeds().toPromise(),
-      this.publicationsService.getMyResources().toPromise(),
-    ])
-      .then(([needs, resources]) => {
-        this.needs.set(needs ?? []);
-        this.resources.set(resources ?? []);
-        this.isLoading.set(false);
-      })
-      .catch(() => {
-        this.isLoading.set(false);
-        this.loadError.set(true);
-      });
+    try {
+      const [needs, resources] = await Promise.all([
+        firstValueFrom(this.publicationsService.getMyNeeds()),
+        firstValueFrom(this.publicationsService.getMyResources()),
+      ]);
+
+      this.needs.set(needs ?? []);
+      this.resources.set(resources ?? []);
+      this.isLoading.set(false);
+    } catch (error) {
+      this.isLoading.set(false);
+      this.loadError.set(true);
+    }
   }
 
   setTab(tab: Tab): void {
@@ -72,9 +81,9 @@ export class MisPublicacionesComponent {
   }
 
   resolveNeed(need: any): void {
-    const targetId = need?.id ?? need?._id ?? need?.id_need;
+    const targetId = this.getEntityId(need);
 
-    if (!targetId) {
+    if (targetId === null) {
       this.actionError.set('No se encontró el ID de la necesidad.');
       return;
     }
@@ -95,9 +104,9 @@ export class MisPublicacionesComponent {
   }
 
   deleteNeed(need: any): void {
-    const targetId = need?.id ?? need?._id ?? need?.id_need;
+    const targetId = this.getEntityId(need);
 
-    if (!targetId) {
+    if (targetId === null) {
       this.actionError.set('No se encontró el ID de la necesidad.');
       return;
     }
@@ -114,7 +123,8 @@ export class MisPublicacionesComponent {
         this.processingId.set(null);
         this.load();
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error al eliminar necesidad:', err);
         this.processingId.set(null);
         this.actionError.set('No se pudo eliminar la necesidad.');
       },
@@ -122,9 +132,9 @@ export class MisPublicacionesComponent {
   }
 
   resolveResource(resource: any): void {
-    const targetId = resource?.id ?? resource?._id ?? resource?.id_resource;
+    const targetId = this.getEntityId(resource);
 
-    if (!targetId) {
+    if (targetId === null) {
       this.actionError.set('No se encontró el ID del recurso.');
       return;
     }
@@ -145,9 +155,9 @@ export class MisPublicacionesComponent {
   }
 
   deleteResource(resource: any): void {
-    const targetId = resource?.id ?? resource?._id ?? resource?.id_resource;
+    const targetId = this.getEntityId(resource);
 
-    if (!targetId) {
+    if (targetId === null) {
       this.actionError.set('No se encontró el ID del recurso.');
       return;
     }
@@ -164,7 +174,8 @@ export class MisPublicacionesComponent {
         this.processingId.set(null);
         this.load();
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error al eliminar recurso:', err);
         this.processingId.set(null);
         this.actionError.set('No se pudo eliminar el recurso.');
       },

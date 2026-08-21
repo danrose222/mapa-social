@@ -1,0 +1,82 @@
+// dashboard-organizacion.scss
+
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  
+    // Encabezado usando los tokens de tipografía y color del proyecto
+    .dashboard-header {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+  
+      h1 {
+        color: var(--ink);
+        font-size: 1.8rem;
+      }
+  
+      .org-name {
+        color: var(--ink-soft);
+        font-size: 1rem;
+  
+        strong {
+          color: var(--ink);
+        }
+      }
+    }
+  
+    // Tarjeta de estado (Aprovecha las variables de superficie y bordes)
+    .status-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      box-shadow: var(--shadow-1);
+      padding: 18px 20px;
+  
+      p {
+        color: var(--ink-soft);
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+    }
+  
+    // Zona de botones y acciones
+    .actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+  
+      // Modificador local para extender el botón deshabilitado según la paleta
+      .btn-disabled {
+        background: var(--surface-sunken);
+        color: var(--ink-soft);
+        border: 1px solid var(--border);
+        opacity: 0.7;
+        cursor: not-allowed;
+  
+        &:hover {
+          background: var(--surface-sunken);
+          box-shadow: none;
+        }
+      }
+    }
+  }
+  
+  // Adaptación para pantallas chicas / Mobile
+  @media (max-width: 600px) {
+    .dashboard-container {
+      padding: 16px 12px;
+  
+      .actions {
+        flex-direction: column;
+  
+        .btn {
+          width: 100%; // Ocupa todo el ancho en mobile
+        }
+      }
+    }
+  }
