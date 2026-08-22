@@ -108,6 +108,10 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       categoryId: number;
       title: string;
       description: string;
+      locality?: string;
+      address?: string;
+      schedule?: string;
+      organization?: { name: string } | null;
     },
   >(items: T[]): T[] {
     const categories = this.categoryFilter();
@@ -117,13 +121,42 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       const matchesCategory =
         categories.size === 0 || categories.has(item.categoryId);
 
-      const matchesTerm =
-        term === '' ||
-        item.title.toLowerCase().includes(term) ||
-        item.description.toLowerCase().includes(term);
+      const matchesTerm = term === '' || this.matchesSearchTerm(item, term);
 
       return matchesCategory && matchesTerm;
     });
+  }
+
+  // Filtro universal ampliado: el input de búsqueda evalúa todos los
+  // campos que el usuario puede llegar a ver (nombre de categoría,
+  // localidad, dirección, horario, organización), no solo título y
+  // descripción -- para que buscar "Alimentos" o "Nueva Córdoba" también
+  // encuentre resultados, aunque esas palabras no estén en el título.
+  private matchesSearchTerm(
+    item: {
+      title: string;
+      description: string;
+      categoryId: number;
+      locality?: string;
+      address?: string;
+      schedule?: string;
+      organization?: { name: string } | null;
+    },
+    term: string,
+  ): boolean {
+    const categoryLabel = this.categories().find((c) => c.id === item.categoryId)?.name;
+
+    const fields: Array<string | undefined | null> = [
+      item.title,
+      item.description,
+      categoryLabel,
+      item.locality,
+      item.address,
+      item.schedule,
+      item.organization?.name,
+    ];
+
+    return fields.some((field) => field?.toLowerCase().includes(term));
   }
 
   private map?: L.Map;
