@@ -294,7 +294,8 @@
   padding: 8px 12px;
   border-radius: var(--radius-sm);
   background: var(--help-color);
-  color: #fff;
+  filter: brightness(0.82);
+  color: #fff !important;
   font-size: 0.84rem;
   font-weight: 700;
   text-align: center;
