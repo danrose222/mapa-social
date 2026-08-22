@@ -1,0 +1,7 @@
+{
+    "/api": {
+      "target": "http://mapa_social_backend_dev:3000",
+      "secure": false,
+      "changeOrigin": true
+    }
+  }

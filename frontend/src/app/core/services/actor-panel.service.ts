@@ -2,11 +2,12 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-export interface ActorStats {
-  totalPublicaciones: number;
-  solicitudesPendientes: number;
-  recursosAsignados: number;
-  impactoLocalidad?: string;
+export interface OngPendingAudit {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 @Injectable({
@@ -14,22 +15,27 @@ export interface ActorStats {
 })
 export class ActorPanelService {
   private readonly http = inject(HttpClient);
-  // Usa la ruta relativa o la URL base que usen los demás servicios del proyecto
-  private readonly apiUrl = '/api'; 
+  private readonly apiUrl = '/api';
 
-  getOngStats(): Observable<ActorStats> {
-    return this.http.get<ActorStats>(`${this.apiUrl}/organizacion/stats`);
+  // --- MUNICIPIO (Auditoría de ONGs) ---
+  getPendingOngs(): Observable<OngPendingAudit[]> {
+    return this.http.get<OngPendingAudit[]>(`${this.apiUrl}/municipio/audit/ongs`);
   }
 
-  getOngPublicaciones(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/organizacion/publicaciones`);
+  approveOng(id: string): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/municipio/audit/ongs/${id}/approve`, {});
   }
 
-  getMunicipioStats(): Observable<ActorStats> {
-    return this.http.get<ActorStats>(`${this.apiUrl}/municipio/stats`);
+  rejectOng(id: string): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/municipio/audit/ongs/${id}/reject`, {});
   }
 
-  getMunicipioPublicaciones(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/municipio/publicaciones`);
+  // --- COMUNIDAD / ONG (Gestión propia) ---
+  getMyResources(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/resources/me`);
+  }
+
+  getMyNeeds(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/needs/me`);
   }
 }
