@@ -17,6 +17,7 @@ import { GeorefService } from '../../core/services/georef.service';
 import { NeedLocality, PublicationsService } from '../../core/services/publications.service';
 import { Category, Need, Resource } from '../../core/models/mapa-social.model';
 import { IconComponent } from '../../shared/icons/icon.component';
+import { QuickNeedFormComponent } from '../../shared/components/quick-need-form/quick-need-form.component';
 
 type FilterKind = 'todos' | 'necesidades' | 'recursos';
 type SearchMode = 'all' | 'locality' | 'radius';
@@ -32,7 +33,7 @@ const MOVE_THRESHOLD_KM = 5;
 @Component({
   selector: 'app-mapa-home',
   standalone: true,
-  imports: [IconComponent],
+  imports: [IconComponent, QuickNeedFormComponent],
   templateUrl: './mapa-home.component.html',
   styleUrl: './mapa-home.component.scss',
 })
@@ -122,6 +123,36 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
 
     return this.categories().filter((c) => resourceCategoryIds.has(c.id));
   });
+
+  // Estado vacío de búsqueda: solo tiene sentido cuando los recursos están
+  // a la vista (con kindFilter 'necesidades' no se muestran recursos en
+  // absoluto, así que no hay "vacío" que señalar).
+  readonly showEmptyState = computed(() => {
+    if (this.isLoading() || this.kindFilter() === 'necesidades') {
+      return false;
+    }
+
+    return this.filteredResources().length === 0;
+  });
+
+  readonly emptyStateMessage = computed(() => {
+    const activeCategories = Array.from(this.categoryFilter());
+
+    const categoryLabel =
+      activeCategories.length === 1
+        ? (this.categoryName(activeCategories[0]) ?? 'recursos')
+        : 'recursos';
+
+    const localityLabel = this.territoryFilter() ?? 'tu zona';
+
+    return `No hay ${categoryLabel} disponible en ${localityLabel} ahora.`;
+  });
+
+  readonly showQuickNeedForm = signal(false);
+  readonly quickNeedLat = signal(DEFAULT_CENTER[0]);
+  readonly quickNeedLng = signal(DEFAULT_CENTER[1]);
+  readonly quickNeedCategoryId = signal<number | null>(null);
+  readonly quickNeedLocality = signal<string | null>(null);
 
   private filteredNeeds(): Need[] {
     return this.applyFilters(this.allNeeds());
@@ -649,6 +680,37 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
 
   goToLogin(): void {
     this.router.navigateByUrl('/entrar');
+  }
+
+  // Publicar una necesidad privada requiere estar logueado (mismo modelo
+  // que el resto de la app -- no hay publicación anónima en ningún lado),
+  // así que sin sesión manda directo a /entrar en vez de abrir el modal.
+  openQuickNeedForm(): void {
+    if (!this.isAuthenticated()) {
+      this.goToLogin();
+      return;
+    }
+
+    const center =
+      this.radiusCenter() ??
+      (this.map
+        ? { lat: this.map.getCenter().lat, lng: this.map.getCenter().lng }
+        : { lat: DEFAULT_CENTER[0], lng: DEFAULT_CENTER[1] });
+
+    this.quickNeedLat.set(center.lat);
+    this.quickNeedLng.set(center.lng);
+
+    const activeCategories = Array.from(this.categoryFilter());
+    this.quickNeedCategoryId.set(
+      activeCategories.length === 1 ? activeCategories[0] : null,
+    );
+    this.quickNeedLocality.set(this.territoryFilter());
+
+    this.showQuickNeedForm.set(true);
+  }
+
+  closeQuickNeedForm(): void {
+    this.showQuickNeedForm.set(false);
   }
 
   toggleCategoryFilter(id: number): void {

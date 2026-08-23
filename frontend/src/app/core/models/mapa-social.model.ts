@@ -20,6 +20,7 @@ export interface Need {
   id: number;
   userId: number;
   categoryId: number;
+  category?: Category;
   organizationId?: number;
   organization?: Organization;
   title: string;
@@ -32,6 +33,8 @@ export interface Need {
   contactInfo?: string;
   imageUrl?: string;
   requiresSolicitud?: boolean;
+  isPrivate?: boolean;
+  urgency?: 'baja' | 'media' | 'alta';
   status: string;
   resolvedBy?: { id: number; firstName: string; lastName: string } | null;
   resolvedAt?: string | null;
@@ -88,6 +91,16 @@ export interface CreateNeedPayload {
   contactName?: string;
   contactInfo?: string;
   imageUrl?: string;
+}
+
+export interface CreatePrivateNeedPayload {
+  categoryId: number;
+  description: string;
+  urgency: 'baja' | 'media' | 'alta';
+  contactInfo: string;
+  latitude: number;
+  longitude: number;
+  locality?: string;
 }
 
 export interface CreateResourcePayload {

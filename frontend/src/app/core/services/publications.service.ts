@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import {
   CreateNeedPayload,
+  CreatePrivateNeedPayload,
   CreateResourcePayload,
   Need,
   Resource,
@@ -75,6 +76,18 @@ export class PublicationsService {
 
   createNeed(payload: CreateNeedPayload): Observable<Need> {
     return this.http.post<Need>(this.needsUrl, payload);
+  }
+
+  // Estado vacío de búsqueda -> "publicá tu necesidad": nunca aparece en
+  // el mapa público (ver comentario en needs.service.ts del backend).
+  createPrivateNeed(payload: CreatePrivateNeedPayload): Observable<Need> {
+    return this.http.post<Need>(`${this.needsUrl}/private`, payload);
+  }
+
+  // Bandeja de necesidades privadas para un moderador o una organización
+  // avalada -- ver mi-organizacion.component.ts.
+  getPrivateNeedsQueue(): Observable<Need[]> {
+    return this.http.get<Need[]>(`${this.needsUrl}/privadas`);
   }
 
   getResources(): Observable<Resource[]> {

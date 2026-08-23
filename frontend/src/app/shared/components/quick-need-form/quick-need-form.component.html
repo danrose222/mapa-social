@@ -1,0 +1,74 @@
+<div class="qnf-backdrop" (click)="close()">
+  <div class="qnf-modal" (click)="$event.stopPropagation()">
+    @if (success()) {
+      <div class="qnf-success">
+        <app-icon name="check" [size]="28" />
+        <h2>Tu necesidad fue registrada</h2>
+        <p>
+          Organizaciones verificadas de
+          {{ submittedLocality() ?? 'tu zona' }}
+          la revisarán pronto.
+        </p>
+        <button type="button" class="btn btn--block" (click)="close()">Cerrar</button>
+      </div>
+    } @else {
+      <button type="button" class="qnf-close" aria-label="Cerrar" (click)="close()">✕</button>
+
+      <h2>¿No encontraste lo que buscabas?</h2>
+      <p class="qnf-subtitle">
+        Publicá tu necesidad de forma privada: no aparece en el mapa público, solo la ven
+        organizaciones verificadas de tu zona que puedan ayudarte.
+      </p>
+
+      @if (errorMessage()) {
+        <p class="qnf-alert">{{ errorMessage() }}</p>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="field">
+          <label for="qnf-category">Categoría</label>
+          <select id="qnf-category" formControlName="categoryId">
+            <option [ngValue]="0" disabled>Elegí una categoría</option>
+            @for (category of categories; track category.id) {
+              <option [ngValue]="category.id">{{ category.name }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="qnf-description">Descripción breve *</label>
+          <textarea
+            id="qnf-description"
+            formControlName="description"
+            rows="3"
+            maxlength="500"
+            placeholder="Ej: necesito medicación para mi mamá, no puede salir de casa."
+          ></textarea>
+        </div>
+
+        <div class="field">
+          <label for="qnf-urgency">Nivel de urgencia *</label>
+          <select id="qnf-urgency" formControlName="urgency">
+            <option value="baja">Baja</option>
+            <option value="media">Media</option>
+            <option value="alta">Alta</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="qnf-contact">Contacto (tel. o email) *</label>
+          <input id="qnf-contact" type="text" formControlName="contactInfo" />
+        </div>
+
+        <div class="field">
+          <label for="qnf-locality">Tu localidad (opcional, mejora a quién le llega)</label>
+          <input id="qnf-locality" type="text" formControlName="locality" />
+        </div>
+
+        <button type="submit" class="btn btn--block" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'Enviando…' : 'Publicar necesidad privada' }}
+        </button>
+      </form>
+    }
+  </div>
+</div>

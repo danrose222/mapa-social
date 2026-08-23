@@ -58,6 +58,35 @@
       </form>
     </div>
 
+    @if (organization()!.verified) {
+      <div class="card mi-org__card">
+        <h2>Necesidades privadas para vos ({{ privateNeeds().length }})</h2>
+        <p class="mi-org__private-hint">
+          Necesidades que nadie más ve en el mapa: son de tu ciudad, en una categoría donde ya
+          publicaste algún recurso.
+        </p>
+
+        @if (privateNeeds().length === 0) {
+          <p class="mi-org__empty-resources">No hay ninguna por ahora.</p>
+        } @else {
+          <ul class="mi-org__private-list">
+            @for (need of privateNeeds(); track need.id) {
+              <li>
+                <div class="mi-org__private-row">
+                  <span class="mi-org__private-category">{{ need.category?.name }}</span>
+                  <span class="mi-org__private-urgency" [attr.data-urgency]="need.urgency">
+                    {{ need.urgency }}
+                  </span>
+                </div>
+                <p>{{ need.description }}</p>
+                <span class="mi-org__private-contact">📞 {{ need.contactInfo }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
+
     <div class="card mi-org__card">
       <h2>Nuestros recursos ({{ myResources().length }})</h2>
 

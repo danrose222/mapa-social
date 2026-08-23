@@ -23,6 +23,7 @@ import { hideResourceContactUnlessAuthorized } from '../resources/resource-conta
 import { CreateNeedDto } from './dto/create-need.dto';
 import { UpdateNeedDto } from './dto/update-need.dto';
 import { MatchesQueryDto } from './dto/matches-query.dto';
+import { CreatePrivateNeedDto } from './dto/create-private-need.dto';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
@@ -51,6 +52,23 @@ export class NeedsController {
   @ApiResponse({ status: 404, description: 'Categoría inexistente' })
   create(@Body() dto: CreateNeedDto, @CurrentUser() user: AuthUser) {
     return this.service.create(user.id, dto);
+  }
+
+  @Post('private')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Publicar una necesidad privada (estado vacío de búsqueda): nunca aparece en el mapa público, ni logueado ni no -- solo la ve un moderador o una organización avalada de la misma ciudad con una categoría compatible',
+  })
+  @ApiResponse({ status: 201, description: 'Necesidad privada creada' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({ status: 404, description: 'Categoría inexistente' })
+  createPrivate(
+    @Body() dto: CreatePrivateNeedDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.createPrivate(user.id, dto);
   }
 
   @Get()
@@ -111,6 +129,22 @@ export class NeedsController {
     return this.service.findMine(user.id);
   }
 
+  @Get('privadas')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Bandeja de necesidades privadas: para un moderador, todas; para una organización avalada, solo las de su ciudad en una categoría donde ya publicó algún recurso',
+  })
+  @ApiResponse({ status: 200, description: 'Listado de necesidades privadas' })
+  @ApiResponse({
+    status: 403,
+    description: 'No es moderador ni pertenece a una organización avalada',
+  })
+  findPrivadas(@CurrentUser() user: AuthUser) {
+    return this.service.findPrivateForViewer(user);
+  }
+
   @Get(':id/matches')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
@@ -125,7 +159,7 @@ export class NeedsController {
     @Query() dto: MatchesQueryDto,
     @CurrentUser() user: AuthUser | null,
   ) {
-    const need = await this.service.findOne(id);
+    const need = await this.service.findOne(id, user);
 
     if (!need) {
       throw new NotFoundException('Necesidad inexistente');
@@ -152,7 +186,7 @@ export class NeedsController {
     id: number,
     @CurrentUser() user: AuthUser | null,
   ) {
-    const need = await this.service.findOne(id);
+    const need = await this.service.findOne(id, user);
 
     if (!need) {
       return need;

@@ -6,7 +6,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { OrganizationsService } from '../../../core/services/organizations.service';
 import { PublicationsService } from '../../../core/services/publications.service';
-import { Organization, Resource } from '../../../core/models/mapa-social.model';
+import { Need, Organization, Resource } from '../../../core/models/mapa-social.model';
 
 @Component({
   selector: 'app-mi-organizacion',
@@ -25,6 +25,7 @@ export class MiOrganizacionComponent {
   readonly loadError = signal(false);
   readonly organization = signal<Organization | null>(null);
   readonly myResources = signal<Resource[]>([]);
+  readonly privateNeeds = signal<Need[]>([]);
 
   readonly isSaving = signal(false);
   readonly saveMessage = signal('');
@@ -56,6 +57,16 @@ export class MiOrganizacionComponent {
             address: org.address ?? '',
           });
           this.isLoading.set(false);
+
+          // Bandeja de necesidades privadas: solo tiene sentido pedirla si
+          // ya está avalada -- el backend rechaza con 403 a una organización
+          // Pendiente (ver NeedsService.findPrivateForViewer()).
+          if (org.verified) {
+            this.publicationsService.getPrivateNeedsQueue().subscribe({
+              next: (needs) => this.privateNeeds.set(needs),
+              error: () => {},
+            });
+          }
         },
         error: () => {
           this.isLoading.set(false);

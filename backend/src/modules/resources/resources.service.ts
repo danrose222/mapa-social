@@ -231,4 +231,18 @@ export class ResourcesService {
       .limit(limit)
       .getMany();
   }
+
+  // No existe una lista explícita de "categorías que esta organización
+  // atiende" -- se infiere de en qué categorías ya publicó algún recurso.
+  // Lo usa NeedsService.findPrivateForViewer() para decidir qué
+  // necesidades privadas son "compatibles" con una organización.
+  async categoryIdsForOrganization(organizationId: number): Promise<number[]> {
+    const rows = await this.repository
+      .createQueryBuilder('entity')
+      .select('DISTINCT entity.categoryId', 'categoryId')
+      .where('entity.organizationId = :organizationId', { organizationId })
+      .getRawMany<{ categoryId: number }>();
+
+    return rows.map((r) => r.categoryId);
+  }
 }

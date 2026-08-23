@@ -159,6 +159,15 @@
       </button>
     }
 
+    @if (showEmptyState()) {
+      <div class="mapa__empty-state">
+        <p>{{ emptyStateMessage() }}</p>
+        <button type="button" class="btn" (click)="openQuickNeedForm()">
+          ¿No encontraste lo que buscabas? Publicá tu necesidad
+        </button>
+      </div>
+    }
+
     <div class="mapa__count">{{ visibleCount() }} puntos visibles</div>
   </div>
 
@@ -167,3 +176,14 @@
     Publicar
   </button>
 </div>
+
+@if (showQuickNeedForm()) {
+  <app-quick-need-form
+    [categories]="visibleCategories()"
+    [defaultCategoryId]="quickNeedCategoryId()"
+    [defaultLocality]="quickNeedLocality()"
+    [latitude]="quickNeedLat()"
+    [longitude]="quickNeedLng()"
+    (closed)="closeQuickNeedForm()"
+  />
+}
