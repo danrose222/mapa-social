@@ -12,13 +12,15 @@ import {
 
 import * as L from 'leaflet';
 
+import { roundCoordinate } from '../../utils/coordinates.util';
+
 @Component({
   selector: 'app-location-picker',
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   template: `
     <div #mapContainer class="location-picker__map"></div>
-    <p class="location-picker__hint">Tocá el mapa para marcar la ubicación exacta.</p>
+    <p class="location-picker__hint">{{ hint }}</p>
   `,
   styles: [
     `
@@ -45,6 +47,7 @@ import * as L from 'leaflet';
 export class LocationPickerComponent implements AfterViewInit, OnDestroy {
   @Input() initialLat = -31.4201;
   @Input() initialLng = -64.1888;
+  @Input() hint = 'Tocá el mapa para marcar la ubicación exacta.';
 
   @ViewChild('mapContainer', { static: true })
   private mapContainer!: ElementRef<HTMLDivElement>;
@@ -77,8 +80,8 @@ export class LocationPickerComponent implements AfterViewInit, OnDestroy {
     }).addTo(this.map);
 
     this.map.on('click', (event: L.LeafletMouseEvent) => {
-      const lat = Math.round(event.latlng.lat * 1e6) / 1e6;
-      const lng = Math.round(event.latlng.lng * 1e6) / 1e6;
+      const lat = roundCoordinate(event.latlng.lat);
+      const lng = roundCoordinate(event.latlng.lng);
 
       this.setMarker(lat, lng);
       this.locationSelected.emit({ lat, lng });
@@ -96,14 +99,15 @@ export class LocationPickerComponent implements AfterViewInit, OnDestroy {
     this.marker = L.marker([lat, lng], { icon: this.icon }).addTo(this.map!);
   }
 
-  // Permite recentrar el mapa y confirmar una ubicación desde afuera (ej:
-  // al elegir una localidad en el autocomplete) sin que el usuario tenga
-  // que tocar el mapa. Reusa el mismo emit que el click manual, así el
-  // padre no necesita dos caminos distintos para enterarse de la ubicación.
+  // Reposiciona el mapa desde afuera (ej: al geocodificar la localidad o
+  // la dirección escritas) sin emitir `locationSelected` -- ese evento
+  // queda reservado para el click manual, que el padre usa para saber
+  // que el usuario ya afinó el punto a mano y no debe volver a moverse
+  // solo. El padre es responsable de sincronizar el form con el punto
+  // que le pasa acá.
   moveTo(lat: number, lng: number): void {
     this.map?.setView([lat, lng], 14);
     this.setMarker(lat, lng);
-    this.locationSelected.emit({ lat, lng });
   }
 
   ngOnDestroy(): void {

@@ -48,6 +48,7 @@
             type="text"
             formControlName="title"
             placeholder="Ej: Banco de alimentos"
+            (keydown.enter)="$event.preventDefault()"
           />
         </div>
 
@@ -78,24 +79,45 @@
         <div class="recurso__row">
           <div class="field">
             <label for="res-schedule">Horario de atención (opcional)</label>
-            <input id="res-schedule" type="text" formControlName="schedule" placeholder="Lun a Vie 9:00–17:00" />
+            <input
+              id="res-schedule"
+              type="text"
+              formControlName="schedule"
+              placeholder="Lun a Vie 9:00–17:00"
+              (keydown.enter)="$event.preventDefault()"
+            />
           </div>
 
           <div class="field">
             <label for="res-address">Referencia de dirección (opcional)</label>
-            <input id="res-address" type="text" formControlName="address" />
+            <input
+              id="res-address"
+              type="text"
+              formControlName="address"
+              (keydown.enter)="$event.preventDefault()"
+            />
           </div>
         </div>
 
         <div class="recurso__row">
           <div class="field">
             <label for="res-contact-name">Nombre de contacto (opcional)</label>
-            <input id="res-contact-name" type="text" formControlName="contactName" />
+            <input
+              id="res-contact-name"
+              type="text"
+              formControlName="contactName"
+              (keydown.enter)="$event.preventDefault()"
+            />
           </div>
 
           <div class="field">
             <label for="res-contact-info">Teléfono o email (opcional)</label>
-            <input id="res-contact-info" type="text" formControlName="contactInfo" />
+            <input
+              id="res-contact-info"
+              type="text"
+              formControlName="contactInfo"
+              (keydown.enter)="$event.preventDefault()"
+            />
           </div>
         </div>
 

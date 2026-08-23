@@ -28,6 +28,7 @@
             type="text"
             formControlName="title"
             placeholder="Ej: Alimentos no perecederos"
+            (keydown.enter)="$event.preventDefault()"
           />
         </div>
 
@@ -52,30 +53,51 @@
 
         <div class="field">
           <label>Ubicación</label>
-          <app-location-picker (locationSelected)="onLocationSelected($event)" />
+          <app-location-picker
+            (locationSelected)="onLocationSelected($event)"
+            hint="El mapa se ubica solo con tu localidad y dirección. Tocalo si querés precisar el punto exacto."
+          />
         </div>
 
         <div class="necesito__row">
           <div class="field">
             <label for="need-locality">Barrio / localidad (opcional)</label>
-            <app-locality-autocomplete (localitySelected)="onLocalitySelected($event)" />
+            <app-locality-autocomplete
+              id="need-locality"
+              (localitySelected)="onLocalitySelected($event)"
+            />
           </div>
 
           <div class="field">
             <label for="need-address">Referencia de dirección (opcional)</label>
-            <input id="need-address" type="text" formControlName="address" />
+            <app-address-autocomplete
+              id="need-address"
+              [locality]="confirmedLocality()"
+              (textChange)="onAddressTextChanged($event)"
+              (addressSelected)="onAddressSelected($event)"
+            />
           </div>
         </div>
 
         <div class="necesito__row">
           <div class="field">
             <label for="need-contact-name">Nombre de contacto (opcional)</label>
-            <input id="need-contact-name" type="text" formControlName="contactName" />
+            <input
+              id="need-contact-name"
+              type="text"
+              formControlName="contactName"
+              (keydown.enter)="$event.preventDefault()"
+            />
           </div>
 
           <div class="field">
             <label for="need-contact-info">Teléfono o email (opcional)</label>
-            <input id="need-contact-info" type="text" formControlName="contactInfo" />
+            <input
+              id="need-contact-info"
+              type="text"
+              formControlName="contactInfo"
+              (keydown.enter)="$event.preventDefault()"
+            />
           </div>
         </div>
 
