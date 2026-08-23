@@ -39,9 +39,20 @@ export class OrganizationsService {
     private readonly resourceRepository: Repository<Resource>,
   ) {}
 
-  async create(dto: CreateOrganizationDto, currentUser: AuthUser) {
+  async create(
+    dto: CreateOrganizationDto,
+    currentUser: AuthUser,
+    isCityScale: boolean,
+  ) {
     const organization = await this.repository.save(
-      this.repository.create(dto),
+      this.repository.create({
+        ...dto,
+        // Regla de escala territorial ("Burocracia vs. Confianza"): en
+        // una ciudad con Municipio registrado, queda Pendiente hasta el
+        // aval explícito de un moderador; en un pueblo sin esa
+        // estructura, se autogestiona y nace ya avalada.
+        verified: !isCityScale,
+      }),
     );
 
     const hasModeratorAccess =

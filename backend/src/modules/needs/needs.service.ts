@@ -6,7 +6,7 @@ import {
 import { SearchNeedsDto } from './dto/search-needs.dto';
 import { SearchService } from './search/search.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Need } from './entities/need.entity';
 import { User } from '../users/entities/user.entity';
 import { PUBLIC_USER_FIELDS } from '../users/public-user-fields.util';
@@ -57,6 +57,12 @@ export class NeedsService {
   findAll() {
     return this.repository.find({
       relations: ['user', 'category', 'organization', 'resolvedBy'],
+      // Regla de escala territorial: una organización Pendiente (en una
+      // ciudad con Municipio, sin avalar todavía) no debe aparecer en el
+      // mapa público -- el OR cubre tanto las necesidades sin
+      // organización (un ciudadano de a pie, siempre visibles) como las
+      // de una organización ya avalada.
+      where: [{ organizationId: IsNull() }, { organization: { verified: true } }],
       // Sin esto, el user/resolvedBy completo (con email y phone reales)
       // viaja en un endpoint público -- el contacto para publicaciones
       // pasa por contactName/contactInfo (ver needs-contact.util.ts), no
@@ -80,7 +86,10 @@ export class NeedsService {
       .leftJoin('entity.user', 'user')
       .addSelect(['user.id', 'user.firstName', 'user.lastName'])
       .leftJoinAndSelect('entity.organization', 'organization')
-      .where('entity.status = :status', { status: 'active' });
+      .where('entity.status = :status', { status: 'active' })
+      // Mismo criterio de escala territorial que findAll(): oculta las
+      // necesidades de una organización todavía Pendiente.
+      .andWhere('(entity.organizationId IS NULL OR organization.verified = true)');
 
     const [items, total] = await this.searchService
       .applyFilters(qb, dto)

@@ -12,6 +12,7 @@ import { Municipio } from './entities/municipio.entity';
 
 import { CreateMunicipioDto } from './dto/create-municipio.dto';
 import { UpdateMunicipioDto } from './dto/update-municipio.dto';
+import { localitiesMatch } from '../../common/utils/locality-match.util';
 
 @Injectable()
 export class MunicipiosService {
@@ -77,6 +78,24 @@ export class MunicipiosService {
     Object.assign(municipio, dto);
 
     return this.repository.save(municipio);
+  }
+
+  // Regla de escala territorial ("Burocracia vs. Confianza" del
+  // documento de visión): una ciudad "tiene Municipio" si algún
+  // municipio registrado matchea su nombre. Misma comparación
+  // bidireccional que assertModeratorJurisdiction() usa en
+  // needs/resources/organizations, para que "Nueva Córdoba" cuente como
+  // parte de la jurisdicción de "Córdoba".
+  async hasMunicipioForCiudad(ciudad: string): Promise<boolean> {
+    const normalized = ciudad.trim().toLowerCase();
+
+    if (!normalized) {
+      return false;
+    }
+
+    const municipios = await this.repository.find();
+
+    return municipios.some((m) => localitiesMatch(m.ciudad, normalized));
   }
 
   async remove(id: number) {

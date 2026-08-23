@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Resource } from './entities/resource.entity';
 import { User } from '../users/entities/user.entity';
 import { PUBLIC_USER_FIELDS } from '../users/public-user-fields.util';
@@ -72,6 +72,11 @@ export class ResourcesService {
   findAll() {
     return this.repository.find({
       relations: ['user', 'category', 'organization', 'resolvedBy'],
+      // Regla de escala territorial: un recurso de una organización
+      // Pendiente (ciudad con Municipio, sin avalar todavía) no debe
+      // aparecer en el mapa público -- ver el comentario equivalente en
+      // needs.service.ts.
+      where: [{ organizationId: IsNull() }, { organization: { verified: true } }],
       // Sin esto, el user/resolvedBy completo (con email y phone reales)
       // viaja en un endpoint público -- el contacto para publicaciones
       // pasa por contactName/contactInfo (ver resource-contact.util.ts),
