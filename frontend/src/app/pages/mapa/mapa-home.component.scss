@@ -110,6 +110,20 @@
   }
 }
 
+// No se deshabilita con [disabled] real: al click igual tiene que disparar
+// setKindFilter() para mostrar el aviso de privacidad -- opacidad + cursor
+// alcanza como señal visual de "esto está restringido".
+.chip--locked {
+  gap: 4px;
+  opacity: 0.55;
+  cursor: not-allowed;
+
+  &.is-active {
+    background: var(--surface);
+    color: var(--ink-soft);
+  }
+}
+
 .chip--clear {
   border-color: transparent;
   background: transparent;
@@ -128,6 +142,51 @@
   height: 20px;
   flex: 0 0 1px;
   background: var(--border);
+}
+
+.mapa__privacy-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 20px 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  color: var(--ink);
+  font-size: 0.84rem;
+
+  span {
+    flex: 1;
+  }
+}
+
+.mapa__privacy-banner-login {
+  flex: 0 0 auto;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--brand);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--brand-dark);
+  }
+}
+
+.mapa__privacy-banner-close {
+  flex: 0 0 auto;
+  padding: 4px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--ink);
+  }
 }
 
 .mapa__canvas-wrap {

@@ -50,7 +50,18 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   readonly isLoading = signal(true);
   readonly loadError = signal(false);
 
-  readonly kindFilter = signal<FilterKind>('todos');
+  // No hay un "usuario verificado" individual en este sistema (la
+  // verificación es de organizaciones, no de personas) -- cualquier cuenta
+  // logueada cuenta como el "verificado" que describe la tarjeta.
+  readonly isAuthenticated = computed(() => this.authService.currentUser() !== null);
+  readonly privacyNotice = signal<string | null>(null);
+
+  // Sin sesión arranca en 'recursos': las necesidades no se ocultan del
+  // todo (siguen siendo datos públicos en el backend), pero no son la
+  // vista por defecto para quien no está logueado.
+  readonly kindFilter = signal<FilterKind>(
+    this.authService.currentUser() ? 'todos' : 'recursos',
+  );
   readonly categoryFilter = signal<Set<number>>(new Set());
   readonly searchTerm = signal('');
 
@@ -95,6 +106,23 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     return needs + resources;
   });
 
+  // Sin sesión, solo se ofrecen como filtro las categorías que de hecho
+  // tienen algún recurso disponible -- no hay una tabla separada de
+  // "categorías de necesidad" vs "categorías de recurso", así que esto es
+  // lo más parecido y honesto a "mostrar solo categorías de recursos
+  // públicos" que se puede hacer con los datos reales.
+  readonly visibleCategories = computed(() => {
+    if (this.isAuthenticated()) {
+      return this.categories();
+    }
+
+    const resourceCategoryIds = new Set(
+      this.allResources().map((resource) => resource.categoryId),
+    );
+
+    return this.categories().filter((c) => resourceCategoryIds.has(c.id));
+  });
+
   private filteredNeeds(): Need[] {
     return this.applyFilters(this.allNeeds());
   }
@@ -108,6 +136,8 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       categoryId: number;
       title: string;
       description: string;
+      address?: string;
+      locality?: string;
     },
   >(items: T[]): T[] {
     const categories = this.categoryFilter();
@@ -117,13 +147,23 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       const matchesCategory =
         categories.size === 0 || categories.has(item.categoryId);
 
+      // "nombre" -> title, "barrio" -> locality/address (los recursos no
+      // tienen locality propia, solo address en texto libre), "tipo de
+      // ayuda" -> nombre de la categoría.
       const matchesTerm =
         term === '' ||
         item.title.toLowerCase().includes(term) ||
-        item.description.toLowerCase().includes(term);
+        item.description.toLowerCase().includes(term) ||
+        (item.address?.toLowerCase().includes(term) ?? false) ||
+        (item.locality?.toLowerCase().includes(term) ?? false) ||
+        (this.categoryName(item.categoryId)?.toLowerCase().includes(term) ?? false);
 
       return matchesCategory && matchesTerm;
     });
+  }
+
+  private categoryName(categoryId: number): string | undefined {
+    return this.categories().find((c) => c.id === categoryId)?.name;
   }
 
   private map?: L.Map;
@@ -484,6 +524,23 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     this.radiusCenter.set(null);
     this.territoryPage.set(1);
     this.loadLocalityPage();
+    this.flyToLocality(locality);
+  }
+
+  // No hay coordenadas de jurisdicción guardadas en la base (Municipio solo
+  // tiene el nombre de la ciudad) -- se geocodifica el nombre contra Georef,
+  // el mismo mecanismo que ya usa el resto del componente para ciudad de
+  // perfil, y se mueve el mapa ahí con flyTo (paneo animado, a diferencia
+  // del setView seco que usa la búsqueda por radio).
+  private flyToLocality(locality: string): void {
+    this.georefService.geocodeLocality(locality).subscribe({
+      next: (point) => {
+        if (point && this.map) {
+          this.map.flyTo([point.lat, point.lng], 13);
+        }
+      },
+      error: () => {},
+    });
   }
 
   goToTerritoryPage(page: number): void {
@@ -570,8 +627,28 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   }
 
   setKindFilter(kind: FilterKind): void {
+    if (kind !== 'recursos' && !this.isAuthenticated()) {
+      this.privacyNotice.set(
+        'Para proteger la privacidad, estas opciones requieren registro verificado.',
+      );
+      return;
+    }
+
+    this.privacyNotice.set(null);
     this.kindFilter.set(kind);
     this.renderMarkers();
+  }
+
+  isKindLocked(kind: FilterKind): boolean {
+    return kind !== 'recursos' && !this.isAuthenticated();
+  }
+
+  dismissPrivacyNotice(): void {
+    this.privacyNotice.set(null);
+  }
+
+  goToLogin(): void {
+    this.router.navigateByUrl('/entrar');
   }
 
   toggleCategoryFilter(id: number): void {
