@@ -11,5 +11,6 @@ import { MunicipiosService } from './municipios.service';
   imports: [TypeOrmModule.forFeature([Municipio])],
   controllers: [MunicipiosController],
   providers: [MunicipiosService],
+  exports: [MunicipiosService],
 })
 export class MunicipiosModule {}

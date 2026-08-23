@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
@@ -23,6 +24,8 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { SolicitudesService } from '../solicitudes/solicitudes.service';
 import { hideNeedContactUnlessAuthorized } from '../needs/needs-contact.util';
 import { hideResourceContactUnlessAuthorized } from '../resources/resource-contact.util';
+import { TerritorialScaleInterceptor } from './interceptors/territorial-scale.interceptor';
+import { IsCityScale } from './decorators/is-city-scale.decorator';
 
 interface AuthUser {
   id: number;
@@ -39,15 +42,20 @@ export class OrganizationsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(TerritorialScaleInterceptor)
   @ApiBearerAuth()
   @ApiOperation({
     summary:
-      'Crear una organización (cualquier usuario logueado; queda vinculado como su dueño y sin avalar hasta que un moderador la apruebe)',
+      'Crear una organización (cualquier usuario logueado; queda vinculado como su dueño). En una ciudad con Municipio registrado queda Pendiente hasta el aval de un moderador; en un pueblo sin esa estructura nace ya avalada (regla de escala territorial)',
   })
   @ApiResponse({ status: 201, description: 'Organización creada' })
   @ApiResponse({ status: 401, description: 'No autenticado' })
-  create(@Body() dto: CreateOrganizationDto, @CurrentUser() user: AuthUser) {
-    return this.service.create(dto, user);
+  create(
+    @Body() dto: CreateOrganizationDto,
+    @CurrentUser() user: AuthUser,
+    @IsCityScale() isCityScale: boolean,
+  ) {
+    return this.service.create(dto, user, isCityScale);
   }
 
   @Get()
