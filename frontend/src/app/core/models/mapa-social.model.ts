@@ -11,6 +11,7 @@ export interface Organization {
   description?: string;
   contactInfo?: string;
   address?: string;
+  website?: string;
   type: string;
   ciudad: string;
   verified: boolean;

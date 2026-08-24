@@ -38,6 +38,12 @@ export class Organization extends BaseEntity {
   address?: string;
 
   @Column({
+    length: 255,
+    nullable: true,
+  })
+  website?: string;
+
+  @Column({
     length: 20,
   })
   type!: OrganizationType;

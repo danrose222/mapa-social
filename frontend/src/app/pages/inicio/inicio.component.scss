@@ -154,6 +154,10 @@
   color: var(--ink-soft);
 }
 
+.inicio__org-cta {
+  margin-top: 20px;
+}
+
 @media (max-width: 560px) {
   .inicio__cta-row {
     flex-direction: column;

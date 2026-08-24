@@ -29,6 +29,72 @@
   padding: 26px;
 }
 
+.crear-org__explain {
+  margin-bottom: 18px;
+  padding: 22px 24px;
+
+  h2 {
+    margin: 0 0 14px;
+    font-size: 1.05rem;
+  }
+}
+
+.crear-org__explain-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.crear-org__explain-item {
+  strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.88rem;
+  }
+
+  p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.84rem;
+    line-height: 1.5;
+  }
+}
+
+.crear-org__login-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 22px 24px;
+
+  p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+  }
+}
+
+.crear-org__terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 4px 0 18px;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  line-height: 1.45;
+
+  input[type='checkbox'] {
+    flex: 0 0 auto;
+    margin-top: 2px;
+  }
+}
+
+@media (max-width: 560px) {
+  .crear-org__explain-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .crear-org__alert {
   margin: 0 0 16px;
   padding: 10px 14px;

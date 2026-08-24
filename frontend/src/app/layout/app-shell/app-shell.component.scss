@@ -59,6 +59,16 @@
   }
 }
 
+.shell-header__discreet-link {
+  font-size: 0.8rem !important;
+  font-weight: 500 !important;
+  opacity: 0.75;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
 .shell-header__dropdown {
   position: relative;
 }

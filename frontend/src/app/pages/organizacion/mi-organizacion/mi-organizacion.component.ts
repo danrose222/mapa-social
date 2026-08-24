@@ -42,6 +42,7 @@ export class MiOrganizacionComponent {
     description: [''],
     contactInfo: [''],
     address: [''],
+    website: [''],
   });
 
   constructor() {
@@ -61,6 +62,7 @@ export class MiOrganizacionComponent {
             description: org.description ?? '',
             contactInfo: org.contactInfo ?? '',
             address: org.address ?? '',
+            website: org.website ?? '',
           });
           this.isLoading.set(false);
 
@@ -111,6 +113,7 @@ export class MiOrganizacionComponent {
         description: raw.description || undefined,
         contactInfo: raw.contactInfo || undefined,
         address: raw.address || undefined,
+        website: raw.website || undefined,
       })
       .subscribe({
         next: (updated) => {

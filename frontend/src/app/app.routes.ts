@@ -96,12 +96,21 @@ export const routes: Routes = [
           ),
       },
       {
+        // Pública a propósito (sin authGuard): explica el proceso de aval
+        // antes de pedir cuenta -- el propio componente gatea el
+        // formulario (no la explicación) detrás de estar logueado, porque
+        // POST /organizations sí exige JwtAuthGuard.
         path: 'organizacion/crear',
-        canActivate: [authGuard],
         loadComponent: () =>
           import('./pages/organizacion/crear/crear-organizacion.component').then(
             (m) => m.CrearOrganizacionComponent,
           ),
+      },
+      {
+        // Alias en inglés pedido por la tarjeta -- se mantiene la ruta
+        // real en español, consistente con el resto del nav.
+        path: 'register-organization',
+        redirectTo: 'organizacion/crear',
       },
       {
         // Va DESPUÉS de mi-organizacion y crear -- Angular matchea rutas en

@@ -56,6 +56,11 @@
           <input id="mo-contact" type="text" formControlName="contactInfo" />
         </div>
 
+        <div class="field">
+          <label for="mo-website">Sitio web o red social</label>
+          <input id="mo-website" type="text" formControlName="website" />
+        </div>
+
         <button type="submit" class="btn" [disabled]="isSaving()">
           {{ isSaving() ? 'Guardando…' : 'Guardar cambios' }}
         </button>

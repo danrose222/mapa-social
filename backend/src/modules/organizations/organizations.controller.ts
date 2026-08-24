@@ -50,6 +50,7 @@ export class OrganizationsController {
   })
   @ApiResponse({ status: 201, description: 'Organización creada' })
   @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({ status: 409, description: 'Ya existe una organización con ese nombre' })
   create(
     @Body() dto: CreateOrganizationDto,
     @CurrentUser() user: AuthUser,

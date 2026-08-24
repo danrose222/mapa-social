@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -44,6 +45,19 @@ export class OrganizationsService {
     currentUser: AuthUser,
     isCityScale: boolean,
   ) {
+    // La colación de la columna (utf8mb4_0900_ai_ci) ya es insensible a
+    // mayúsculas/acentos, así que esta comparación exacta alcanza -- sin
+    // esto, dos organizaciones con el mismo nombre (o "Comedor" vs
+    // "COMEDOR") convivían sin ningún aviso.
+    const existing = await this.repository.findOne({
+      where: { name: dto.name },
+    });
+    if (existing) {
+      throw new ConflictException(
+        'Ya existe una organización registrada con ese nombre',
+      );
+    }
+
     const organization = await this.repository.save(
       this.repository.create({
         ...dto,

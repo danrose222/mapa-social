@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsIn, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 import { OrganizationType } from '../entities/organization.entity';
 
@@ -24,6 +24,7 @@ export class CreateOrganizationDto {
     description: 'Jurisdicción/ciudad de la organización',
   })
   @IsString()
+  @IsNotEmpty()
   @MaxLength(100)
   ciudad!: string;
 
@@ -52,4 +53,14 @@ export class CreateOrganizationDto {
   @IsString()
   @MaxLength(255)
   address?: string;
+
+  @ApiProperty({
+    example: 'https://comedorlospinos.org.ar',
+    description: 'Sitio web o red social, como aval de la organización',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  website?: string;
 }
