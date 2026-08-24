@@ -5,6 +5,10 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PublicationsService } from '../../../core/services/publications.service';
 import { Category } from '../../../core/models/mapa-social.model';
 import { IconComponent } from '../../icons/icon.component';
+import {
+  LocalityAutocompleteComponent,
+  LocalitySelection,
+} from '../locality-autocomplete/locality-autocomplete.component';
 
 // Formulario mínimo para el estado vacío de búsqueda del mapa ("no
 // encontraste lo que buscabas -> publicá tu necesidad"): a propósito solo
@@ -15,7 +19,7 @@ import { IconComponent } from '../../icons/icon.component';
 @Component({
   selector: 'app-quick-need-form',
   standalone: true,
-  imports: [ReactiveFormsModule, IconComponent],
+  imports: [ReactiveFormsModule, IconComponent, LocalityAutocompleteComponent],
   templateUrl: './quick-need-form.component.html',
   styleUrl: './quick-need-form.component.scss',
 })
@@ -58,6 +62,10 @@ export class QuickNeedFormComponent implements OnInit {
 
   close(): void {
     this.closed.emit();
+  }
+
+  onLocalitySelected(selection: LocalitySelection): void {
+    this.form.patchValue({ locality: selection.locality });
   }
 
   submit(): void {

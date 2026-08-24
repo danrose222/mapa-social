@@ -62,7 +62,11 @@
 
         <div class="field">
           <label for="qnf-locality">Tu localidad (opcional, mejora a quién le llega)</label>
-          <input id="qnf-locality" type="text" formControlName="locality" />
+          <app-locality-autocomplete
+            id="qnf-locality"
+            [initialValue]="defaultLocality ?? ''"
+            (localitySelected)="onLocalitySelected($event)"
+          />
         </div>
 
         <button type="submit" class="btn btn--block" [disabled]="isSubmitting()">

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subject, catchError, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
@@ -24,16 +24,28 @@ function normalizeForCompare(value: string): string {
   templateUrl: './locality-autocomplete.component.html',
   styleUrl: './locality-autocomplete.component.scss',
 })
-export class LocalityAutocompleteComponent {
+export class LocalityAutocompleteComponent implements OnInit {
   private readonly georefService = inject(GeorefService);
 
   // Se reenvía al <input> interno para que un <label for="..."> del
   // padre lo pueda enfocar -- sin esto el label queda apuntando a nada.
   @Input() id = '';
 
+  // Para cuando el padre ya conoce una localidad de partida (ej: la
+  // búsqueda actual del mapa, o la geolocalización) -- precarga el texto
+  // sin forzar a retipearla, pero sigue siendo editable/buscable como
+  // cualquier otro valor.
+  @Input() initialValue = '';
+
   @Output() readonly localitySelected = new EventEmitter<LocalitySelection>();
 
   queryText = '';
+
+  ngOnInit(): void {
+    if (this.initialValue) {
+      this.queryText = this.initialValue;
+    }
+  }
   readonly results = signal<GeorefLocality[]>([]);
   readonly isSearching = signal(false);
   readonly isOpen = signal(false);
