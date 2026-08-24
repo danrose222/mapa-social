@@ -40,19 +40,21 @@
         @if (isUserMenuOpen()) {
           <div class="shell-header__dropdown-menu">
             <a routerLink="/mis-publicaciones" routerLinkActive="is-active" (click)="closeMenu()">
-              Mis publicaciones
+              {{ belongsToOrganization() ? 'Mis publicaciones' : 'Mis necesidades' }}
             </a>
 
             <a routerLink="/mis-solicitudes" routerLinkActive="is-active" (click)="closeMenu()">
               Mis solicitudes
             </a>
-
-            <a routerLink="/organizacion/mi-organizacion" routerLinkActive="is-active" (click)="closeMenu()">
-              Mi organización
-            </a>
           </div>
         }
       </div>
+    }
+
+    @if (currentUser()) {
+      <a routerLink="/organizacion/mi-organizacion" routerLinkActive="is-active" (click)="closeMenu()">
+        Mi organización
+      </a>
     }
 
     @if (isModerator()) {

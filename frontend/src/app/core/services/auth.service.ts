@@ -73,6 +73,21 @@ export class AuthService {
     return this.currentUserSignal()?.role === 'moderador';
   });
 
+  // Distingue al "Usuario Común" (vecino/donante) de quien tiene un rol
+  // organizacional -- separa las acciones personales ("Mi espacio") de las
+  // institucionales en el nav. Mismo patrón de fallback que isModerator:
+  // profile() es la fuente fresca, pero recién resuelve async, así que sin
+  // ella cae al organizationType liviano que ya trae el login.
+  readonly belongsToOrganization = computed(() => {
+    const profile = this.profileSignal();
+
+    if (profile) {
+      return profile.organization != null;
+    }
+
+    return this.currentUserSignal()?.organizationType != null;
+  });
+
   // Explica EN QUÉ CONDICIÓN puede (o no puede) publicar -- para mostrarlo
   // en la UI en vez de un simple sí/no.
   readonly resourcePublishReason = computed(() => {
