@@ -73,7 +73,10 @@
 
         <div class="field">
           <label>Ubicación</label>
-          <app-location-picker (locationSelected)="onLocationSelected($event)" />
+          <app-location-picker
+            (locationSelected)="onLocationSelected($event)"
+            hint="El mapa se ubica solo con la localidad de tu organización. Tocalo si querés precisar el punto exacto."
+          />
         </div>
 
         <div class="recurso__row">
@@ -90,11 +93,11 @@
 
           <div class="field">
             <label for="res-address">Referencia de dirección (opcional)</label>
-            <input
+            <app-address-autocomplete
               id="res-address"
-              type="text"
-              formControlName="address"
-              (keydown.enter)="$event.preventDefault()"
+              [locality]="organizationCiudad()"
+              (textChange)="onAddressTextChanged($event)"
+              (addressSelected)="onAddressSelected($event)"
             />
           </div>
         </div>
