@@ -700,8 +700,8 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     this.privacyNotice.set(null);
   }
 
-  goToLogin(): void {
-    this.router.navigateByUrl('/entrar');
+  goToLogin(volver = 'mapa'): void {
+    this.router.navigate(['/entrar'], { queryParams: { volver } });
   }
 
   // Publicar una necesidad privada requiere estar logueado (mismo modelo
@@ -735,25 +735,63 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     this.showQuickNeedForm.set(false);
   }
 
-  private onPopupOpen(event: L.PopupEvent): void {
-    const el = event.popup.getElement();
-    const button = el?.querySelector<HTMLButtonElement>(
-      '[data-collab-resource-id]',
-    );
-    if (!button) {
+  // "Solicitar este recurso" desde el popup (modo ?type=need): a
+  // diferencia de "Quiero Colaborar", esto sí exige cuenta -- pedís que
+  // una organización te contacte, así que necesitamos poder identificarte.
+  // Reusa el mismo formulario de necesidad privada (categoría +
+  // descripción + urgencia) que ya garantiza que nunca queda pública,
+  // precargando la categoría del recurso puntual desde el que se pidió.
+  solicitarRecurso(resourceId: number): void {
+    const resource = this.allResources().find((r) => r.id === resourceId);
+    if (!resource) {
       return;
     }
 
-    const resourceId = Number(button.dataset['collabResourceId']);
+    if (!this.isAuthenticated()) {
+      this.goToLogin('mapa?type=need');
+      return;
+    }
 
-    L.DomEvent.on(button, 'click', (domEvent: Event) => {
-      L.DomEvent.stop(domEvent);
-      const resource = this.allResources().find((r) => r.id === resourceId);
-      if (resource) {
-        this.collaborateResource.set(resource);
-        this.map?.closePopup();
-      }
-    });
+    this.quickNeedLat.set(resource.latitude);
+    this.quickNeedLng.set(resource.longitude);
+    this.quickNeedCategoryId.set(resource.categoryId);
+    this.quickNeedLocality.set(this.territoryFilter());
+
+    this.showQuickNeedForm.set(true);
+    this.map?.closePopup();
+  }
+
+  private onPopupOpen(event: L.PopupEvent): void {
+    const el = event.popup.getElement();
+    if (!el) {
+      return;
+    }
+
+    const collabButton = el.querySelector<HTMLButtonElement>(
+      '[data-collab-resource-id]',
+    );
+    if (collabButton) {
+      const resourceId = Number(collabButton.dataset['collabResourceId']);
+      L.DomEvent.on(collabButton, 'click', (domEvent: Event) => {
+        L.DomEvent.stop(domEvent);
+        const resource = this.allResources().find((r) => r.id === resourceId);
+        if (resource) {
+          this.collaborateResource.set(resource);
+          this.map?.closePopup();
+        }
+      });
+    }
+
+    const solicitarButton = el.querySelector<HTMLButtonElement>(
+      '[data-solicitar-resource-id]',
+    );
+    if (solicitarButton) {
+      const resourceId = Number(solicitarButton.dataset['solicitarResourceId']);
+      L.DomEvent.on(solicitarButton, 'click', (domEvent: Event) => {
+        L.DomEvent.stop(domEvent);
+        this.solicitarRecurso(resourceId);
+      });
+    }
   }
 
   closeCollaborateModal(): void {
@@ -899,11 +937,18 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       }
     }
 
-    // Solo tiene sentido "colaborar con la organización" si el recurso
-    // pertenece a una -- el de un individuo no tiene con quién.
-    const collabHtml = resource.organizationId
-      ? `<button type="button" class="v2map-popup__collab-btn" ` +
-        `data-collab-resource-id="${resource.id}">🤝 Quiero Colaborar</button>`
+    // Botón contextual según por qué puerta entró al mapa (?type=need vs.
+    // el resto): "pedir" y "dar" son intenciones distintas, así que solo
+    // se muestra UNA de las dos, nunca ambas -- mismo estilo visual para
+    // las dos (v2map-popup__collab-btn), esto es solo texto/acción.
+    // Solo tiene sentido con una organización detrás -- el recurso de un
+    // individuo no tiene a quién pedirle ni con quién colaborar.
+    const actionHtml = resource.organizationId
+      ? this.needEntryMode
+        ? `<button type="button" class="v2map-popup__collab-btn" ` +
+          `data-solicitar-resource-id="${resource.id}">🤝 Solicitar este recurso</button>`
+        : `<button type="button" class="v2map-popup__collab-btn" ` +
+          `data-collab-resource-id="${resource.id}">❤️ Quiero Colaborar</button>`
       : '';
 
     return `
@@ -914,7 +959,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
         <p class="v2map-popup__desc">${description}</p>
         ${scheduleHtml}
         ${contactHtml}
-        ${collabHtml}
+        ${actionHtml}
       </div>
     `;
   }
