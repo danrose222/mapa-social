@@ -345,11 +345,10 @@ export class UsersService {
   }
 
   // Cualquier cuenta común puede pedir convertirse en moderador de una
-  // localidad -- sigue funcionando como ciudadano normal mientras se
-  // revisa, no queda bloqueada. La aprobación humana (ver
-  // approveModeratorRequest) es la única verificación real: no hay forma
-  // de confirmar por software que quien completa esto es de verdad un
-  // representante municipal.
+  // localidad -- sigue funcionando como ciudadano normal mientras tanto,
+  // no queda bloqueada. No hay revisión humana: confirmar el link enviado
+  // a officialEmail (ver mail.service.ts) es la única prueba real de que
+  // quien pide esto controla ese canal institucional.
   async requestModerator(dto: CreateModeratorRequestDto, currentUser: AuthUser) {
     if (currentUser.role === 'moderador') {
       throw new ForbiddenException('Ya sos moderador');
@@ -363,6 +362,14 @@ export class UsersService {
       throw new ConflictException('Ya tenés una solicitud pendiente');
     }
 
+    const user = await this.userRepository.findOne({ where: { id: currentUser.id } });
+
+    if (!user) {
+      throw new NotFoundException('Usuario inexistente');
+    }
+
+    const verificationToken = randomUUID();
+
     const request = this.moderatorRequestRepository.create({
       userId: currentUser.id,
       locality: dto.locality.trim(),
@@ -372,42 +379,41 @@ export class UsersService {
       officialEmail: dto.officialEmail.trim(),
       officialPhone: dto.officialPhone.trim(),
       justification: dto.justification?.trim(),
+      verificationToken,
+      verificationExpiresAt: new Date(
+        Date.now() + VERIFICATION_TOKEN_TTL_HOURS * 60 * 60 * 1000,
+      ),
     });
 
-    return this.moderatorRequestRepository.save(request);
+    const saved = await this.moderatorRequestRepository.save(request);
+
+    await this.mailService.sendModeratorVerificationEmail(
+      saved.officialEmail,
+      user.firstName,
+      saved.institutionName,
+      saved.locality,
+      verificationToken,
+    );
+
+    return saved;
   }
 
-  // Sin scoping por localidad acá -- mismo criterio que organizations
-  // .service.ts::findAll(), el filtro por jurisdicción lo aplica el
-  // frontend con localitiesMatch() para decidir qué mostrar, y
-  // approve/reject lo vuelven a validar server-side antes de actuar.
-  findModeratorRequests() {
-    return this.moderatorRequestRepository.find({
-      relations: ['user'],
-      order: { createdAt: 'ASC' },
-    });
-  }
-
-  private async findModeratorRequestOrFail(id: number): Promise<ModeratorRequest> {
+  // Dispara desde el link del email institucional (ver
+  // mail.service.ts::sendModeratorVerificationEmail) -- público a
+  // propósito, como verifyEmail(), no requiere estar logueado con la
+  // sesión que hizo el pedido.
+  async verifyModeratorRequest(token: string) {
     const request = await this.moderatorRequestRepository.findOne({
-      where: { id },
+      where: { verificationToken: token },
     });
 
     if (!request) {
-      throw new NotFoundException('Solicitud inexistente');
+      throw new NotFoundException('Token inválido');
     }
 
-    return request;
-  }
-
-  async approveModeratorRequest(id: number, currentUser: AuthUser) {
-    if (currentUser.role !== 'moderador') {
-      throw new ForbiddenException('Solo un moderador puede aprobar esta solicitud');
+    if (request.verificationExpiresAt.getTime() < Date.now()) {
+      throw new ForbiddenException('El enlace venció -- volvé a pedir el aval municipal.');
     }
-
-    const request = await this.findModeratorRequestOrFail(id);
-
-    await this.assertCallerHasLocality(request.locality, currentUser);
 
     const moderatorRole = await this.roleRepository.findOne({
       where: { name: 'moderador' },
@@ -433,22 +439,10 @@ export class UsersService {
       );
     }
 
-    await this.moderatorRequestRepository.remove(request);
-
-    return { message: 'Solicitud aprobada' };
-  }
-
-  async rejectModeratorRequest(id: number, currentUser: AuthUser) {
-    if (currentUser.role !== 'moderador') {
-      throw new ForbiddenException('Solo un moderador puede rechazar esta solicitud');
-    }
-
-    const request = await this.findModeratorRequestOrFail(id);
-
-    await this.assertCallerHasLocality(request.locality, currentUser);
+    const locality = request.locality;
 
     await this.moderatorRequestRepository.remove(request);
 
-    return { message: 'Solicitud rechazada' };
+    return { message: 'Cuenta convertida en moderador', locality };
   }
 }

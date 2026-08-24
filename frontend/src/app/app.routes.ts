@@ -27,6 +27,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'verificar-moderador',
+        loadComponent: () =>
+          import('./pages/verificar-moderador/verificar-moderador.component').then(
+            (m) => m.VerificarModeradorComponent,
+          ),
+      },
+      {
         path: 'publicar',
         loadComponent: () =>
           import('./pages/publicar/publicar-choice.component').then(

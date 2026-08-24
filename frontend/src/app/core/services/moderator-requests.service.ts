@@ -16,12 +16,11 @@ export interface ModeratorRequestRecord extends CreateModeratorRequestPayload {
   id: number;
   userId: number;
   createdAt: string;
-  user: {
-    id: number;
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
+}
+
+export interface VerifyModeratorRequestResult {
+  message: string;
+  locality: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -37,18 +36,10 @@ export class ModeratorRequestsService {
     );
   }
 
-  getAll(): Observable<ModeratorRequestRecord[]> {
-    return this.http.get<ModeratorRequestRecord[]>(`${this.apiUrl}/moderator-requests`);
-  }
-
-  approve(id: number): Observable<{ message: string }> {
-    return this.http.patch<{ message: string }>(
-      `${this.apiUrl}/moderator-requests/${id}/approve`,
-      {},
+  verify(token: string): Observable<VerifyModeratorRequestResult> {
+    return this.http.post<VerifyModeratorRequestResult>(
+      `${this.apiUrl}/moderator-requests/verify`,
+      { token },
     );
-  }
-
-  reject(id: number): Observable<{ message: string }> {
-    return this.http.delete<{ message: string }>(`${this.apiUrl}/moderator-requests/${id}`);
   }
 }

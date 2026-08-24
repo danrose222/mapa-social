@@ -75,7 +75,7 @@ export class SolicitarModeradorComponent {
           this.isSubmitting.set(false);
           this.errorMessage.set(
             error.status === 409
-              ? 'Ya tenés una solicitud pendiente -- un moderador la va a revisar.'
+              ? 'Ya tenés una solicitud pendiente -- revisá tu email institucional para confirmarla.'
               : error.status === 403
                 ? (error.error?.message ?? 'No se pudo enviar la solicitud.')
                 : 'No se pudo enviar la solicitud. Intentá de nuevo más tarde.',

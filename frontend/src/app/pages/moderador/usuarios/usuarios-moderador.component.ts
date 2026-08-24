@@ -5,12 +5,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ManagedUser, UsersService } from '../../../core/services/users.service';
 import { RolesService } from '../../../core/services/roles.service';
 import { ModeratorLocalitiesService } from '../../../core/services/moderator-localities.service';
-import {
-  ModeratorRequestRecord,
-  ModeratorRequestsService,
-} from '../../../core/services/moderator-requests.service';
 import { normalizeText } from '../../../shared/utils/normalize-text.util';
-import { localitiesMatch } from '../../../shared/utils/locality-match.util';
 
 @Component({
   selector: 'app-usuarios-moderador',
@@ -24,16 +19,13 @@ export class UsuariosModeradorComponent {
   private readonly usersService = inject(UsersService);
   private readonly rolesService = inject(RolesService);
   private readonly moderatorLocalitiesService = inject(ModeratorLocalitiesService);
-  private readonly moderatorRequestsService = inject(ModeratorRequestsService);
 
   readonly isLoading = signal(true);
   readonly loadError = signal(false);
   readonly allUsers = signal<ManagedUser[]>([]);
-  readonly allRequests = signal<ModeratorRequestRecord[]>([]);
   readonly searchTerm = signal('');
   readonly actionError = signal('');
   readonly processingId = signal<number | null>(null);
-  readonly processingRequestId = signal<number | null>(null);
 
   // roleId de 'moderador' resuelto contra /roles en vez de hardcodearlo --
   // en el seed es 2, pero no hay ninguna garantía de que lo siga siendo.
@@ -44,18 +36,6 @@ export class UsuariosModeradorComponent {
   private readonly selectedLocality = signal<Record<number, string>>({});
 
   readonly myLocalities = computed(() => this.authService.profile()?.localities ?? []);
-
-  private readonly myLocalityNames = computed(() => this.myLocalities().map((l) => l.locality));
-
-  // Mismo criterio que organizaciones-moderador.component.ts: solo se
-  // muestran los pedidos de una localidad que este moderador ya tiene
-  // asignada -- el backend igual lo vuelve a validar en approve/reject,
-  // esto es nomás para no mostrar algo que después va a rebotar con 403.
-  readonly pendingRequests = computed(() =>
-    this.allRequests().filter((r) =>
-      this.myLocalityNames().some((mine) => localitiesMatch(mine, r.locality)),
-    ),
-  );
 
   private readonly currentUserId = computed(() => this.authService.currentUser()?.id ?? null);
 
@@ -90,19 +70,16 @@ export class UsuariosModeradorComponent {
     this.isLoading.set(true);
     this.loadError.set(false);
 
-    Promise.all([
-      this.usersService.getAll().toPromise(),
-      this.moderatorRequestsService.getAll().toPromise(),
-    ])
-      .then(([users, requests]) => {
-        this.allUsers.set(users ?? []);
-        this.allRequests.set(requests ?? []);
+    this.usersService.getAll().subscribe({
+      next: (users) => {
+        this.allUsers.set(users);
         this.isLoading.set(false);
-      })
-      .catch(() => {
+      },
+      error: () => {
         this.isLoading.set(false);
         this.loadError.set(true);
-      });
+      },
+    });
   }
 
   onSearchChange(value: string): void {
@@ -198,58 +175,6 @@ export class UsuariosModeradorComponent {
         this.processingId.set(null);
         this.actionError.set(
           err?.error?.message ?? 'No se pudo quitar la localidad. Intentá de nuevo.',
-        );
-      },
-    });
-  }
-
-  approveRequest(request: ModeratorRequestRecord): void {
-    const confirmed = confirm(
-      `¿Aprobar a "${request.user.firstName} ${request.user.lastName}" como moderador de "${request.locality}"?`,
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    this.processingRequestId.set(request.id);
-    this.actionError.set('');
-
-    this.moderatorRequestsService.approve(request.id).subscribe({
-      next: () => {
-        this.processingRequestId.set(null);
-        this.load();
-      },
-      error: (err) => {
-        this.processingRequestId.set(null);
-        this.actionError.set(
-          err?.error?.message ?? 'No se pudo aprobar la solicitud. Intentá de nuevo.',
-        );
-      },
-    });
-  }
-
-  rejectRequest(request: ModeratorRequestRecord): void {
-    const confirmed = confirm(
-      `¿Rechazar la solicitud de "${request.user.firstName} ${request.user.lastName}"? Esto la elimina -- no queda como "rechazada".`,
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    this.processingRequestId.set(request.id);
-    this.actionError.set('');
-
-    this.moderatorRequestsService.reject(request.id).subscribe({
-      next: () => {
-        this.processingRequestId.set(null);
-        this.load();
-      },
-      error: (err) => {
-        this.processingRequestId.set(null);
-        this.actionError.set(
-          err?.error?.message ?? 'No se pudo rechazar la solicitud. Intentá de nuevo.',
         );
       },
     });

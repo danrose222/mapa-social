@@ -91,44 +91,6 @@
   }
 }
 
-.mod-users__request {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px 18px;
-  margin-bottom: 10px;
-}
-
-.mod-users__justification {
-  margin: 4px 0 0;
-  color: var(--ink-soft);
-  font-size: 0.82rem;
-  line-height: 1.5;
-}
-
-.mod-users__request-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.mod-users__reject {
-  color: var(--danger);
-  border-color: var(--danger);
-}
-
-@media (min-width: 560px) {
-  .mod-users__request {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
-  }
-
-  .mod-users__request-actions {
-    flex: 0 0 auto;
-    flex-direction: column;
-  }
-}
-
 .mod-users__list {
   display: flex;
   flex-direction: column;

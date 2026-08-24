@@ -10,12 +10,14 @@ import {
 import { User } from './user.entity';
 
 // Pedido de una cuenta común para convertirse en moderador ("aval
-// municipal") de una localidad. No tiene columna de estado: aprobar borra
-// la fila (y promueve la cuenta), rechazar también la borra -- mismo
-// criterio que ya usa organizations.service.ts para el aval de
-// organizaciones ("no queda como 'rechazada', queda borrada del todo").
-// La restricción UNIQUE en user_id (ver la migración) evita que una misma
-// cuenta tenga más de un pedido pendiente a la vez.
+// municipal") de una localidad. Se aprueba solo -- no hay revisión humana
+// de por medio, sino que confirmar el link enviado a officialEmail es la
+// única prueba real de que quien pide esto controla ese canal (el resto de
+// los datos son autodeclarados, sin forma de verificarlos por software).
+// No tiene columna de estado: confirmar el token borra la fila (y
+// promueve la cuenta), igual que un pedido vencido nunca confirmado queda
+// simplemente sin usar. La restricción UNIQUE en user_id (ver la
+// migración) evita que una misma cuenta tenga más de un pedido a la vez.
 @Entity('moderator_requests')
 export class ModeratorRequest {
   @PrimaryGeneratedColumn()
@@ -50,6 +52,12 @@ export class ModeratorRequest {
 
   @Column({ type: 'text', nullable: true })
   justification?: string;
+
+  @Column({ name: 'verification_token', length: 255 })
+  verificationToken!: string;
+
+  @Column({ name: 'verification_expires_at' })
+  verificationExpiresAt!: Date;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
