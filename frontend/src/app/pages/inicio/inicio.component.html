@@ -22,7 +22,7 @@
           Necesito Ayuda
         </a>
 
-        <a routerLink="/publicar/quiero-ayudar" class="btn btn--cta-donar">
+        <a routerLink="/mapa" [queryParams]="{ type: 'help' }" class="btn btn--cta-donar">
           <app-icon name="helpingHand" [size]="18" />
           Quiero Ayudar / Donar
         </a>

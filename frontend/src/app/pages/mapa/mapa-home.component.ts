@@ -59,19 +59,23 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   readonly isAuthenticated = computed(() => this.authService.currentUser() !== null);
   readonly privacyNotice = signal<string | null>(null);
 
-  // "Necesito Ayuda" del hero de la Landing manda acá con ?type=need: hay
-  // que ver el mapa (recursos disponibles) ANTES de pedir cuenta -- el
-  // login solo entra en juego si de verdad hace click en publicar. Ver
-  // openQuickNeedForm(), que ya redirige a login recién ahí.
-  readonly needEntryMode = this.route.snapshot.queryParamMap.get('type') === 'need';
+  // Los dos CTA del hero de la Landing mandan acá con ?type=need o
+  // ?type=help: en ambos casos hay que ver el mapa (recursos disponibles)
+  // ANTES de pedir cuenta -- el login solo entra en juego recién si hace
+  // click en una acción puntual (publicar, o "Quiero Colaborar" en el
+  // popup de un recurso, que ni siquiera pide cuenta).
+  private readonly entryType = this.route.snapshot.queryParamMap.get('type');
+  readonly needEntryMode = this.entryType === 'need';
 
   // Sin sesión arranca en 'recursos' (las necesidades no se ocultan del
   // todo, pero no son la vista por defecto sin login); llegar con
-  // ?type=need fuerza 'recursos' también para quien ya tiene sesión --
-  // el punto de esa entrada es ver qué recursos hay disponibles, no las
-  // necesidades de otros.
+  // ?type=need o ?type=help fuerza 'recursos' también para quien ya tiene
+  // sesión -- el punto de ambas entradas es ver qué recursos hay
+  // disponibles, no las necesidades de otros.
   readonly kindFilter = signal<FilterKind>(
-    this.needEntryMode || !this.authService.currentUser() ? 'recursos' : 'todos',
+    this.entryType === 'need' || this.entryType === 'help' || !this.authService.currentUser()
+      ? 'recursos'
+      : 'todos',
   );
   readonly categoryFilter = signal<Set<number>>(new Set());
   readonly searchTerm = signal('');
