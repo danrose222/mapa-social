@@ -153,7 +153,9 @@ export class DetalleSolicitudComponent {
         this.solicitudError.set(
           error.status === 400
             ? 'Esta necesidad ya no está activa.'
-            : 'No se pudo enviar. Intentá de nuevo.',
+            : error.status === 403
+              ? (error.error?.message ?? 'No podés ofrecerte a ayudar en este momento.')
+              : 'No se pudo enviar. Intentá de nuevo.',
         );
       },
     });

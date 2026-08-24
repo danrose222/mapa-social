@@ -20,6 +20,13 @@ export const routes: Routes = [
           import('./pages/mapa/mapa-home.component').then((m) => m.MapaHomeComponent),
       },
       {
+        path: 'verificar-email',
+        loadComponent: () =>
+          import('./pages/verificar-email/verificar-email.component').then(
+            (m) => m.VerificarEmailComponent,
+          ),
+      },
+      {
         path: 'publicar',
         loadComponent: () =>
           import('./pages/publicar/publicar-choice.component').then(

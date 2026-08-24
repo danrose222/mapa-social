@@ -124,6 +124,19 @@
   </button>
 </header>
 
+@if (currentUser() && !emailVerified()) {
+  <div class="shell-verify-banner">
+    @if (verificationResent()) {
+      <span>Te reenviamos el correo. Revisá tu casilla.</span>
+    } @else {
+      <span>Confirmá tu email para poder publicar o enviar solicitudes.</span>
+      <button type="button" (click)="resendVerification()" [disabled]="isResendingVerification()">
+        {{ isResendingVerification() ? 'Enviando…' : 'Reenviar correo' }}
+      </button>
+    }
+  </div>
+}
+
 <main class="shell-main">
   <router-outlet />
 </main>

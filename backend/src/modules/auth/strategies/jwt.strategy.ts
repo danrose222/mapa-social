@@ -50,6 +50,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       // (Comunidad/ONG) sin sumar un rol nuevo en la tabla roles ni tocar
       // los guards @Roles('moderador') existentes.
       organizationType: user.organization?.type ?? null,
+      emailVerified: user.emailVerified,
     };
   }
 }

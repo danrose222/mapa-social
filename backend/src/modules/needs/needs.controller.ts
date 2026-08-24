@@ -27,6 +27,7 @@ import { CreatePrivateNeedDto } from './dto/create-private-need.dto';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
+import { EmailVerifiedGuard } from '../auth/guards/email-verified.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 interface AuthUser {
@@ -44,11 +45,12 @@ export class NeedsController {
   ) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Publicar una necesidad (requiere estar logueado)' })
+  @ApiOperation({ summary: 'Publicar una necesidad (requiere estar logueado y con el email confirmado)' })
   @ApiResponse({ status: 201, description: 'Necesidad creada' })
   @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({ status: 403, description: 'El email de la cuenta todavía no fue confirmado' })
   @ApiResponse({ status: 404, description: 'Categoría inexistente' })
   create(@Body() dto: CreateNeedDto, @CurrentUser() user: AuthUser) {
     return this.service.create(user.id, dto);

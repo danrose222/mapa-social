@@ -1,0 +1,22 @@
+<div class="confirm">
+  <div class="card confirm__card">
+    @if (state() === 'checking') {
+      <span class="confirm__icon" aria-hidden="true">…</span>
+      <h1>Verificando tu cuenta…</h1>
+    } @else if (state() === 'success') {
+      <span class="confirm__icon" aria-hidden="true">✓</span>
+      <h1>¡Cuenta confirmada!</h1>
+      <p>Ya podés publicar necesidades, recursos y enviar solicitudes.</p>
+      @if (currentUser()) {
+        <a routerLink="/mapa" class="btn">Ir al mapa</a>
+      } @else {
+        <a routerLink="/entrar" class="btn">Iniciar sesión</a>
+      }
+    } @else {
+      <span class="confirm__icon confirm__icon--error" aria-hidden="true">✕</span>
+      <h1>No pudimos verificar tu cuenta</h1>
+      <p>{{ errorMessage() }}</p>
+      <a routerLink="/mapa" class="btn btn--ghost">Volver al mapa</a>
+    }
+  </div>
+</div>

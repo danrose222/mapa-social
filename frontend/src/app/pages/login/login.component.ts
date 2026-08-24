@@ -32,6 +32,8 @@ export class LoginComponent {
     return volver ? `/${volver}` : '/';
   });
 
+  readonly justRegistered = computed(() => this.queryParams()?.get('registrado') === 'true');
+
   readonly isSubmitting = signal(false);
   readonly errorMessage = signal('');
 

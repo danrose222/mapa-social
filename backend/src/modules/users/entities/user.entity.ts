@@ -71,6 +71,29 @@ export class User extends BaseEntity {
   })
   ciudad?: string;
 
+  @Column({
+    name: 'email_verified',
+    default: true,
+  })
+  emailVerified!: boolean;
+
+  @Exclude()
+  @Column({
+    name: 'email_verification_token',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  emailVerificationToken?: string | null;
+
+  @Exclude()
+  @Column({
+    name: 'email_verification_expires_at',
+    type: 'timestamp',
+    nullable: true,
+  })
+  emailVerificationExpiresAt?: Date | null;
+
   @ManyToOne(() => Role, (role) => role.users)
   @JoinColumn({
     name: 'role_id',

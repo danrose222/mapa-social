@@ -14,6 +14,7 @@ import { SolicitudesService } from './solicitudes.service';
 import { CreateSolicitudDto } from './dto/create-solicitud.dto';
 import { UpdateSolicitudDto } from './dto/update-solicitud.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { EmailVerifiedGuard } from '../auth/guards/email-verified.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 interface AuthUser {
@@ -27,7 +28,7 @@ export class SolicitudesController {
   constructor(private readonly service: SolicitudesService) {}
 
   @Post(':id/solicitudes')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Ofrecerse a ayudar con una necesidad (no podés ofrecerte a la tuya propia)',
@@ -35,7 +36,7 @@ export class SolicitudesController {
   @ApiResponse({ status: 201, description: 'Solicitud creada (o la pendiente existente)' })
   @ApiResponse({ status: 400, description: 'La necesidad ya no está activa' })
   @ApiResponse({ status: 401, description: 'No autenticado' })
-  @ApiResponse({ status: 403, description: 'Es tu propia necesidad' })
+  @ApiResponse({ status: 403, description: 'Es tu propia necesidad, o el email de la cuenta todavía no fue confirmado' })
   @ApiResponse({ status: 404, description: 'Necesidad inexistente' })
   create(
     @Param('id', ParseIntPipe) needId: number,

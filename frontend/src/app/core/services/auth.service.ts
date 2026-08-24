@@ -31,6 +31,7 @@ export interface UserProfile {
   email: string;
   phone?: string | null;
   ciudad?: string | null;
+  emailVerified: boolean;
   role: { id: number; name: string };
   organization?: { id: number; name: string; type: OrganizationType; verified: boolean } | null;
   localities?: { id: number; locality: string; provincia?: string }[];
@@ -51,11 +52,14 @@ export class AuthService {
   readonly profile = this.profileSignal.asReadonly();
   readonly profileLoaded = this.profileLoadedSignal.asReadonly();
 
-  // true si es moderador, o si pertenece a una organización ya avalada.
+  // true si es moderador, o si pertenece a una organización ya avalada --
+  // en cualquier caso, con el email confirmado (ver emailVerified más
+  // abajo): sin esto alcanzaba con avalar la organización para publicar,
+  // aunque la cuenta que la representa nunca haya confirmado su email.
   readonly canPublishResource = computed(() => {
     const profile = this.profileSignal();
 
-    if (!profile) {
+    if (!profile || !profile.emailVerified) {
       return false;
     }
 
@@ -63,6 +67,11 @@ export class AuthService {
 
     return isModerator || profile.organization?.verified === true;
   });
+
+  // Perfil sin cargar todavía => no bloqueamos en falso mientras se
+  // resuelve (evita un parpadeo de "cartel bloqueado" antes de que llegue
+  // la respuesta real de /users/me).
+  readonly emailVerified = computed(() => this.profileSignal()?.emailVerified ?? true);
 
   readonly isModerator = computed(() => {
     const profile = this.profileSignal();
@@ -96,6 +105,10 @@ export class AuthService {
 
     if (!profile) {
       return null;
+    }
+
+    if (!profile.emailVerified) {
+      return 'Confirmá tu email para poder publicar. Revisá tu casilla de correo.';
     }
 
     if (profile.role.name === 'moderador') {
@@ -154,6 +167,14 @@ export class AuthService {
     ciudad?: string;
   }): Observable<unknown> {
     return this.http.post('/api/users', payload);
+  }
+
+  verifyEmail(token: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>('/api/users/verify-email', { token });
+  }
+
+  resendVerification(): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>('/api/users/resend-verification', {});
   }
 
   logout(): void {

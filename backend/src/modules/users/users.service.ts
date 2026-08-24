@@ -8,6 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { Repository } from 'typeorm';
+import { randomUUID } from 'crypto';
 
 import { User } from './entities/user.entity';
 import { ModeratorLocality } from './entities/moderator-locality.entity';
@@ -17,6 +18,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AddModeratorLocalityDto } from './dto/add-moderator-locality.dto';
 import { localitiesMatch } from '../../common/utils/locality-match.util';
+import { MailService } from '../mail/mail.service';
 
 interface AuthUser {
   id: number;
@@ -24,6 +26,7 @@ interface AuthUser {
 }
 
 const DEFAULT_ROLE_NAME = 'seed-role';
+const VERIFICATION_TOKEN_TTL_HOURS = 48;
 
 @Injectable()
 export class UsersService {
@@ -36,6 +39,8 @@ export class UsersService {
 
     @InjectRepository(ModeratorLocality)
     private readonly localityRepository: Repository<ModeratorLocality>,
+
+    private readonly mailService: MailService,
   ) {}
 
   async create(dto: CreateUserDto) {
@@ -67,12 +72,83 @@ export class UsersService {
       );
     }
 
+    const emailVerificationToken = randomUUID();
+
     const user = this.userRepository.create({
       ...dto,
       roleId: defaultRole.id,
+      // Cualquier cuenta nueva (común, ONG o comunidad -- no hay
+      // distinción acá, el rol por defecto es el mismo para todas) arranca
+      // sin verificar, pisando el DEFAULT true de la columna (pensado para
+      // no romper las cuentas ya existentes, ver migración 022).
+      emailVerified: false,
+      emailVerificationToken,
+      emailVerificationExpiresAt: new Date(
+        Date.now() + VERIFICATION_TOKEN_TTL_HOURS * 60 * 60 * 1000,
+      ),
     });
 
-    return this.userRepository.save(user);
+    const saved = await this.userRepository.save(user);
+
+    await this.mailService.sendVerificationEmail(
+      saved.email,
+      saved.firstName,
+      emailVerificationToken,
+    );
+
+    return saved;
+  }
+
+  async verifyEmail(token: string) {
+    const user = await this.userRepository.findOne({
+      where: { emailVerificationToken: token },
+    });
+
+    if (!user) {
+      throw new NotFoundException('El enlace de verificación no es válido.');
+    }
+
+    if (
+      !user.emailVerificationExpiresAt ||
+      user.emailVerificationExpiresAt.getTime() < Date.now()
+    ) {
+      throw new ForbiddenException(
+        'El enlace de verificación venció. Pedí que te reenvíen uno nuevo.',
+      );
+    }
+
+    user.emailVerified = true;
+    user.emailVerificationToken = null;
+    user.emailVerificationExpiresAt = null;
+
+    await this.userRepository.save(user);
+
+    return { message: 'Cuenta verificada.' };
+  }
+
+  async resendVerification(userId: number) {
+    const user = await this.findOne(userId);
+
+    if (user.emailVerified) {
+      return { message: 'Tu cuenta ya está verificada.' };
+    }
+
+    const emailVerificationToken = randomUUID();
+
+    await this.userRepository.update(userId, {
+      emailVerificationToken,
+      emailVerificationExpiresAt: new Date(
+        Date.now() + VERIFICATION_TOKEN_TTL_HOURS * 60 * 60 * 1000,
+      ),
+    });
+
+    await this.mailService.sendVerificationEmail(
+      user.email,
+      user.firstName,
+      emailVerificationToken,
+    );
+
+    return { message: 'Te reenviamos el correo de verificación.' };
   }
 
   findAll() {

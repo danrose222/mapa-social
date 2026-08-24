@@ -22,6 +22,7 @@ import { CreateResourceRequestDto } from './dto/create-resource-request.dto';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
+import { EmailVerifiedGuard } from '../auth/guards/email-verified.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { hideResourceContactUnlessAuthorized } from './resource-contact.util';
 
@@ -36,17 +37,18 @@ export class ResourcesController {
   constructor(private readonly service: ResourcesService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
   @ApiBearerAuth()
   @ApiOperation({
     summary:
-      'Publicar un recurso (solo moderador o usuario de una organización avalada)',
+      'Publicar un recurso (solo moderador o usuario de una organización avalada, con el email confirmado)',
   })
   @ApiResponse({ status: 201, description: 'Recurso creado' })
   @ApiResponse({ status: 401, description: 'No autenticado' })
   @ApiResponse({
     status: 403,
-    description: 'No es moderador ni pertenece a una organización avalada',
+    description:
+      'No es moderador ni pertenece a una organización avalada, o el email de la cuenta todavía no fue confirmado',
   })
   @ApiResponse({ status: 404, description: 'Categoría inexistente' })
   create(@Body() dto: CreateResourceDto, @CurrentUser() user: AuthUser) {
@@ -137,7 +139,7 @@ export class ResourcesController {
   }
 
   @Post(':id/request')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
   @ApiBearerAuth()
   @ApiOperation({
     summary:
@@ -145,6 +147,10 @@ export class ResourcesController {
   })
   @ApiResponse({ status: 201, description: 'Solicitud registrada' })
   @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({
+    status: 403,
+    description: 'El email de la cuenta todavía no fue confirmado',
+  })
   @ApiResponse({
     status: 404,
     description: 'Recurso inexistente o sin organización asociada',

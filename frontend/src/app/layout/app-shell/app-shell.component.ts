@@ -21,6 +21,10 @@ export class AppShellComponent {
   readonly currentUser = this.authService.currentUser;
   readonly isModerator = this.authService.isModerator;
   readonly belongsToOrganization = this.authService.belongsToOrganization;
+  readonly emailVerified = this.authService.emailVerified;
+
+  readonly isResendingVerification = signal(false);
+  readonly verificationResent = signal(false);
 
   readonly isMenuOpen = signal(false);
   readonly isUserMenuOpen = signal(false);
@@ -65,6 +69,23 @@ export class AppShellComponent {
         });
       });
     }
+  }
+
+  resendVerification(): void {
+    if (this.isResendingVerification()) {
+      return;
+    }
+
+    this.isResendingVerification.set(true);
+    this.authService.resendVerification().subscribe({
+      next: () => {
+        this.isResendingVerification.set(false);
+        this.verificationResent.set(true);
+      },
+      error: () => {
+        this.isResendingVerification.set(false);
+      },
+    });
   }
 
   toggleMenu(): void {

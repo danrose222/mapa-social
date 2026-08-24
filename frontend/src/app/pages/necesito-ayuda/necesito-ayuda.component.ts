@@ -191,7 +191,9 @@ export class NecesitoAyudaComponent {
           this.errorMessage.set(
             error.status === 401
               ? 'Tu sesión expiró. Iniciá sesión de nuevo.'
-              : 'No se pudo publicar la necesidad. Intentá de nuevo más tarde.',
+              : error.status === 403
+                ? (error.error?.message ?? 'No podés publicar en este momento.')
+                : 'No se pudo publicar la necesidad. Intentá de nuevo más tarde.',
           );
         },
       });
