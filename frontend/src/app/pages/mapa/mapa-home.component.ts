@@ -9,6 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject, debounceTime } from 'rxjs';
 import * as L from 'leaflet';
 
 import { AuthService } from '../../core/services/auth.service';
@@ -20,11 +21,19 @@ import { IconComponent } from '../../shared/icons/icon.component';
 import { QuickNeedFormComponent } from '../../shared/components/quick-need-form/quick-need-form.component';
 import { CollaborateModalComponent } from '../../shared/components/collaborate-modal/collaborate-modal.component';
 import { ResourceRequestModalComponent } from '../../shared/components/resource-request-modal/resource-request-modal.component';
+import { normalizeText } from '../../shared/utils/normalize-text.util';
 
 type FilterKind = 'todos' | 'necesidades' | 'recursos';
 type SearchMode = 'all' | 'locality' | 'radius';
 
 const TERRITORY_PAGE_SIZE = 10;
+// Cuando hay un término de búsqueda activo, se pide de una todo lo que
+// entre en el radio/localidad en vez de una sola página -- si no, el
+// buscador de texto solo filtraba entre las 10 necesidades ya cargadas de
+// la página actual, y algo que matcheaba pero vivía en otra página
+// (ej: por localidad) nunca aparecía aunque el texto fuera exacto. 100 es
+// el máximo que acepta SearchNeedsDto (@Max(100)) del lado del backend.
+const SEARCH_ALL_LIMIT = 100;
 const RADIUS_KM = 100;
 const DEFAULT_CENTER: [number, number] = [-31.4201, -64.1888];
 
@@ -85,6 +94,24 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   );
   readonly categoryFilter = signal<Set<number>>(new Set());
   readonly searchTerm = signal('');
+
+  // Debounce de la búsqueda de texto: cuando el modo de necesidades está
+  // paginado (radius/locality), cada cambio dispara un refetch con
+  // SEARCH_ALL_LIMIT en vez de la página chica -- ver el comentario de esa
+  // constante para el motivo.
+  private readonly searchTermChanges = new Subject<void>();
+
+  constructor() {
+    this.searchTermChanges.pipe(debounceTime(350)).subscribe(() => {
+      if (this.searchMode() === 'radius') {
+        this.territoryPage.set(1);
+        this.loadRadiusPage();
+      } else if (this.searchMode() === 'locality') {
+        this.territoryPage.set(1);
+        this.loadLocalityPage();
+      }
+    });
+  }
 
   // 'all' = sin acotar (default si no hay geolocalización ni ciudad).
   // 'locality' = un barrio elegido a mano en el selector (match exacto).
@@ -203,7 +230,10 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     },
   >(items: T[]): T[] {
     const categories = this.categoryFilter();
-    const term = this.searchTerm().trim().toLowerCase();
+    // Sin normalizar, "cordoba" (como lo tipea la mayoría) nunca matchea
+    // "Córdoba" guardado con tilde, ni "guemes" contra "Güemes" -- una
+    // comparación de string plana es sensible a acentos/diéresis.
+    const term = normalizeText(this.searchTerm());
 
     return items.filter((item) => {
       const matchesCategory =
@@ -214,11 +244,13 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       // ayuda" -> nombre de la categoría.
       const matchesTerm =
         term === '' ||
-        item.title.toLowerCase().includes(term) ||
-        item.description.toLowerCase().includes(term) ||
-        (item.address?.toLowerCase().includes(term) ?? false) ||
-        (item.locality?.toLowerCase().includes(term) ?? false) ||
-        (this.categoryName(item.categoryId)?.toLowerCase().includes(term) ?? false);
+        normalizeText(item.title).includes(term) ||
+        normalizeText(item.description).includes(term) ||
+        (item.address ? normalizeText(item.address).includes(term) : false) ||
+        (item.locality ? normalizeText(item.locality).includes(term) : false) ||
+        (this.categoryName(item.categoryId)
+          ? normalizeText(this.categoryName(item.categoryId)!).includes(term)
+          : false);
 
       return matchesCategory && matchesTerm;
     });
@@ -527,7 +559,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
         lng: center.lng,
         radius: RADIUS_KM,
         page: this.territoryPage(),
-        limit: TERRITORY_PAGE_SIZE,
+        limit: this.needsFetchLimit(),
       })
       .subscribe({
         next: (result) => {
@@ -560,7 +592,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       .searchNeeds({
         locality,
         page: this.territoryPage(),
-        limit: TERRITORY_PAGE_SIZE,
+        limit: this.needsFetchLimit(),
       })
       .subscribe({
         next: (result) => {
@@ -837,6 +869,15 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   onSearchChange(value: string): void {
     this.searchTerm.set(value);
     this.renderMarkers();
+    this.searchTermChanges.next();
+  }
+
+  // Mientras se busca texto, conviene traer de una todo lo que entre en
+  // el radio/localidad actual en vez de una sola página (ver
+  // SEARCH_ALL_LIMIT) -- sin término activo, se mantiene la paginación
+  // normal.
+  private needsFetchLimit(): number {
+    return this.searchTerm().trim() ? SEARCH_ALL_LIMIT : TERRITORY_PAGE_SIZE;
   }
 
   private renderMarkers(): void {

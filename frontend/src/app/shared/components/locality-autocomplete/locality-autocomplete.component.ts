@@ -3,18 +3,11 @@ import { FormsModule } from '@angular/forms';
 import { Subject, catchError, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
 import { GeorefLocality, GeorefService } from '../../../core/services/georef.service';
+import { normalizeText } from '../../utils/normalize-text.util';
 
 export interface LocalitySelection {
   locality: string;
   provincia: string;
-}
-
-// GeoRef normaliza tildes en su búsqueda (nombre=cordoba encuentra
-// "Córdoba"), pero una comparación de string plana no -- sin esto, un
-// usuario que tipea sin tildes (muy común) nunca matchea exacto contra
-// el nombre oficial, aunque la API sí lo haya resuelto bien.
-function normalizeForCompare(value: string): string {
-  return value.trim().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
 }
 
 @Component({
@@ -163,8 +156,8 @@ export class LocalityAutocompleteComponent implements OnInit {
   }
 
   private autoSelectExactMatch(typed: string, localities: GeorefLocality[]): void {
-    const term = normalizeForCompare(typed);
-    const exactMatches = localities.filter((l) => normalizeForCompare(l.nombre) === term);
+    const term = normalizeText(typed);
+    const exactMatches = localities.filter((l) => normalizeText(l.nombre) === term);
 
     if (exactMatches.length === 0) {
       return;
