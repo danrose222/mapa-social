@@ -35,8 +35,19 @@ export class AppShellComponent {
   readonly pendingOrgCount = signal(0);
 
   constructor() {
-    if (this.isModerator()) {
+    // El propio AuthService intenta refrescar el perfil una sola vez al
+    // construirse, pero no siempre llega a tiempo antes de que este shell
+    // (montado en la raíz de toda la app) lea belongsToOrganization()/
+    // isModerator() para decidir qué mostrar en el nav -- mismo problema ya
+    // parcheado en MiOrganizacionComponent y ResourceRequestModalComponent.
+    // Sin este refresco propio, "Mi espacio" vs "Panel Institucional" podía
+    // quedar mostrando el estado viejo hasta la próxima navegación.
+    if (this.currentUser()) {
       this.authService.refreshProfile().subscribe((profile) => {
+        if (!this.isModerator()) {
+          return;
+        }
+
         const myLocalities = (profile?.localities ?? []).map((l) => l.locality);
         if (myLocalities.length === 0) {
           return;

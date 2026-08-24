@@ -18,10 +18,33 @@
   }
 }
 
+.mi-org__header-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .mi-org__back {
   color: var(--ink-soft);
   font-size: 0.85rem;
   font-weight: 600;
+}
+
+.mi-org__personal-links {
+  display: flex;
+  gap: 14px;
+
+  a {
+    color: var(--ink-soft);
+    font-size: 0.8rem;
+    font-weight: 600;
+
+    &:hover {
+      color: var(--ink);
+    }
+  }
 }
 
 .mi-org__status {

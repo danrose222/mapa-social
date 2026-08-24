@@ -17,7 +17,7 @@
       Quiénes somos
     </a>
 
-    @if (currentUser()) {
+    @if (currentUser() && !belongsToOrganization()) {
       <div class="shell-header__dropdown">
         <button
           type="button"
@@ -32,7 +32,7 @@
         @if (isUserMenuOpen()) {
           <div class="shell-header__dropdown-menu">
             <a routerLink="/mis-publicaciones" routerLinkActive="is-active" (click)="closeMenu()">
-              {{ belongsToOrganization() ? 'Mis publicaciones' : 'Mis necesidades' }}
+              Mis necesidades
             </a>
 
             <a routerLink="/mis-solicitudes" routerLinkActive="is-active" (click)="closeMenu()">
