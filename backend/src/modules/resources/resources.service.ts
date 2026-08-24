@@ -11,8 +11,6 @@ import { ResourceRequest } from './entities/resource-request.entity';
 import { User } from '../users/entities/user.entity';
 import { PUBLIC_USER_FIELDS } from '../users/public-user-fields.util';
 import { Category } from '../categories/entities/category.entity';
-import { ModeratorLocality } from '../users/entities/moderator-locality.entity';
-import { localitiesMatch } from '../../common/utils/locality-match.util';
 import { haversineDistanceExpr } from '../../common/utils/haversine.util';
 import { OrganizationsService } from '../organizations/organizations.service';
 import { CreateResourceDto } from './dto/create-resource.dto';
@@ -39,8 +37,6 @@ export class ResourcesService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
-    @InjectRepository(ModeratorLocality)
-    private readonly localityRepository: Repository<ModeratorLocality>,
     private readonly organizationsService: OrganizationsService,
   ) {}
   async create(currentUser: AuthUser, dto: CreateResourceDto) {
@@ -120,42 +116,15 @@ export class ResourcesService {
       order: { id: 'DESC' },
     });
   }
+  // El moderador ya no tiene ningún poder sobre publicaciones ajenas -- su
+  // rol quedó acotado a avalar organizaciones (ver organizations.service.ts)
+  // y gestionar otros moderadores. Cada recurso lo maneja únicamente quien
+  // lo publicó.
   private assertCanModify(resource: Resource, currentUser: AuthUser) {
     const isOwner = resource.userId === currentUser.id;
-    const isModerator = currentUser.role === 'moderador';
-    if (!isOwner && !isModerator) {
+    if (!isOwner) {
       throw new ForbiddenException(
         'No podés modificar un recurso que no es tuyo',
-      );
-    }
-  }
-
-  // Los recursos no tienen 'locality' propia (solo 'address' en texto
-  // libre) -- la única señal de zona que tenemos es la ciudad de la
-  // organización, si está vinculado a una. Sin organización, no hay con
-  // qué acotar, así que se permite -- mejor eso que dejar un recurso que
-  // ningún moderador pueda tocar.
-  private async assertModeratorJurisdiction(resource: Resource, currentUser: AuthUser) {
-    const isOwner = resource.userId === currentUser.id;
-    if (isOwner) {
-      return;
-    }
-
-    const targetLocality = resource.organization?.ciudad;
-    if (!targetLocality) {
-      return;
-    }
-
-    const localities = await this.localityRepository.find({
-      where: { userId: currentUser.id },
-    });
-
-    const normalized = targetLocality.trim().toLowerCase();
-    const inScope = localities.some((l) => localitiesMatch(l.locality, normalized));
-
-    if (!inScope) {
-      throw new ForbiddenException(
-        `No tenés asignada "${targetLocality}" -- no podés moderar este recurso.`,
       );
     }
   }
@@ -169,15 +138,6 @@ export class ResourcesService {
       throw new NotFoundException('Recurso inexistente');
     }
     this.assertCanModify(resource, currentUser);
-    const isModerator = currentUser.role === 'moderador';
-    if (dto.status !== undefined && !isModerator) {
-      throw new ForbiddenException(
-        'Solo un moderador puede cambiar el estado del recurso',
-      );
-    }
-    if (dto.status !== undefined) {
-      await this.assertModeratorJurisdiction(resource, currentUser);
-    }
 
     const previousStatus = resource.status;
 
@@ -205,7 +165,6 @@ export class ResourcesService {
       throw new NotFoundException('Recurso inexistente');
     }
     this.assertCanModify(resource, currentUser);
-    await this.assertModeratorJurisdiction(resource, currentUser);
     await this.repository.remove(resource);
     return {
       message: 'Recurso eliminado',

@@ -46,12 +46,6 @@ export class MisPublicacionesComponent {
       this.resourceRequests().length === 0,
   );
 
-  // Oculta la opción si el usuario es un rol base ('seed-role')
-  readonly canResolve = computed(() => {
-    const user = this.authService.currentUser();
-    return user?.role !== 'seed-role';
-  });
-
   constructor() {
     this.categoriesService.getAll().subscribe({
       next: (categories) => this.categories.set(categories),

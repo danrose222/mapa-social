@@ -131,14 +131,6 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'moderador/publicaciones',
-        canActivate: [moderatorGuard],
-        loadComponent: () =>
-          import('./pages/moderador/publicaciones/publicaciones-moderador.component').then(
-            (m) => m.PublicacionesModeradorComponent,
-          ),
-      },
-      {
         path: 'moderador/organizaciones',
         canActivate: [moderatorGuard],
         loadComponent: () =>
@@ -160,6 +152,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/moderador/usuarios/usuarios-moderador.component').then(
             (m) => m.UsuariosModeradorComponent,
+          ),
+      },
+      {
+        path: 'moderador/solicitar',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./pages/moderador/solicitar/solicitar-moderador.component').then(
+            (m) => m.SolicitarModeradorComponent,
           ),
       },
       {

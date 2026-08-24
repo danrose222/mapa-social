@@ -206,13 +206,13 @@ export class NeedsController {
   @ApiBearerAuth()
   @ApiOperation({
     summary:
-      'Editar una necesidad (el dueño o un moderador; solo un moderador puede cambiar el status)',
+      'Editar una necesidad (solo el dueño)',
   })
   @ApiResponse({ status: 200, description: 'Necesidad actualizada' })
   @ApiResponse({ status: 401, description: 'No autenticado' })
   @ApiResponse({
     status: 403,
-    description: 'No es el dueño, ni moderador, o intenta cambiar el status sin serlo',
+    description: 'No es el dueño de la publicación',
   })
   @ApiResponse({ status: 404, description: 'Necesidad inexistente' })
   update(
@@ -227,10 +227,10 @@ export class NeedsController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Eliminar una necesidad (el dueño o un moderador)' })
+  @ApiOperation({ summary: 'Eliminar una necesidad (solo el dueño)' })
   @ApiResponse({ status: 200, description: 'Necesidad eliminada' })
   @ApiResponse({ status: 401, description: 'No autenticado' })
-  @ApiResponse({ status: 403, description: 'No es el dueño ni moderador' })
+  @ApiResponse({ status: 403, description: 'No es el dueño de la publicación' })
   @ApiResponse({ status: 404, description: 'Necesidad inexistente' })
   remove(
     @Param('id', ParseIntPipe)

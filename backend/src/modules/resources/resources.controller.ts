@@ -185,13 +185,13 @@ export class ResourcesController {
   @ApiBearerAuth()
   @ApiOperation({
     summary:
-      'Editar un recurso (el dueño o un moderador; solo un moderador puede cambiar el status)',
+      'Editar un recurso (solo el dueño)',
   })
   @ApiResponse({ status: 200, description: 'Recurso actualizado' })
   @ApiResponse({ status: 401, description: 'No autenticado' })
   @ApiResponse({
     status: 403,
-    description: 'No es el dueño, ni moderador, o intenta cambiar el status sin serlo',
+    description: 'No es el dueño del recurso',
   })
   @ApiResponse({ status: 404, description: 'Recurso inexistente' })
   update(
@@ -206,10 +206,10 @@ export class ResourcesController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Eliminar un recurso (el dueño o un moderador)' })
+  @ApiOperation({ summary: 'Eliminar un recurso (solo el dueño)' })
   @ApiResponse({ status: 200, description: 'Recurso eliminado' })
   @ApiResponse({ status: 401, description: 'No autenticado' })
-  @ApiResponse({ status: 403, description: 'No es el dueño ni moderador' })
+  @ApiResponse({ status: 403, description: 'No es el dueño del recurso' })
   @ApiResponse({ status: 404, description: 'Recurso inexistente' })
   remove(
     @Param('id', ParseIntPipe)

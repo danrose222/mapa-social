@@ -50,13 +50,15 @@
               </a>
             }
 
+            @if (!isModerator()) {
+              <a routerLink="/moderador/solicitar" routerLinkActive="is-active" (click)="closeMenu()">
+                Quiero ser moderador municipal
+              </a>
+            }
+
             @if (isModerator()) {
               <div class="shell-header__dropdown-divider"></div>
               <span class="shell-header__dropdown-label">Moderación</span>
-
-              <a routerLink="/moderador/publicaciones" routerLinkActive="is-active" (click)="closeMenu()">
-                Publicaciones
-              </a>
 
               <a routerLink="/moderador/organizaciones" routerLinkActive="is-active" (click)="closeMenu()">
                 Organizaciones

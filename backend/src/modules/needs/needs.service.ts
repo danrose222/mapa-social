@@ -11,7 +11,6 @@ import { Need } from './entities/need.entity';
 import { User } from '../users/entities/user.entity';
 import { PUBLIC_USER_FIELDS } from '../users/public-user-fields.util';
 import { Category } from '../categories/entities/category.entity';
-import { ModeratorLocality } from '../users/entities/moderator-locality.entity';
 import { localitiesMatch } from '../../common/utils/locality-match.util';
 import { CreateNeedDto } from './dto/create-need.dto';
 import { UpdateNeedDto } from './dto/update-need.dto';
@@ -31,8 +30,6 @@ export class NeedsService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
-    @InjectRepository(ModeratorLocality)
-    private readonly localityRepository: Repository<ModeratorLocality>,
     private readonly searchService: SearchService,
     private readonly resourcesService: ResourcesService,
   ) {}
@@ -251,43 +248,15 @@ export class NeedsService {
       order: { id: 'DESC' },
     });
   }
+  // El moderador ya no tiene ningún poder sobre publicaciones ajenas -- su
+  // rol quedó acotado a avalar organizaciones (ver organizations.service.ts)
+  // y gestionar otros moderadores. Cada publicación la maneja únicamente
+  // quien la creó.
   private assertCanModify(need: Need, currentUser: AuthUser) {
     const isOwner = need.userId === currentUser.id;
-    const isModerator = currentUser.role === 'moderador';
-    if (!isOwner && !isModerator) {
+    if (!isOwner) {
       throw new ForbiddenException(
         'No podés modificar una publicación que no es tuya',
-      );
-    }
-  }
-
-  // Si un moderador (no el dueño) está actuando sobre esta
-  // necesidad, tiene que tener asignada la localidad que le corresponde --
-  // la de la organización si está vinculada, si no la propia 'locality'.
-  // Sin ninguna de las dos (dato viejo, o nunca cargado) no podemos acotar,
-  // así que se permite -- mejor eso que dejar contenido que nadie pueda
-  // moderar.
-  private async assertModeratorJurisdiction(need: Need, currentUser: AuthUser) {
-    const isOwner = need.userId === currentUser.id;
-    if (isOwner) {
-      return;
-    }
-
-    const targetLocality = need.organization?.ciudad ?? need.locality;
-    if (!targetLocality) {
-      return;
-    }
-
-    const localities = await this.localityRepository.find({
-      where: { userId: currentUser.id },
-    });
-
-    const normalized = targetLocality.trim().toLowerCase();
-    const inScope = localities.some((l) => localitiesMatch(l.locality, normalized));
-
-    if (!inScope) {
-      throw new ForbiddenException(
-        `No tenés asignada "${targetLocality}" -- no podés moderar esta publicación.`,
       );
     }
   }
@@ -301,20 +270,6 @@ export class NeedsService {
       throw new NotFoundException('Necesidad inexistente');
     }
     this.assertCanModify(need, currentUser);
-    const isModerator = currentUser.role === 'moderador';
-    if (dto.status !== undefined && !isModerator) {
-      throw new ForbiddenException(
-        'Solo un moderador puede cambiar el estado de la publicación',
-      );
-    }
-    if (dto.requiresSolicitud !== undefined && !isModerator) {
-      throw new ForbiddenException(
-        'Solo un moderador puede cambiar si esta necesidad requiere Solicitud',
-      );
-    }
-    if (dto.status !== undefined || dto.requiresSolicitud !== undefined) {
-      await this.assertModeratorJurisdiction(need, currentUser);
-    }
     const previousStatus = need.status;
     Object.assign(need, dto);
     if (dto.status !== undefined) {
@@ -340,7 +295,6 @@ export class NeedsService {
       throw new NotFoundException('Necesidad inexistente');
     }
     this.assertCanModify(need, currentUser);
-    await this.assertModeratorJurisdiction(need, currentUser);
     await this.repository.remove(need);
     return {
       message: 'Necesidad eliminada',
