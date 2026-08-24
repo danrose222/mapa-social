@@ -1093,10 +1093,6 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     `;
   }
 
-  goToPublicar(): void {
-    this.router.navigateByUrl('/publicar');
-  }
-
   ngOnDestroy(): void {
     this.userLocationMarker?.remove();
     this.userLocationMarker = undefined;
