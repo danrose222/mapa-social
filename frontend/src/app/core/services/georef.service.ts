@@ -14,7 +14,11 @@ interface GeorefLocalidadesResponse {
 }
 
 interface GeorefCentroideResponse {
-  localidades: { nombre: string; centroide: { lat: number; lon: number } }[];
+  localidades: {
+    nombre: string;
+    provincia?: { nombre: string };
+    centroide: { lat: number; lon: number };
+  }[];
 }
 
 interface GeorefDireccionesResponse {
@@ -71,18 +75,34 @@ export class GeorefService {
 
     const params = new URLSearchParams({
       nombre: term,
-      campos: 'nombre,centroide',
-      max: '1',
+      campos: 'nombre,provincia,centroide',
+      max: '15',
     });
 
     return this.http
       .get<GeorefCentroideResponse>(`${GEOREF_BASE_URL}/localidades?${params.toString()}`)
       .pipe(
         map((response) => {
-          const first = response.localidades[0];
-          return first
-            ? { lat: roundCoordinate(first.centroide.lat), lng: roundCoordinate(first.centroide.lon) }
-            : null;
+          const localidades = response.localidades;
+
+          if (localidades.length === 0) {
+            return null;
+          }
+
+          // Mismo criterio que locality-autocomplete.component.ts: nombres
+          // de localidad se repiten entre provincias (ej: "La Falda" existe
+          // en Córdoba y en San Juan) y GeoRef no las ordena por relevancia
+          // local -- sin esto, pedir max:1 podía devolver la de otra
+          // provincia y centrar el mapa a cientos de km de donde
+          // corresponde. Esta app es de alcance provincial, así que ante
+          // ambigüedad preferimos la de Córdoba.
+          const match =
+            localidades.find((l) => l.provincia?.nombre === 'Córdoba') ?? localidades[0];
+
+          return {
+            lat: roundCoordinate(match.centroide.lat),
+            lng: roundCoordinate(match.centroide.lon),
+          };
         }),
         catchError(() => of(null)),
       );
