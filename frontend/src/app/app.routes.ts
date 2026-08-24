@@ -23,7 +23,10 @@ export const routes: Routes = [
       // --- DASHBOARDS Y PANELES POR ROL ---
       {
         path: 'dashboard-organizacion',
-        canActivate: [roleGuard(['ong', 'comunidad', 'municipio'])],
+        // 'municipio' no es un actor real acá: quien avala organizaciones
+        // es el moderador (ver /moderador/organizaciones), no hay ninguna
+        // cuenta vinculada a un municipio en el sistema.
+        canActivate: [roleGuard(['ong', 'comunidad'])],
         loadComponent: () =>
           import('./pages/dashboard-organizacion/dashboard-organizacion').then(
             (m) => m.DashboardOrganizacion,
@@ -162,6 +165,13 @@ export const routes: Routes = [
         path: 'registro',
         loadComponent: () =>
           import('./pages/registro/registro.component').then((m) => m.RegistroComponent),
+      },
+      {
+        // Sin esta ruta, el redirectTo del roleGuard nunca llegaba acá --
+        // caía en el '**' de abajo y volvía silenciosamente al inicio.
+        path: 'unauthorized',
+        loadComponent: () =>
+          import('./pages/unauthorized/unauthorized').then((m) => m.Unauthorized),
       },
       {
         path: '**',

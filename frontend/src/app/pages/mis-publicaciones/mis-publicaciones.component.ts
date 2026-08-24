@@ -30,9 +30,14 @@ export class MisPublicacionesComponent {
   readonly actionError = signal('');
   readonly processingId = signal<number | null>(null);
 
+  // El backend solo deja cambiar el status (needs.service.ts/resources.
+  // service.ts -> update()) a un moderador -- 'ciudadano'/'vecino' no son
+  // roles reales de este sistema (los únicos son 'moderador' y el rol por
+  // default de cualquier cuenta nueva), así que ese chequeo nunca excluía
+  // a nadie y el botón terminaba mostrado incluso al dueño, que se
+  // encontraba con un 403 al tocarlo.
   readonly canResolve = computed(() => {
-    const user = this.authService.currentUser();
-    return user?.role !== 'ciudadano' && user?.role !== 'vecino';
+    return this.authService.currentUser()?.role === 'moderador';
   });
 
   constructor() {
