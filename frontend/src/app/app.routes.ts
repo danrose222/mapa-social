@@ -155,6 +155,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'moderador/usuarios',
+        canActivate: [moderatorGuard],
+        loadComponent: () =>
+          import('./pages/moderador/usuarios/usuarios-moderador.component').then(
+            (m) => m.UsuariosModeradorComponent,
+          ),
+      },
+      {
         path: 'entrar',
         loadComponent: () =>
           import('./pages/login/login.component').then((m) => m.LoginComponent),
