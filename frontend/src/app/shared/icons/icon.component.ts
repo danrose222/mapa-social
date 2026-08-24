@@ -13,6 +13,8 @@ const PATHS: Record<string, string> = {
   chevronRight: 'M9 18l6-6-6-6',
   building: 'M4 21V7l8-4 8 4v14 M9 21v-6h6v6 M9 11h.01 M15 11h.01 M9 15h.01 M15 15h.01',
   arrowLeft: 'M19 12H5 M12 19l-7-7 7-7',
+  user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z M4 21c0-4 3.6-7 8-7s8 3 8 7',
+  chevronDown: 'M6 9l6 6 6-6',
 };
 
 @Component({

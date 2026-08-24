@@ -58,30 +58,92 @@
   }
 }
 
-.shell-header__divider {
-  width: 1px;
-  height: 18px;
-  background: rgb(255 255 255 / 25%);
+.shell-account {
+  position: relative;
 }
 
-.shell-header__user {
-  color: rgb(255 255 255 / 82%);
-  font-size: 0.85rem;
-}
-
-.shell-header__logout {
-  border: 1px solid rgb(255 255 255 / 35%);
+.shell-account__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgb(255 255 255 / 25%);
   border-radius: var(--radius-pill);
-  padding: 7px 14px;
-  background: transparent;
+  padding: 6px 12px;
+  background: rgb(255 255 255 / 6%);
   color: #fff;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
+
+  app-icon:last-child {
+    transition: transform 150ms ease;
+  }
+
+  &[aria-expanded='true'] app-icon:last-child {
+    transform: rotate(180deg);
+  }
 
   &:hover {
     background: rgb(255 255 255 / 12%);
   }
+}
+
+.shell-account__panel {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  flex-direction: column;
+  gap: 2px;
+  min-width: 220px;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+
+  &--open {
+    display: flex;
+  }
+
+  a,
+  .shell-account__logout {
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    color: var(--ink);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: left;
+
+    &:hover {
+      background: var(--surface-sunken);
+    }
+
+    &.is-active {
+      color: var(--brand);
+    }
+  }
+}
+
+.shell-account__label {
+  padding: 10px 10px 2px;
+  color: var(--ink-soft);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.shell-account__divider {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--border);
+}
+
+.shell-account__logout {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--danger) !important;
 }
 
 .shell-header__cta {
@@ -130,14 +192,9 @@
     transform: translateX(100%);
     transition: transform 200ms ease;
 
-    a,
-    .shell-header__logout,
-    .shell-header__user {
+    > a {
       width: 100%;
       padding: 12px 8px;
-    }
-
-    a {
       border-radius: var(--radius-sm);
 
       &:hover {
@@ -155,7 +212,24 @@
     transform: translateX(0);
   }
 
-  .shell-header__divider {
+  // Todo el nav ya está detrás del hamburguesa -- no hace falta un
+  // segundo toggle anidado para las opciones de cuenta. El trigger
+  // desaparece y el panel queda siempre visible, como una tarjeta más
+  // dentro del menú deslizable (a propósito con su propio fondo claro,
+  // para que se note que es un grupo aparte de los links universales).
+  .shell-account {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .shell-account__trigger {
     display: none;
+  }
+
+  .shell-account__panel {
+    display: flex;
+    position: static;
+    width: 100%;
+    box-shadow: none;
   }
 }

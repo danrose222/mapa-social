@@ -17,53 +17,73 @@
       Quiero ayudar
     </a>
 
-    @if (currentUser()) {
-      <a routerLink="/mis-publicaciones" routerLinkActive="is-active" (click)="closeMenu()">
-        Mis publicaciones
-      </a>
-      <a routerLink="/mis-solicitudes" routerLinkActive="is-active" (click)="closeMenu()">
-        Mis solicitudes
-      </a>
-      <a routerLink="/organizacion/mi-organizacion" routerLinkActive="is-active" (click)="closeMenu()">
-        Mi organización
-      </a>
-    }
-
-    @if (isModerator()) {
-      <span class="shell-header__divider" aria-hidden="true"></span>
-      <a routerLink="/moderador/publicaciones" routerLinkActive="is-active" (click)="closeMenu()">
-        Publicaciones
-      </a>
-      <a routerLink="/moderador/organizaciones" routerLinkActive="is-active" (click)="closeMenu()">
-        Organizaciones
-      </a>
-      <a routerLink="/moderador/mis-localidades" routerLinkActive="is-active" (click)="closeMenu()">
-        Mis localidades
-      </a>
-    }
-
-    <span class="shell-header__divider" aria-hidden="true"></span>
-
-    <a routerLink="/estadisticas" routerLinkActive="is-active" (click)="closeMenu()">
-      Estadísticas
-    </a>
-
     <a routerLink="/quienes-somos" routerLinkActive="is-active" (click)="closeMenu()">
       Quiénes somos
     </a>
 
-    <!-- ENLACE DINÁMICO AL DASHBOARD SEGÚN EL ROL -->
-    @if (dashboardUrl(); as url) {
-      <a [routerLink]="url" routerLinkActive="is-active" (click)="closeMenu()">
-        Mi Panel
-      </a>
-    }
-
     @if (currentUser()) {
-      <span class="shell-header__user">{{ currentUser()?.firstName }}</span>
-      <button type="button" class="shell-header__logout" (click)="logout()">
-        Cerrar sesión
-      </button>
+      <div class="shell-account">
+        <button
+          type="button"
+          class="shell-account__trigger"
+          (click)="toggleAccountMenu($event)"
+          [attr.aria-expanded]="isAccountMenuOpen()"
+        >
+          <app-icon name="user" [size]="15" />
+          {{ currentUser()?.firstName }}
+          <app-icon name="chevronDown" [size]="13" />
+        </button>
+
+        <div
+          class="shell-account__panel"
+          [class.shell-account__panel--open]="isAccountMenuOpen()"
+          (click)="$event.stopPropagation()"
+        >
+          @if (dashboardUrl(); as url) {
+            <a [routerLink]="url" routerLinkActive="is-active" (click)="closeMenu()">
+              Mi panel
+            </a>
+          }
+
+          <a routerLink="/mis-publicaciones" routerLinkActive="is-active" (click)="closeMenu()">
+            Mis publicaciones
+          </a>
+
+          <a routerLink="/mis-solicitudes" routerLinkActive="is-active" (click)="closeMenu()">
+            Mis solicitudes
+          </a>
+
+          <a routerLink="/organizacion/mi-organizacion" routerLinkActive="is-active" (click)="closeMenu()">
+            Mi organización
+          </a>
+
+          @if (isModerator()) {
+            <span class="shell-account__label">Moderación</span>
+
+            <a routerLink="/moderador/publicaciones" routerLinkActive="is-active" (click)="closeMenu()">
+              Publicaciones
+            </a>
+
+            <a routerLink="/moderador/organizaciones" routerLinkActive="is-active" (click)="closeMenu()">
+              Organizaciones
+            </a>
+
+            <a routerLink="/moderador/mis-localidades" routerLinkActive="is-active" (click)="closeMenu()">
+              Mis localidades
+            </a>
+
+            <a routerLink="/estadisticas" routerLinkActive="is-active" (click)="closeMenu()">
+              Estadísticas
+            </a>
+          }
+
+          <span class="shell-account__divider" aria-hidden="true"></span>
+
+          <button type="button" class="shell-account__logout" (click)="logout()">
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
     } @else {
       <a routerLink="/entrar" class="shell-header__cta" (click)="closeMenu()">Entrar</a>
     }

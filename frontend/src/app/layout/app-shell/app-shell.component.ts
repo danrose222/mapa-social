@@ -18,9 +18,11 @@ export class AppShellComponent {
   readonly currentUser = this.authService.currentUser;
   readonly isModerator = this.authService.isModerator;
 
-  // Signal computada: obtiene la URL del dashboard según el rol del perfil
+  // 'moderador' y 'ong'/'comunidad' viven en campos distintos del perfil
+  // (role.name vs organization.type) -- actorRole() ya resuelve esa
+  // distinción, ver AuthService.
   readonly dashboardUrl = computed(() => {
-    const role = this.authService.profile()?.role?.name;
+    const role = this.authService.actorRole();
 
     if (role === 'moderador') {
       return '/dashboard-moderador';
@@ -32,13 +34,24 @@ export class AppShellComponent {
   });
 
   readonly isMenuOpen = signal(false);
+  readonly isAccountMenuOpen = signal(false);
 
   toggleMenu(): void {
     this.isMenuOpen.update((open) => !open);
+    this.isAccountMenuOpen.set(false);
   }
 
   closeMenu(): void {
     this.isMenuOpen.set(false);
+    this.isAccountMenuOpen.set(false);
+  }
+
+  // stopPropagation acá, no en el listener de document -- si no, el mismo
+  // click que abre el menú llega también al listener de document y lo
+  // vuelve a cerrar en el mismo evento.
+  toggleAccountMenu(event: MouseEvent): void {
+    event.stopPropagation();
+    this.isAccountMenuOpen.update((open) => !open);
   }
 
   logout(): void {
@@ -50,5 +63,15 @@ export class AppShellComponent {
   @HostListener('document:keydown.escape')
   onEscape(): void {
     this.closeMenu();
+  }
+
+  // Cierra el dropdown de cuenta al clickear afuera. El trigger hace
+  // stopPropagation en su propio handler, y el panel también en el suyo,
+  // así que cualquier click que llegue hasta acá es necesariamente "afuera".
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    if (this.isAccountMenuOpen()) {
+      this.isAccountMenuOpen.set(false);
+    }
   }
 }
