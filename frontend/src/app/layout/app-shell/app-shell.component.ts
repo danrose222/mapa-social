@@ -27,8 +27,7 @@ export class AppShellComponent {
   readonly verificationResent = signal(false);
 
   readonly isMenuOpen = signal(false);
-  readonly isUserMenuOpen = signal(false);
-  readonly isModeratorMenuOpen = signal(false);
+  readonly isAccountMenuOpen = signal(false);
 
   // El aval de una organización no es "mágico": este contador la hace
   // visible como tarea pendiente sin que el moderador tenga que entrar a
@@ -92,20 +91,13 @@ export class AppShellComponent {
     this.isMenuOpen.update((open) => !open);
   }
 
-  toggleUserMenu(): void {
-    this.isUserMenuOpen.update((open) => !open);
-    this.isModeratorMenuOpen.set(false);
-  }
-
-  toggleModeratorMenu(): void {
-    this.isModeratorMenuOpen.update((open) => !open);
-    this.isUserMenuOpen.set(false);
+  toggleAccountMenu(): void {
+    this.isAccountMenuOpen.update((open) => !open);
   }
 
   closeMenu(): void {
     this.isMenuOpen.set(false);
-    this.isUserMenuOpen.set(false);
-    this.isModeratorMenuOpen.set(false);
+    this.isAccountMenuOpen.set(false);
   }
 
   logout(): void {

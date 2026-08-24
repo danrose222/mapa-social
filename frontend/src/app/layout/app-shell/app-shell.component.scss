@@ -133,31 +133,41 @@
   }
 }
 
-.shell-header__divider {
-  width: 1px;
-  height: 18px;
-  background: rgb(255 255 255 / 25%);
+.shell-header__dropdown-divider {
+  height: 1px;
+  margin: 6px 4px;
+  background: rgb(255 255 255 / 12%);
 }
 
-.shell-header__user {
-  color: rgb(255 255 255 / 82%);
-  font-size: 0.85rem;
-  white-space: nowrap;
+// Mismo tratamiento que un link del menú, pero no navega -- agrupa los
+// items de moderación dentro del único dropdown de cuenta.
+.shell-header__dropdown-label {
+  display: block;
+  padding: 6px 12px 2px;
+  color: rgb(255 255 255 / 50%);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
-.shell-header__logout {
-  border: 1px solid rgb(255 255 255 / 35%);
-  border-radius: var(--radius-pill);
-  padding: 7px 14px;
+.shell-header__dropdown-logout {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 8px;
   background: transparent;
-  color: #fff;
-  font-size: 0.8rem;
+  color: rgb(255 255 255 / 82%);
+  font: inherit;
+  font-size: 0.88rem;
   font-weight: 600;
+  text-align: left;
   cursor: pointer;
-  white-space: nowrap;
 
   &:hover {
-    background: rgb(255 255 255 / 12%);
+    background: rgb(255 255 255 / 8%);
+    color: #fff;
   }
 }
 
@@ -255,16 +265,12 @@
     transition: transform 200ms ease;
 
     a,
-    .shell-header__logout,
-    .shell-header__user,
     .shell-header__dropdown,
     .shell-header__dropdown-trigger {
       width: 100%;
     }
 
     a,
-    .shell-header__logout,
-    .shell-header__user,
     .shell-header__dropdown-trigger {
       padding: 12px 8px;
     }
@@ -305,13 +311,10 @@
     background: transparent;
     box-shadow: none;
 
-    a {
+    a,
+    .shell-header__dropdown-logout {
       padding: 10px 12px;
       font-size: 0.84rem;
     }
-  }
-
-  .shell-header__divider {
-    display: none;
   }
 }
