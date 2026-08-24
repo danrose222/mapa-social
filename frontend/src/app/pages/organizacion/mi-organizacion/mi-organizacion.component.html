@@ -87,6 +87,34 @@
       </div>
     }
 
+    @if (organization()!.verified) {
+      <div class="card mi-org__card">
+        <h2>Mensajes de colaboración ({{ collaborationRequests().length }})</h2>
+        <p class="mi-org__private-hint">
+          Personas que quieren colaborar con la organización, escritas desde el mapa sin
+          necesidad de cuenta.
+        </p>
+
+        @if (collaborationRequests().length === 0) {
+          <p class="mi-org__empty-resources">No hay ninguno por ahora.</p>
+        } @else {
+          <ul class="mi-org__private-list">
+            @for (req of collaborationRequests(); track req.id) {
+              <li>
+                <div class="mi-org__private-row">
+                  <span class="mi-org__private-category">{{ req.contactName }}</span>
+                </div>
+                @if (req.message) {
+                  <p>{{ req.message }}</p>
+                }
+                <span class="mi-org__private-contact">✉️ {{ req.contactEmail }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
+
     <div class="card mi-org__card">
       <h2>Nuestros recursos ({{ myResources().length }})</h2>
 

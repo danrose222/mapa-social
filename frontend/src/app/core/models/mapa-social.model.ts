@@ -115,3 +115,20 @@ export interface CreateResourcePayload {
   contactInfo?: string;
   imageUrl?: string;
 }
+
+export interface CollaborationRequest {
+  id: number;
+  organizationId: number;
+  contactName: string;
+  contactEmail: string;
+  message?: string;
+  createdAt: string;
+}
+
+export interface CreateCollaborationRequestPayload {
+  contactName: string;
+  contactEmail: string;
+  message?: string;
+  // Honeypot anti-spam: siempre vacío para una persona real.
+  website?: string;
+}

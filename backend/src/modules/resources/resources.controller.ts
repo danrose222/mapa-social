@@ -11,11 +11,13 @@ import {
 } from '@nestjs/common';
 
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 
 import { ResourcesService } from './resources.service';
 
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
+import { CreateCollaborationRequestDto } from './dto/create-collaboration-request.dto';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
@@ -71,6 +73,42 @@ export class ResourcesController {
   @ApiResponse({ status: 401, description: 'No autenticado' })
   findMine(@CurrentUser() user: AuthUser) {
     return this.service.findMine(user.id);
+  }
+
+  @Get('collaboration-requests/mine')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Listar los mensajes de colaboración recibidos por mi organización',
+  })
+  @ApiResponse({ status: 200, description: 'Listado de mensajes' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  findMyCollaborationRequests(@CurrentUser() user: AuthUser) {
+    return this.service.findCollaborationRequestsForOrganization(user.id);
+  }
+
+  @Post(':id/contact')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ collaborate: { limit: 3, ttl: 60_000 } })
+  @ApiOperation({
+    summary:
+      'Enviar un mensaje de colaboración a la organización dueña del recurso (público, sin necesidad de cuenta, rate-limited)',
+  })
+  @ApiResponse({ status: 201, description: 'Mensaje registrado' })
+  @ApiResponse({
+    status: 404,
+    description: 'Recurso inexistente o sin organización asociada',
+  })
+  @ApiResponse({
+    status: 429,
+    description: 'Demasiados intentos, esperar antes de reintentar',
+  })
+  contact(
+    @Param('id', ParseIntPipe)
+    id: number,
+    @Body() dto: CreateCollaborationRequestDto,
+  ) {
+    return this.service.contactAboutResource(id, dto);
   }
 
   @Get(':id')

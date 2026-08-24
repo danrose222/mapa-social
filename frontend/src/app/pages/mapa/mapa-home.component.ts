@@ -18,6 +18,7 @@ import { NeedLocality, PublicationsService } from '../../core/services/publicati
 import { Category, Need, Resource } from '../../core/models/mapa-social.model';
 import { IconComponent } from '../../shared/icons/icon.component';
 import { QuickNeedFormComponent } from '../../shared/components/quick-need-form/quick-need-form.component';
+import { CollaborateModalComponent } from '../../shared/components/collaborate-modal/collaborate-modal.component';
 
 type FilterKind = 'todos' | 'necesidades' | 'recursos';
 type SearchMode = 'all' | 'locality' | 'radius';
@@ -33,7 +34,7 @@ const MOVE_THRESHOLD_KM = 5;
 @Component({
   selector: 'app-mapa-home',
   standalone: true,
-  imports: [IconComponent, QuickNeedFormComponent],
+  imports: [IconComponent, QuickNeedFormComponent, CollaborateModalComponent],
   templateUrl: './mapa-home.component.html',
   styleUrl: './mapa-home.component.scss',
 })
@@ -153,6 +154,9 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   readonly quickNeedLng = signal(DEFAULT_CENTER[1]);
   readonly quickNeedCategoryId = signal<number | null>(null);
   readonly quickNeedLocality = signal<string | null>(null);
+
+  // Modal "Quiero Colaborar", abierto desde el popup de un recurso.
+  readonly collaborateResource = signal<Resource | null>(null);
 
   private filteredNeeds(): Need[] {
     return this.applyFilters(this.allNeeds());
@@ -312,6 +316,11 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     this.markersLayer = L.layerGroup().addTo(this.map);
 
     this.map.on('moveend', () => this.onMapMoved());
+    // El popup de un recurso es HTML crudo inyectado por Leaflet, fuera del
+    // árbol de Angular -- este es el único punto donde podemos engancharle
+    // un listener real al botón "Quiero Colaborar" que arma
+    // buildResourcePopupHtml().
+    this.map.on('popupopen', (event: L.PopupEvent) => this.onPopupOpen(event));
 
     requestAnimationFrame(() => this.map?.invalidateSize());
   }
@@ -713,6 +722,31 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     this.showQuickNeedForm.set(false);
   }
 
+  private onPopupOpen(event: L.PopupEvent): void {
+    const el = event.popup.getElement();
+    const button = el?.querySelector<HTMLButtonElement>(
+      '[data-collab-resource-id]',
+    );
+    if (!button) {
+      return;
+    }
+
+    const resourceId = Number(button.dataset['collabResourceId']);
+
+    L.DomEvent.on(button, 'click', (domEvent: Event) => {
+      L.DomEvent.stop(domEvent);
+      const resource = this.allResources().find((r) => r.id === resourceId);
+      if (resource) {
+        this.collaborateResource.set(resource);
+        this.map?.closePopup();
+      }
+    });
+  }
+
+  closeCollaborateModal(): void {
+    this.collaborateResource.set(null);
+  }
+
   toggleCategoryFilter(id: number): void {
     const next = new Set(this.categoryFilter());
 
@@ -852,6 +886,13 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       }
     }
 
+    // Solo tiene sentido "colaborar con la organización" si el recurso
+    // pertenece a una -- el de un individuo no tiene con quién.
+    const collabHtml = resource.organizationId
+      ? `<button type="button" class="v2map-popup__collab-btn" ` +
+        `data-collab-resource-id="${resource.id}">🤝 Quiero Colaborar</button>`
+      : '';
+
     return `
       <div class="v2map-popup">
         ${imageHtml}
@@ -860,6 +901,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
         <p class="v2map-popup__desc">${description}</p>
         ${scheduleHtml}
         ${contactHtml}
+        ${collabHtml}
       </div>
     `;
   }

@@ -187,3 +187,7 @@
     (closed)="closeQuickNeedForm()"
   />
 }
+
+@if (collaborateResource(); as resource) {
+  <app-collaborate-modal [resource]="resource" (closed)="closeCollaborateModal()" />
+}

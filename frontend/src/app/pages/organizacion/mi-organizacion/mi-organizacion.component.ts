@@ -6,7 +6,12 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { OrganizationsService } from '../../../core/services/organizations.service';
 import { PublicationsService } from '../../../core/services/publications.service';
-import { Need, Organization, Resource } from '../../../core/models/mapa-social.model';
+import {
+  CollaborationRequest,
+  Need,
+  Organization,
+  Resource,
+} from '../../../core/models/mapa-social.model';
 
 @Component({
   selector: 'app-mi-organizacion',
@@ -26,6 +31,7 @@ export class MiOrganizacionComponent {
   readonly organization = signal<Organization | null>(null);
   readonly myResources = signal<Resource[]>([]);
   readonly privateNeeds = signal<Need[]>([]);
+  readonly collaborationRequests = signal<CollaborationRequest[]>([]);
 
   readonly isSaving = signal(false);
   readonly saveMessage = signal('');
@@ -64,6 +70,11 @@ export class MiOrganizacionComponent {
           if (org.verified) {
             this.publicationsService.getPrivateNeedsQueue().subscribe({
               next: (needs) => this.privateNeeds.set(needs),
+              error: () => {},
+            });
+
+            this.publicationsService.getMyCollaborationRequests().subscribe({
+              next: (requests) => this.collaborationRequests.set(requests),
               error: () => {},
             });
           }

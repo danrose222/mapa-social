@@ -3,6 +3,8 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import {
+  CollaborationRequest,
+  CreateCollaborationRequestPayload,
   CreateNeedPayload,
   CreatePrivateNeedPayload,
   CreateResourcePayload,
@@ -147,5 +149,24 @@ export class PublicationsService {
 
   getMySolicitudes(): Observable<Solicitud[]> {
     return this.http.get<Solicitud[]>('/api/solicitudes/mias');
+  }
+
+  // "Quiero Colaborar": mensaje anónimo hacia la organización dueña del
+  // recurso -- público, sin necesidad de sesión.
+  contactAboutResource(
+    resourceId: number,
+    payload: CreateCollaborationRequestPayload,
+  ): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.resourcesUrl}/${resourceId}/contact`,
+      payload,
+    );
+  }
+
+  // Bandeja de mensajes de colaboración recibidos por mi organización.
+  getMyCollaborationRequests(): Observable<CollaborationRequest[]> {
+    return this.http.get<CollaborationRequest[]>(
+      `${this.resourcesUrl}/collaboration-requests/mine`,
+    );
   }
 }

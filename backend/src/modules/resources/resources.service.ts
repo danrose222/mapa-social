@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { Resource } from './entities/resource.entity';
+import { CollaborationRequest } from './entities/collaboration-request.entity';
 import { User } from '../users/entities/user.entity';
 import { PUBLIC_USER_FIELDS } from '../users/public-user-fields.util';
 import { Category } from '../categories/entities/category.entity';
@@ -15,6 +16,7 @@ import { haversineDistanceExpr } from '../../common/utils/haversine.util';
 import { OrganizationsService } from '../organizations/organizations.service';
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
+import { CreateCollaborationRequestDto } from './dto/create-collaboration-request.dto';
 interface AuthUser {
   id: number;
   role: string;
@@ -27,6 +29,8 @@ export class ResourcesService {
   constructor(
     @InjectRepository(Resource)
     private readonly repository: Repository<Resource>,
+    @InjectRepository(CollaborationRequest)
+    private readonly collaborationRequestRepository: Repository<CollaborationRequest>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Category)
@@ -244,5 +248,59 @@ export class ResourcesService {
       .getRawMany<{ categoryId: number }>();
 
     return rows.map((r) => r.categoryId);
+  }
+
+  // "Quiero Colaborar": mensaje anónimo (o de un usuario logueado, da igual)
+  // hacia la organización dueña del recurso -- nunca hacia el usuario
+  // individual que lo publicó, y sin guardar ninguna referencia al recurso
+  // (ver el comentario en collaboration-request.entity.ts).
+  async contactAboutResource(
+    resourceId: number,
+    dto: CreateCollaborationRequestDto,
+  ) {
+    const resource = await this.repository.findOne({
+      where: { id: resourceId },
+    });
+    if (!resource) {
+      throw new NotFoundException('Recurso inexistente');
+    }
+    if (!resource.organizationId) {
+      throw new NotFoundException(
+        'Este recurso no pertenece a ninguna organización',
+      );
+    }
+
+    // Honeypot: un campo oculto para personas, visible para un bot que
+    // completa todo el formulario. Si viene lleno, respondemos éxito igual
+    // (no delatar el trap) pero no guardamos nada.
+    if (dto.website) {
+      return { message: 'Mensaje enviado' };
+    }
+
+    await this.collaborationRequestRepository.save(
+      this.collaborationRequestRepository.create({
+        organizationId: resource.organizationId,
+        contactName: dto.contactName,
+        contactEmail: dto.contactEmail,
+        message: dto.message,
+      }),
+    );
+
+    return { message: 'Mensaje enviado' };
+  }
+
+  // Bandeja de la organización: los mensajes de colaboración que recibió.
+  async findCollaborationRequestsForOrganization(currentUserId: number) {
+    const user = await this.userRepository.findOne({
+      where: { id: currentUserId },
+    });
+    if (!user?.organizationId) {
+      return [];
+    }
+
+    return this.collaborationRequestRepository.find({
+      where: { organizationId: user.organizationId },
+      order: { id: 'DESC' },
+    });
   }
 }
