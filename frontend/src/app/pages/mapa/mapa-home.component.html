@@ -171,10 +171,17 @@
     <div class="mapa__count">{{ visibleCount() }} puntos visibles</div>
   </div>
 
-  <button type="button" class="mapa__publish-btn" (click)="goToPublicar()">
-    <app-icon name="heart" [size]="16" [filled]="true" />
-    Publicar
-  </button>
+  @if (needEntryMode) {
+    <button type="button" class="mapa__publish-btn" (click)="openQuickNeedForm()">
+      <app-icon name="heart" [size]="16" [filled]="true" />
+      Publicar mi necesidad
+    </button>
+  } @else {
+    <button type="button" class="mapa__publish-btn" (click)="goToPublicar()">
+      <app-icon name="heart" [size]="16" [filled]="true" />
+      Publicar
+    </button>
+  }
 </div>
 
 @if (showQuickNeedForm()) {

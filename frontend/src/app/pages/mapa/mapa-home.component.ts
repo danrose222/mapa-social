@@ -8,7 +8,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import * as L from 'leaflet';
 
 import { AuthService } from '../../core/services/auth.service';
@@ -46,6 +46,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   private readonly categoriesService = inject(CategoriesService);
   private readonly georefService = inject(GeorefService);
   private readonly publicationsService = inject(PublicationsService);
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
   readonly categories = signal<Category[]>([]);
@@ -58,11 +59,19 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   readonly isAuthenticated = computed(() => this.authService.currentUser() !== null);
   readonly privacyNotice = signal<string | null>(null);
 
-  // Sin sesión arranca en 'recursos': las necesidades no se ocultan del
-  // todo (siguen siendo datos públicos en el backend), pero no son la
-  // vista por defecto para quien no está logueado.
+  // "Necesito Ayuda" del hero de la Landing manda acá con ?type=need: hay
+  // que ver el mapa (recursos disponibles) ANTES de pedir cuenta -- el
+  // login solo entra en juego si de verdad hace click en publicar. Ver
+  // openQuickNeedForm(), que ya redirige a login recién ahí.
+  readonly needEntryMode = this.route.snapshot.queryParamMap.get('type') === 'need';
+
+  // Sin sesión arranca en 'recursos' (las necesidades no se ocultan del
+  // todo, pero no son la vista por defecto sin login); llegar con
+  // ?type=need fuerza 'recursos' también para quien ya tiene sesión --
+  // el punto de esa entrada es ver qué recursos hay disponibles, no las
+  // necesidades de otros.
   readonly kindFilter = signal<FilterKind>(
-    this.authService.currentUser() ? 'todos' : 'recursos',
+    this.needEntryMode || !this.authService.currentUser() ? 'recursos' : 'todos',
   );
   readonly categoryFilter = signal<Set<number>>(new Set());
   readonly searchTerm = signal('');
