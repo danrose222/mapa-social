@@ -103,7 +103,7 @@
 
 .mis-pub__resolved-by {
   margin: 6px 0 0;
-  color: var(--help-color);
+  color: var(--help-color-text);
   font-size: 0.78rem;
   font-weight: 600;
 }
@@ -114,11 +114,11 @@
 
 .mis-pub__status-tag--active,
 .mis-pub__status-tag--available {
-  color: var(--help-color);
+  color: var(--help-color-text);
 }
 
 .mis-pub__status-tag--resolved {
-  color: var(--brand-dark);
+  color: var(--need-color-text);
 }
 
 .mis-pub__flag {

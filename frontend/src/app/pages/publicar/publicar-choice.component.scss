@@ -113,7 +113,11 @@
   p {
     margin-top: 8px;
     max-width: 220px;
-    color: rgb(255 255 255 / 88%);
+    // Blanco sólido, no al 88% -- ver el comentario en .choice__card--help
+    // / .choice__card--need sobre por qué esas tarjetas necesitaron
+    // oscurecerse: incluso blanco al 100% no alcanzaba AA sobre el color
+    // de marca sin oscurecer.
+    color: #fff;
     font-size: 0.88rem;
     line-height: 1.5;
   }
@@ -129,11 +133,16 @@
 }
 
 .choice__card--help {
-  background: var(--help-color);
+  // Texto blanco (h2 e ícono al 100%, párrafo antes al 88%) sobre
+  // --help-color da 4.26:1 -- por debajo de AA incluso al 100% de opacidad.
+  // Este tono, un escalón más oscuro, da 5.67:1.
+  background: #276e8d;
 }
 
 .choice__card--need {
-  background: var(--need-color);
+  // Mismo problema que --help-color: texto blanco sobre --need-color da
+  // 3.47:1. Este tono da 4.9:1.
+  background: #bd4e29;
 }
 
 .choice__note {
@@ -146,10 +155,13 @@
 .choice__org-link {
   display: block;
   margin-top: 12px;
-  color: var(--help-color);
+  color: var(--help-color-text);
   font-size: 0.85rem;
   font-weight: 600;
   text-align: center;
+  // Es un link inline entre texto de la misma página -- necesita algo más
+  // que el color para distinguirse (WCAG 1.4.1).
+  text-decoration: underline;
 }
 
 @media (max-width: 600px) {

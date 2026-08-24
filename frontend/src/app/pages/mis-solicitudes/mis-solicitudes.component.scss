@@ -88,12 +88,12 @@
 
 .mis-sol__status-tag--pending {
   background: var(--need-color-soft);
-  color: var(--need-color);
+  color: var(--need-color-text);
 }
 
 .mis-sol__status-tag--accepted {
   background: var(--help-color-soft);
-  color: var(--help-color);
+  color: var(--help-color-text);
 }
 
 .mis-sol__status-tag--rejected {

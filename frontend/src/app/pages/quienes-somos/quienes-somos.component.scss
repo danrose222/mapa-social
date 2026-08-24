@@ -50,7 +50,9 @@
 
 .about__eyebrow {
   display: inline-block;
-  color: var(--brand);
+  // --brand da 2.83:1 sobre el fondo --bg de esta sección, muy por debajo
+  // de AA -- --need-color-text (pensado para texto) da 5.71:1 acá.
+  color: var(--need-color-text);
   font-family: var(--font-display);
   font-size: 0.78rem;
   font-weight: 800;

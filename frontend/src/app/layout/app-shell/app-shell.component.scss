@@ -148,7 +148,8 @@
 .shell-header__cta {
   padding: 8px 18px;
   border-radius: var(--radius-pill);
-  background: var(--need-color);
+  // Texto blanco sobre --need-color (#e65f32) da 3.47:1, por debajo de AA.
+  background: #b94823;
   color: #fff !important;
   font-weight: 700;
 }
