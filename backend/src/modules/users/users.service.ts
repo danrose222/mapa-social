@@ -12,11 +12,13 @@ import { randomUUID } from 'crypto';
 
 import { User } from './entities/user.entity';
 import { ModeratorLocality } from './entities/moderator-locality.entity';
+import { ModeratorRequest } from './entities/moderator-request.entity';
 import { Role } from '../roles/entities/role.entity';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AddModeratorLocalityDto } from './dto/add-moderator-locality.dto';
+import { CreateModeratorRequestDto } from './dto/create-moderator-request.dto';
 import { localitiesMatch } from '../../common/utils/locality-match.util';
 import { MailService } from '../mail/mail.service';
 
@@ -39,6 +41,9 @@ export class UsersService {
 
     @InjectRepository(ModeratorLocality)
     private readonly localityRepository: Repository<ModeratorLocality>,
+
+    @InjectRepository(ModeratorRequest)
+    private readonly moderatorRequestRepository: Repository<ModeratorRequest>,
 
     private readonly mailService: MailService,
   ) {}
@@ -337,5 +342,113 @@ export class UsersService {
     await this.localityRepository.remove(locality);
 
     return { message: 'Localidad quitada' };
+  }
+
+  // Cualquier cuenta común puede pedir convertirse en moderador de una
+  // localidad -- sigue funcionando como ciudadano normal mientras se
+  // revisa, no queda bloqueada. La aprobación humana (ver
+  // approveModeratorRequest) es la única verificación real: no hay forma
+  // de confirmar por software que quien completa esto es de verdad un
+  // representante municipal.
+  async requestModerator(dto: CreateModeratorRequestDto, currentUser: AuthUser) {
+    if (currentUser.role === 'moderador') {
+      throw new ForbiddenException('Ya sos moderador');
+    }
+
+    const existing = await this.moderatorRequestRepository.findOne({
+      where: { userId: currentUser.id },
+    });
+
+    if (existing) {
+      throw new ConflictException('Ya tenés una solicitud pendiente');
+    }
+
+    const request = this.moderatorRequestRepository.create({
+      userId: currentUser.id,
+      locality: dto.locality.trim(),
+      provincia: dto.provincia?.trim(),
+      institutionName: dto.institutionName.trim(),
+      position: dto.position.trim(),
+      officialEmail: dto.officialEmail.trim(),
+      officialPhone: dto.officialPhone.trim(),
+      justification: dto.justification?.trim(),
+    });
+
+    return this.moderatorRequestRepository.save(request);
+  }
+
+  // Sin scoping por localidad acá -- mismo criterio que organizations
+  // .service.ts::findAll(), el filtro por jurisdicción lo aplica el
+  // frontend con localitiesMatch() para decidir qué mostrar, y
+  // approve/reject lo vuelven a validar server-side antes de actuar.
+  findModeratorRequests() {
+    return this.moderatorRequestRepository.find({
+      relations: ['user'],
+      order: { createdAt: 'ASC' },
+    });
+  }
+
+  private async findModeratorRequestOrFail(id: number): Promise<ModeratorRequest> {
+    const request = await this.moderatorRequestRepository.findOne({
+      where: { id },
+    });
+
+    if (!request) {
+      throw new NotFoundException('Solicitud inexistente');
+    }
+
+    return request;
+  }
+
+  async approveModeratorRequest(id: number, currentUser: AuthUser) {
+    if (currentUser.role !== 'moderador') {
+      throw new ForbiddenException('Solo un moderador puede aprobar esta solicitud');
+    }
+
+    const request = await this.findModeratorRequestOrFail(id);
+
+    await this.assertCallerHasLocality(request.locality, currentUser);
+
+    const moderatorRole = await this.roleRepository.findOne({
+      where: { name: 'moderador' },
+    });
+
+    if (!moderatorRole) {
+      throw new NotFoundException('Rol moderador inexistente');
+    }
+
+    await this.userRepository.update(request.userId, { roleId: moderatorRole.id });
+
+    const existingLocality = await this.localityRepository.findOne({
+      where: { userId: request.userId, locality: request.locality },
+    });
+
+    if (!existingLocality) {
+      await this.localityRepository.save(
+        this.localityRepository.create({
+          userId: request.userId,
+          locality: request.locality,
+          provincia: request.provincia,
+        }),
+      );
+    }
+
+    await this.moderatorRequestRepository.remove(request);
+
+    return { message: 'Solicitud aprobada' };
+  }
+
+  async rejectModeratorRequest(id: number, currentUser: AuthUser) {
+    if (currentUser.role !== 'moderador') {
+      throw new ForbiddenException('Solo un moderador puede rechazar esta solicitud');
+    }
+
+    const request = await this.findModeratorRequestOrFail(id);
+
+    await this.assertCallerHasLocality(request.locality, currentUser);
+
+    await this.moderatorRequestRepository.remove(request);
+
+    return { message: 'Solicitud rechazada' };
   }
 }
