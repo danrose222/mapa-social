@@ -98,19 +98,56 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   // Debounce de la búsqueda de texto: cuando el modo de necesidades está
   // paginado (radius/locality), cada cambio dispara un refetch con
   // SEARCH_ALL_LIMIT en vez de la página chica -- ver el comentario de esa
-  // constante para el motivo.
+  // constante para el motivo. Además, si lo tipeado geocodifica a un lugar
+  // real, mueve el mapa ahí y busca en un radio -- el filtro de texto solo
+  // matchea título/descripción/dirección, y la mayoría de los recursos no
+  // tienen dirección cargada aunque estén ahí geográficamente.
   private readonly searchTermChanges = new Subject<void>();
 
+  // Descarta una respuesta de geocodificación vieja si el usuario ya
+  // volvió a tipear -- mismo patrón que necesito-ayuda.component.ts para
+  // este mismo problema (una respuesta lenta no debe pisar algo más nuevo).
+  private searchGeocodeId = 0;
+
   constructor() {
-    this.searchTermChanges.pipe(debounceTime(350)).subscribe(() => {
-      if (this.searchMode() === 'radius') {
-        this.territoryPage.set(1);
-        this.loadRadiusPage();
-      } else if (this.searchMode() === 'locality') {
-        this.territoryPage.set(1);
-        this.loadLocalityPage();
+    this.searchTermChanges.pipe(debounceTime(400)).subscribe(() => {
+      const term = this.searchTerm().trim();
+      const requestId = ++this.searchGeocodeId;
+
+      if (term.length < 3) {
+        this.refetchNeedsForCurrentSearch();
+        return;
       }
+
+      this.georefService.geocodeLocality(term).subscribe({
+        next: (point) => {
+          if (requestId !== this.searchGeocodeId) {
+            return;
+          }
+
+          if (point) {
+            this.startRadiusSearch(point.lat, point.lng, true, 'manual');
+          } else {
+            this.refetchNeedsForCurrentSearch();
+          }
+        },
+        error: () => {
+          if (requestId === this.searchGeocodeId) {
+            this.refetchNeedsForCurrentSearch();
+          }
+        },
+      });
     });
+  }
+
+  private refetchNeedsForCurrentSearch(): void {
+    if (this.searchMode() === 'radius') {
+      this.territoryPage.set(1);
+      this.loadRadiusPage();
+    } else if (this.searchMode() === 'locality') {
+      this.territoryPage.set(1);
+      this.loadLocalityPage();
+    }
   }
 
   // 'all' = sin acotar (default si no hay geolocalización ni ciudad).

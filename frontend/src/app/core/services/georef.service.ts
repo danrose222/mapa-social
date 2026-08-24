@@ -95,9 +95,16 @@ export class GeorefService {
           // local -- sin esto, pedir max:1 podía devolver la de otra
           // provincia y centrar el mapa a cientos de km de donde
           // corresponde. Esta app es de alcance provincial, así que ante
-          // ambigüedad preferimos la de Córdoba.
-          const match =
-            localidades.find((l) => l.provincia?.nombre === 'Córdoba') ?? localidades[0];
+          // ambigüedad preferimos la de Córdoba -- y si NINGÚN resultado es
+          // de Córdoba (ej: "Alberdi" solo existe como localidad en Buenos
+          // Aires, aunque acá se use como nombre de barrio dentro de la
+          // capital cordobesa), es más seguro no matchear que centrar el
+          // mapa a cientos de km en la provincia equivocada.
+          const match = localidades.find((l) => l.provincia?.nombre === 'Córdoba');
+
+          if (!match) {
+            return null;
+          }
 
           return {
             lat: roundCoordinate(match.centroide.lat),
