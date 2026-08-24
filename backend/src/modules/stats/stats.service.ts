@@ -5,6 +5,13 @@ import { Repository } from 'typeorm';
 import { Need } from '../needs/entities/need.entity';
 import { Resource } from '../resources/entities/resource.entity';
 import { Category } from '../categories/entities/category.entity';
+import { ModeratorLocality } from '../users/entities/moderator-locality.entity';
+import { localitiesMatch } from '../../common/utils/locality-match.util';
+
+interface AuthUser {
+  id: number;
+  role: string;
+}
 
 @Injectable()
 export class StatsService {
@@ -17,30 +24,76 @@ export class StatsService {
 
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
+
+    @InjectRepository(ModeratorLocality)
+    private readonly localityRepository: Repository<ModeratorLocality>,
   ) {}
 
-  // Conteo de necesidades y recursos por categoría.
-  async byCategory() {
+  // Las localidades se resuelven siempre del JWT (currentUser.id), nunca
+  // de un parámetro que mande el cliente -- mismo criterio que ya usa
+  // organizations.service.ts para no dejar que un moderador consulte la
+  // jurisdicción de otro.
+  private async moderatorLocalities(currentUser: AuthUser): Promise<string[]> {
+    const localities = await this.localityRepository.find({
+      where: { userId: currentUser.id },
+    });
+
+    return localities.map((l) => l.locality);
+  }
+
+  private needInScope(need: Pick<Need, 'locality'>, moderatorLocalities: string[]): boolean {
+    if (!need.locality) {
+      return false;
+    }
+
+    return moderatorLocalities.some((ml) => localitiesMatch(ml, need.locality!));
+  }
+
+  // Resource no tiene columna de localidad propia (solo 'address' en
+  // texto libre), así que se aproxima por la ciudad de la organización
+  // dueña. Un recurso publicado por un moderador directamente, sin
+  // organización, queda fuera del conteo -- limitación conocida hasta que
+  // se agregue una columna de localidad real a Resource.
+  private resourceInScope(
+    resource: { organization?: { ciudad: string } | null },
+    moderatorLocalities: string[],
+  ): boolean {
+    if (!resource.organization?.ciudad) {
+      return false;
+    }
+
+    return moderatorLocalities.some((ml) =>
+      localitiesMatch(ml, resource.organization!.ciudad),
+    );
+  }
+
+  // Conteo de necesidades y recursos por categoría, acotado a las
+  // localidades del moderador logueado.
+  async byCategory(currentUser: AuthUser) {
+    const moderatorLocalities = await this.moderatorLocalities(currentUser);
+
     const categories = await this.categoryRepository.find({ where: { active: true } });
 
-    const needRows = await this.needRepository
-      .createQueryBuilder('n')
-      .select('n.categoryId', 'categoryId')
-      .addSelect('COUNT(*)', 'count')
-      .groupBy('n.categoryId')
-      .getRawMany<{ categoryId: number; count: string }>();
+    const needs = await this.needRepository.find();
+    const needsInScope = needs.filter((n) => this.needInScope(n, moderatorLocalities));
 
-    const resourceRows = await this.resourceRepository
-      .createQueryBuilder('r')
-      .select('r.categoryId', 'categoryId')
-      .addSelect('COUNT(*)', 'count')
-      .groupBy('r.categoryId')
-      .getRawMany<{ categoryId: number; count: string }>();
-
-    const needsByCategory = new Map(needRows.map((r) => [r.categoryId, Number(r.count)]));
-    const resourcesByCategory = new Map(
-      resourceRows.map((r) => [r.categoryId, Number(r.count)]),
+    const resources = await this.resourceRepository.find({ relations: ['organization'] });
+    const resourcesInScope = resources.filter((r) =>
+      this.resourceInScope(r, moderatorLocalities),
     );
+
+    const needsByCategory = new Map<number, number>();
+    for (const need of needsInScope) {
+      needsByCategory.set(need.categoryId, (needsByCategory.get(need.categoryId) ?? 0) + 1);
+    }
+
+    const resourcesByCategory = new Map<number, number>();
+    for (const resource of resourcesInScope) {
+      resourcesByCategory.set(
+        resource.categoryId,
+        (resourcesByCategory.get(resource.categoryId) ?? 0) + 1,
+      );
+    }
 
     return categories.map((category) => ({
       categoryId: category.id,
@@ -50,31 +103,41 @@ export class StatsService {
     }));
   }
 
-  // Conteo de necesidades por localidad -- solo necesidades: son las que
-  // tienen un campo de localidad normalizado. Los recursos hoy solo
-  // guardan 'address' en texto libre, sin una columna de zona equivalente.
-  async byLocality() {
-    const rows = await this.needRepository
-      .createQueryBuilder('n')
-      .select('n.locality', 'locality')
-      .addSelect('COUNT(*)', 'count')
-      .where('n.locality IS NOT NULL')
-      .andWhere("n.locality != ''")
-      .groupBy('n.locality')
-      .orderBy('count', 'DESC')
-      .getRawMany<{ locality: string; count: string }>();
+  // Conteo de necesidades por localidad, solo entre las localidades del
+  // moderador -- ya no es un ranking sitewide.
+  async byLocality(currentUser: AuthUser) {
+    const moderatorLocalities = await this.moderatorLocalities(currentUser);
 
-    return rows.map((r) => ({ locality: r.locality, count: Number(r.count) }));
+    const needs = await this.needRepository.find();
+    const needsInScope = needs.filter((n) => this.needInScope(n, moderatorLocalities));
+
+    const counts = new Map<string, number>();
+    for (const need of needsInScope) {
+      counts.set(need.locality!, (counts.get(need.locality!) ?? 0) + 1);
+    }
+
+    return Array.from(counts.entries())
+      .map(([locality, count]) => ({ locality, count }))
+      .sort((a, b) => b.count - a.count);
   }
 
-  // % resuelto vs pendiente, para necesidades y recursos por separado.
-  async resolutionRate() {
-    const [needsTotal, needsResolved, resourcesTotal, resourcesResolved] = await Promise.all([
-      this.needRepository.count(),
-      this.needRepository.count({ where: { status: 'resolved' } }),
-      this.resourceRepository.count(),
-      this.resourceRepository.count({ where: { status: 'resolved' } }),
-    ]);
+  // % resuelto vs pendiente, para necesidades y recursos por separado,
+  // acotado a las localidades del moderador.
+  async resolutionRate(currentUser: AuthUser) {
+    const moderatorLocalities = await this.moderatorLocalities(currentUser);
+
+    const needs = await this.needRepository.find();
+    const needsInScope = needs.filter((n) => this.needInScope(n, moderatorLocalities));
+
+    const resources = await this.resourceRepository.find({ relations: ['organization'] });
+    const resourcesInScope = resources.filter((r) =>
+      this.resourceInScope(r, moderatorLocalities),
+    );
+
+    const needsTotal = needsInScope.length;
+    const needsResolved = needsInScope.filter((n) => n.status === 'resolved').length;
+    const resourcesTotal = resourcesInScope.length;
+    const resourcesResolved = resourcesInScope.filter((r) => r.status === 'resolved').length;
 
     const pct = (part: number, total: number) =>
       total === 0 ? 0 : Math.round((part / total) * 1000) / 10;

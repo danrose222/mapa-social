@@ -40,6 +40,11 @@ export class AuthService {
       throw new UnauthorizedException('Usuario deshabilitado');
     }
 
+    // El payload firmado se mantiene mínimo (sub/email/role) a propósito:
+    // organizationType puede cambiar si el usuario se suma o se va de una
+    // organización, y JwtStrategy.validate() ya lo resuelve fresco contra
+    // la base en cada request -- confiar en un valor viejo embebido acá
+    // sería el mismo tipo de bug que ya se corrigió para email/id.
     const payload = {
       sub: user.id,
       email: user.email,
@@ -54,6 +59,7 @@ export class AuthService {
         lastName: user.lastName,
         email: user.email,
         role: user.role.name,
+        organizationType: user.organization?.type ?? null,
       },
     };
   }

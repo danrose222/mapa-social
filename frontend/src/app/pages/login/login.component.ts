@@ -29,7 +29,7 @@ export class LoginComponent {
 
   readonly returnPath = computed(() => {
     const volver = this.queryParams()?.get('volver');
-    return volver ? `/${volver}` : '/';
+    return volver ? `/${volver}` : null;
   });
 
   readonly isSubmitting = signal(false);
@@ -49,7 +49,28 @@ export class LoginComponent {
     this.authService.login(email!, password!).subscribe({
       next: () => {
         this.isSubmitting.set(false);
-        this.router.navigateByUrl(this.returnPath());
+
+        // 1. Si venía de una ruta protegida previa, mantenemos ese destino
+        const customReturn = this.returnPath();
+        if (customReturn) {
+          this.router.navigateByUrl(customReturn);
+          return;
+        }
+
+        // 2. Si no hay ruta previa, leemos actorRole() para redirigir --
+        // NO profile()?.role?.name: ese campo solo vale 'seed-role' o
+        // 'moderador', 'ong'/'comunidad' viven en organization.type. Con
+        // profile().role.name esta comparación nunca era true y cualquier
+        // usuario de una organización caía siempre al '/' de abajo.
+        const actorRole = this.authService.actorRole();
+
+        if (actorRole === 'moderador') {
+          this.router.navigate(['/dashboard-moderador']);
+        } else if (actorRole === 'ong' || actorRole === 'comunidad') {
+          this.router.navigate(['/dashboard-organizacion']);
+        } else {
+          this.router.navigate(['/']);
+        }
       },
       error: (error: HttpErrorResponse) => {
         this.isSubmitting.set(false);

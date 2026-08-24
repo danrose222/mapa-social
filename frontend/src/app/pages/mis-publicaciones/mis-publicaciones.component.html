@@ -64,7 +64,7 @@
               </div>
 
               <div class="mis-pub__actions">
-                @if (need.status === 'active') {
+                @if (need.status === 'active' && canResolve()) {
                   <button
                     type="button"
                     class="btn btn--ghost"
@@ -115,7 +115,7 @@
               </div>
 
               <div class="mis-pub__actions">
-                @if (resource.status === 'available') {
+                @if (resource.status === 'available' && canResolve()) {
                   <button
                     type="button"
                     class="btn btn--ghost"

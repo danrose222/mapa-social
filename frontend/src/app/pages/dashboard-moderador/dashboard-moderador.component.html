@@ -1,0 +1,20 @@
+<div class="panel-container">
+    <h1>Panel de Administración y Moderación</h1>
+  
+    @if (authService.profileLoaded()) {
+      <p>Bienvenido, {{ authService.profile()?.firstName }}</p>
+  
+      <div class="status-banner">
+        <p>{{ authService.resourcePublishReason() }}</p>
+      </div>
+  
+      <section class="acciones-moderador">
+        <h2>Organizaciones Pendientes de Aval</h2>
+        <p>
+          <a routerLink="/moderador/organizaciones">Ver organizaciones pendientes →</a>
+        </p>
+      </section>
+    } @else {
+      <p>Cargando datos del perfil...</p>
+    }
+  </div>

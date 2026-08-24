@@ -1,6 +1,8 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, of, tap } from 'rxjs';
+import { Observable, catchError, map, of, switchMap, tap } from 'rxjs';
+
+export type OrganizationType = 'ong' | 'comunidad';
 
 export interface AuthUser {
   id: number;
@@ -9,6 +11,7 @@ export interface AuthUser {
   email: string;
   role: string;
   ciudad?: string | null;
+  organizationType?: OrganizationType | null;
 }
 
 export interface LoginResponse {
@@ -28,7 +31,7 @@ export interface UserProfile {
   email: string;
   ciudad?: string | null;
   role: { id: number; name: string };
-  organization?: { id: number; name: string; verified: boolean } | null;
+  organization?: { id: number; name: string; type: OrganizationType; verified: boolean } | null;
   localities?: { id: number; locality: string; provincia?: string }[];
 }
 
@@ -59,6 +62,27 @@ export class AuthService {
 
   readonly isModerator = computed(() => this.profileSignal()?.role.name === 'moderador');
 
+  // Rol "de actor" para las guards y dashboards por actor (dashboard-
+  // organizacion, dashboard-moderador): profile.role.name solo distingue
+  // 'moderador' del resto de las cuentas ('seed-role') -- 'ong'/'comunidad'
+  // viven en profile.organization.type, no en el rol. No hay un actor
+  // "municipio" vinculado a User en ningún lado del sistema: el moderador
+  // ES quien avala organizaciones (ver /moderador/organizaciones), así que
+  // no hace falta un tercer valor acá.
+  readonly actorRole = computed<'moderador' | OrganizationType | null>(() => {
+    const profile = this.profileSignal();
+
+    if (!profile) {
+      return null;
+    }
+
+    if (profile.role.name === 'moderador') {
+      return 'moderador';
+    }
+
+    return profile.organization?.type ?? null;
+  });
+
   // Explica EN QUÉ CONDICIÓN puede (o no puede) publicar -- para mostrarlo
   // en la UI en vez de un simple sí/no.
   readonly resourcePublishReason = computed(() => {
@@ -84,8 +108,17 @@ export class AuthService {
   });
 
   constructor() {
+    // No se llama a refreshProfile() directo acá: el HttpClient pasa por
+    // authInterceptor, que a su vez inyecta este mismo AuthService -- en
+    // medio de la construcción del servicio, eso es NG0200 (circular
+    // dependency), y refreshProfile() nunca llega a resolver en un hard
+    // refresh de cualquier ruta protegida (el catchError se lo traga en
+    // silencio, dejando profileLoaded() en true con profile() en null
+    // para siempre). Con queueMicrotask, la llamada sale recién cuando el
+    // constructor ya terminó y el injector ya registró la instancia
+    // completa.
     if (this.getToken()) {
-      this.refreshProfile().subscribe();
+      queueMicrotask(() => this.refreshProfile().subscribe());
     }
   }
 
@@ -96,7 +129,11 @@ export class AuthService {
         sessionStorage.setItem(USER_KEY, JSON.stringify(response.user));
         this.currentUserSignal.set(response.user);
       }),
-      tap(() => this.refreshProfile().subscribe()),
+      // switchMap, no el tap+subscribe suelto de antes: ese patrón disparaba
+      // el refresh sin esperarlo, así que quien se suscribe a login() (ver
+      // login.component.ts) leía actorRole()/profile() todavía en null y el
+      // redirect por rol nunca funcionaba -- esperar acá lo garantiza.
+      switchMap((response) => this.refreshProfile().pipe(map(() => response))),
     );
   }
 

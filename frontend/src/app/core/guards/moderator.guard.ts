@@ -20,3 +20,4 @@ export const moderatorGuard: CanActivateFn = () => {
     map((profile) => (profile?.role.name === 'moderador' ? true : router.createUrlTree(['/']))),
   );
 };
+

@@ -1,9 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-
+import { firstValueFrom } from 'rxjs';
 import { PublicationsService } from '../../core/services/publications.service';
 import { CategoriesService } from '../../core/services/categories.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Category, Need, Resource } from '../../core/models/mapa-social.model';
 
 type Tab = 'needs' | 'resources';
@@ -18,6 +19,7 @@ type Tab = 'needs' | 'resources';
 export class MisPublicacionesComponent {
   private readonly publicationsService = inject(PublicationsService);
   private readonly categoriesService = inject(CategoriesService);
+  private readonly authService = inject(AuthService);
 
   readonly tab = signal<Tab>('needs');
   readonly isLoading = signal(true);
@@ -28,6 +30,16 @@ export class MisPublicacionesComponent {
   readonly actionError = signal('');
   readonly processingId = signal<number | null>(null);
 
+  // El backend solo deja cambiar el status (needs.service.ts/resources.
+  // service.ts -> update()) a un moderador -- 'ciudadano'/'vecino' no son
+  // roles reales de este sistema (los únicos son 'moderador' y el rol por
+  // default de cualquier cuenta nueva), así que ese chequeo nunca excluía
+  // a nadie y el botón terminaba mostrado incluso al dueño, que se
+  // encontraba con un 403 al tocarlo.
+  readonly canResolve = computed(() => {
+    return this.authService.currentUser()?.role === 'moderador';
+  });
+
   constructor() {
     this.categoriesService.getAll().subscribe({
       next: (categories) => this.categories.set(categories),
@@ -37,23 +49,32 @@ export class MisPublicacionesComponent {
     this.load();
   }
 
-  private load(): void {
+  private getEntityId(item: any): number | null {
+    const rawId = item?.id ?? item?._id ?? item?.id_need ?? item?.id_resource;
+    if (rawId === null || rawId === undefined) {
+      return null;
+    }
+    const parsedId = Number(rawId);
+    return isNaN(parsedId) ? null : parsedId;
+  }
+
+  private async load(): Promise<void> {
     this.isLoading.set(true);
     this.loadError.set(false);
 
-    Promise.all([
-      this.publicationsService.getMyNeeds().toPromise(),
-      this.publicationsService.getMyResources().toPromise(),
-    ])
-      .then(([needs, resources]) => {
-        this.needs.set(needs ?? []);
-        this.resources.set(resources ?? []);
-        this.isLoading.set(false);
-      })
-      .catch(() => {
-        this.isLoading.set(false);
-        this.loadError.set(true);
-      });
+    try {
+      const [needs, resources] = await Promise.all([
+        firstValueFrom(this.publicationsService.getMyNeeds()),
+        firstValueFrom(this.publicationsService.getMyResources()),
+      ]);
+
+      this.needs.set(needs ?? []);
+      this.resources.set(resources ?? []);
+      this.isLoading.set(false);
+    } catch (error) {
+      this.isLoading.set(false);
+      this.loadError.set(true);
+    }
   }
 
   setTab(tab: Tab): void {
@@ -64,11 +85,18 @@ export class MisPublicacionesComponent {
     return this.categories().find((c) => c.id === categoryId)?.name ?? '—';
   }
 
-  resolveNeed(need: Need): void {
-    this.processingId.set(need.id);
+  resolveNeed(need: any): void {
+    const targetId = this.getEntityId(need);
+
+    if (targetId === null) {
+      this.actionError.set('No se encontró el ID de la necesidad.');
+      return;
+    }
+
+    this.processingId.set(targetId);
     this.actionError.set('');
 
-    this.publicationsService.updateNeedStatus(need.id, 'resolved').subscribe({
+    this.publicationsService.updateNeedStatus(targetId, 'resolved').subscribe({
       next: () => {
         this.processingId.set(null);
         this.load();
@@ -80,31 +108,46 @@ export class MisPublicacionesComponent {
     });
   }
 
-  deleteNeed(need: Need): void {
+  deleteNeed(need: any): void {
+    const targetId = this.getEntityId(need);
+
+    if (targetId === null) {
+      this.actionError.set('No se encontró el ID de la necesidad.');
+      return;
+    }
+
     if (!confirm(`¿Eliminar la necesidad "${need.title}"? No se puede deshacer.`)) {
       return;
     }
 
-    this.processingId.set(need.id);
+    this.processingId.set(targetId);
     this.actionError.set('');
 
-    this.publicationsService.removeNeed(need.id).subscribe({
+    this.publicationsService.removeNeed(targetId).subscribe({
       next: () => {
         this.processingId.set(null);
         this.load();
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error al eliminar necesidad:', err);
         this.processingId.set(null);
         this.actionError.set('No se pudo eliminar la necesidad.');
       },
     });
   }
 
-  resolveResource(resource: Resource): void {
-    this.processingId.set(resource.id);
+  resolveResource(resource: any): void {
+    const targetId = this.getEntityId(resource);
+
+    if (targetId === null) {
+      this.actionError.set('No se encontró el ID del recurso.');
+      return;
+    }
+
+    this.processingId.set(targetId);
     this.actionError.set('');
 
-    this.publicationsService.updateResourceStatus(resource.id, 'resolved').subscribe({
+    this.publicationsService.updateResourceStatus(targetId, 'resolved').subscribe({
       next: () => {
         this.processingId.set(null);
         this.load();
@@ -116,20 +159,28 @@ export class MisPublicacionesComponent {
     });
   }
 
-  deleteResource(resource: Resource): void {
+  deleteResource(resource: any): void {
+    const targetId = this.getEntityId(resource);
+
+    if (targetId === null) {
+      this.actionError.set('No se encontró el ID del recurso.');
+      return;
+    }
+
     if (!confirm(`¿Eliminar el recurso "${resource.title}"? No se puede deshacer.`)) {
       return;
     }
 
-    this.processingId.set(resource.id);
+    this.processingId.set(targetId);
     this.actionError.set('');
 
-    this.publicationsService.removeResource(resource.id).subscribe({
+    this.publicationsService.removeResource(targetId).subscribe({
       next: () => {
         this.processingId.set(null);
         this.load();
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error al eliminar recurso:', err);
         this.processingId.set(null);
         this.actionError.set('No se pudo eliminar el recurso.');
       },

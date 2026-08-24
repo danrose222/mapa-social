@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import { authGuard } from './core/guards/auth.guard';
 import { moderatorGuard } from './core/guards/moderator.guard';
+import { roleGuard } from './guards/role-guard'; // 👈 Ruta real respetada
 import { AppShellComponent } from './layout/app-shell/app-shell.component';
 
 export const routes: Routes = [
@@ -19,6 +20,27 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/mapa/mapa-home.component').then((m) => m.MapaHomeComponent),
       },
+      // --- DASHBOARDS Y PANELES POR ROL ---
+      {
+        path: 'dashboard-organizacion',
+        // 'municipio' no es un actor real acá: quien avala organizaciones
+        // es el moderador (ver /moderador/organizaciones), no hay ninguna
+        // cuenta vinculada a un municipio en el sistema.
+        canActivate: [roleGuard(['ong', 'comunidad'])],
+        loadComponent: () =>
+          import('./pages/dashboard-organizacion/dashboard-organizacion').then(
+            (m) => m.DashboardOrganizacion,
+          ),
+      },
+      {
+        path: 'dashboard-moderador',
+        canActivate: [roleGuard(['moderador'])],
+        loadComponent: () =>
+          import('./pages/dashboard-moderador/dashboard-moderador').then(
+            (m) => m.DashboardModeradorComponent,
+          ),
+      },
+      // ------------------------------------
       {
         path: 'publicar',
         loadComponent: () =>
@@ -50,6 +72,7 @@ export const routes: Routes = [
       },
       {
         path: 'estadisticas',
+        canActivate: [moderatorGuard],
         loadComponent: () =>
           import('./pages/estadisticas/estadisticas.component').then(
             (m) => m.EstadisticasComponent,
@@ -103,10 +126,6 @@ export const routes: Routes = [
           ),
       },
       {
-        // Va DESPUÉS de mi-organizacion y crear -- Angular matchea rutas en
-        // el orden del array, no por especificidad, así que si ':id'
-        // estuviera antes capturaría '/organizacion/mi-organizacion' como
-        // si "mi-organizacion" fuera un id.
         path: 'organizacion/:id',
         loadComponent: () =>
           import('./pages/organizacion/perfil/organizacion-perfil.component').then(
@@ -146,6 +165,13 @@ export const routes: Routes = [
         path: 'registro',
         loadComponent: () =>
           import('./pages/registro/registro.component').then((m) => m.RegistroComponent),
+      },
+      {
+        // Sin esta ruta, el redirectTo del roleGuard nunca llegaba acá --
+        // caía en el '**' de abajo y volvía silenciosamente al inicio.
+        path: 'unauthorized',
+        loadComponent: () =>
+          import('./pages/unauthorized/unauthorized').then((m) => m.Unauthorized),
       },
       {
         path: '**',

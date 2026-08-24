@@ -1,0 +1,30 @@
+<div class="dashboard-container">
+  <header class="dashboard-header">
+    <h1>Panel de Gestión</h1>
+    <p>Administrá tus recursos ofrecidos y necesidades publicadas.</p>
+  </header>
+
+  @if (isLoading()) {
+    <p class="loading-text">Cargando datos del panel…</p>
+  } @else {
+    <section class="panel-section">
+      <div class="actions-header">
+        <a routerLink="/publicar/ofrecer-recurso" class="btn">Ofrecer Recurso</a>
+        <a routerLink="/publicar/necesito-ayuda" class="btn btn--secondary">Solicitar Ayuda</a>
+      </div>
+
+      <div class="stats-grid">
+        <div class="card stat-card">
+          <h3>Mis Recursos Ofrecidos</h3>
+          <p class="stat-value">{{ resourcesCount() }}</p>
+          <a routerLink="/mis-publicaciones" class="card-link">Ver recursos →</a>
+        </div>
+        <div class="card stat-card">
+          <h3>Mis Solicitudes Activas</h3>
+          <p class="stat-value">{{ needsCount() }}</p>
+          <a routerLink="/mis-solicitudes" class="card-link">Ver solicitudes →</a>
+        </div>
+      </div>
+    </section>
+  }
+</div>

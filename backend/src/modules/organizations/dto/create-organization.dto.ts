@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
 
+import { OrganizationType } from '../entities/organization.entity';
+
 export class CreateOrganizationDto {
   @ApiProperty({
     example: 'Comedor Los Pinos',
@@ -15,7 +17,7 @@ export class CreateOrganizationDto {
     enum: ['comunidad', 'ong'],
   })
   @IsIn(['comunidad', 'ong'])
-  type!: string;
+  type!: OrganizationType;
 
   @ApiProperty({
     example: 'Córdoba',

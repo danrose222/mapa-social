@@ -52,6 +52,13 @@
       Quiénes somos
     </a>
 
+    <!-- ENLACE DINÁMICO AL DASHBOARD SEGÚN EL ROL -->
+    @if (dashboardUrl(); as url) {
+      <a [routerLink]="url" routerLinkActive="is-active" (click)="closeMenu()">
+        Mi Panel
+      </a>
+    }
+
     @if (currentUser()) {
       <span class="shell-header__user">{{ currentUser()?.firstName }}</span>
       <button type="button" class="shell-header__logout" (click)="logout()">
