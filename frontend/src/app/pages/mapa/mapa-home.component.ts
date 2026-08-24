@@ -965,15 +965,46 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
           `data-collab-resource-id="${resource.id}">❤️ Quiero Colaborar</button>`
       : '';
 
+    // Quien entra a "colaborar" (donante) no está buscando ESTE recurso
+    // puntual -- está buscando A QUIÉN dárselo. El popup se reencuadra
+    // alrededor de la organización (nombre grande, el recurso pasa a ser
+    // un dato secundario) y esconde el contacto directo: mostrar el
+    // teléfono acá arruinaría el propósito del modal "Quiero Colaborar"
+    // (contacto anónimo sin exponer datos privados) que se armó
+    // específicamente para este flujo. Con "Solicitar este recurso" (modo
+    // ?type=need) el recurso puntual SÍ es lo que la persona busca, así
+    // que ahí se mantiene el encuadre y el contacto directo de siempre.
+    const isDonorMode = !this.needEntryMode;
+
+    const bodyHtml =
+      isDonorMode && resource.organization
+        ? `
+          <div class="v2map-popup__org-heading">
+            🏢 <strong>${this.escapeHtml(resource.organization.name)}</strong>
+            ${
+              resource.organization.verified
+                ? '<span class="v2map-popup__verified">✓ Verificada</span>'
+                : ''
+            }
+          </div>
+          <p class="v2map-popup__offers">Ofrece: ${title}</p>
+          <p class="v2map-popup__desc">${description}</p>
+          ${scheduleHtml}
+          ${actionHtml}
+        `
+        : `
+          ${orgHtml}
+          <strong>${title}</strong>
+          <p class="v2map-popup__desc">${description}</p>
+          ${scheduleHtml}
+          ${contactHtml}
+          ${actionHtml}
+        `;
+
     return `
       <div class="v2map-popup">
         ${imageHtml}
-        ${orgHtml}
-        <strong>${title}</strong>
-        <p class="v2map-popup__desc">${description}</p>
-        ${scheduleHtml}
-        ${contactHtml}
-        ${actionHtml}
+        ${bodyHtml}
       </div>
     `;
   }

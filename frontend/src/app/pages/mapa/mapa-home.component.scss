@@ -358,6 +358,21 @@
   color: var(--verified);
 }
 
+::ng-deep .v2map-popup__org-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+  font-size: 0.98rem;
+}
+
+::ng-deep .v2map-popup__offers {
+  margin: 4px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
 ::ng-deep .v2map-popup__desc {
   margin: 4px 0 6px;
   color: var(--ink-soft);
@@ -383,7 +398,10 @@
   margin-top: 8px;
   padding: 8px 12px;
   border-radius: var(--radius-sm);
-  background: var(--help-color);
+  // --help-color (#2f83a8) con texto blanco da 4.26:1, por debajo de AA
+  // para este tamaño/peso -- --help-color-text ya es la variante pensada
+  // para texto (6.73:1) y comparte el mismo tono.
+  background: var(--help-color-text);
   color: #fff;
   font-size: 0.84rem;
   font-weight: 700;
