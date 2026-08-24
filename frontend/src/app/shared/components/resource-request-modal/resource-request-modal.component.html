@@ -1,0 +1,57 @@
+<div class="rrq-backdrop" (click)="close()">
+  <div class="rrq-modal" (click)="$event.stopPropagation()">
+    @if (success()) {
+      <div class="rrq-toast">
+        <app-icon name="check" [size]="24" />
+        <p>
+          <strong>Solicitud enviada</strong> a {{ resource.organization?.name }}. Te avisaremos
+          cuando respondan.
+        </p>
+      </div>
+    } @else {
+      <button type="button" class="rrq-close" aria-label="Cerrar" (click)="close()">✕</button>
+
+      <h2>Confirmar solicitud a {{ resource.organization?.name }}</h2>
+
+      <dl class="rrq-summary">
+        <div class="rrq-summary__row">
+          <dt>Recurso</dt>
+          <dd>{{ resource.title }}</dd>
+        </div>
+        <div class="rrq-summary__row">
+          <dt>Categoría</dt>
+          <dd>{{ categoryName || '—' }}</dd>
+        </div>
+        <div class="rrq-summary__row">
+          <dt>Tu contacto</dt>
+          <dd>{{ contactDisplay }}</dd>
+        </div>
+        <div class="rrq-summary__row">
+          <dt>Jurisdicción</dt>
+          <dd>{{ jurisdiccionDisplay }}</dd>
+        </div>
+      </dl>
+
+      @if (errorMessage()) {
+        <p class="rrq-alert">{{ errorMessage() }}</p>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="field">
+          <label for="rrq-detail">Detalle específico (opcional)</label>
+          <textarea
+            id="rrq-detail"
+            formControlName="detailText"
+            rows="3"
+            maxlength="500"
+            placeholder="Ej: Talla L, para 2 personas, urgente hoy…"
+          ></textarea>
+        </div>
+
+        <button type="submit" class="btn btn--block" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'Enviando…' : 'Enviar Solicitud Privada' }}
+        </button>
+      </form>
+    }
+  </div>
+</div>

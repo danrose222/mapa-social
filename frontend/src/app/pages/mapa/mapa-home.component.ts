@@ -19,6 +19,7 @@ import { Category, Need, Resource } from '../../core/models/mapa-social.model';
 import { IconComponent } from '../../shared/icons/icon.component';
 import { QuickNeedFormComponent } from '../../shared/components/quick-need-form/quick-need-form.component';
 import { CollaborateModalComponent } from '../../shared/components/collaborate-modal/collaborate-modal.component';
+import { ResourceRequestModalComponent } from '../../shared/components/resource-request-modal/resource-request-modal.component';
 
 type FilterKind = 'todos' | 'necesidades' | 'recursos';
 type SearchMode = 'all' | 'locality' | 'radius';
@@ -34,7 +35,12 @@ const MOVE_THRESHOLD_KM = 5;
 @Component({
   selector: 'app-mapa-home',
   standalone: true,
-  imports: [IconComponent, QuickNeedFormComponent, CollaborateModalComponent],
+  imports: [
+    IconComponent,
+    QuickNeedFormComponent,
+    CollaborateModalComponent,
+    ResourceRequestModalComponent,
+  ],
   templateUrl: './mapa-home.component.html',
   styleUrl: './mapa-home.component.scss',
 })
@@ -170,6 +176,14 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
 
   // Modal "Quiero Colaborar", abierto desde el popup de un recurso.
   readonly collaborateResource = signal<Resource | null>(null);
+
+  // Modal "Solicitud express", abierto desde el popup de un recurso --
+  // solo para usuarios logueados (ver solicitarRecurso()).
+  readonly resourceRequestTarget = signal<Resource | null>(null);
+  readonly resourceRequestCategoryName = computed(() => {
+    const resource = this.resourceRequestTarget();
+    return resource ? (this.categoryName(resource.categoryId) ?? '') : '';
+  });
 
   private filteredNeeds(): Need[] {
     return this.applyFilters(this.allNeeds());
@@ -738,9 +752,10 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   // "Solicitar este recurso" desde el popup (modo ?type=need): a
   // diferencia de "Quiero Colaborar", esto sí exige cuenta -- pedís que
   // una organización te contacte, así que necesitamos poder identificarte.
-  // Reusa el mismo formulario de necesidad privada (categoría +
-  // descripción + urgencia) que ya garantiza que nunca queda pública,
-  // precargando la categoría del recurso puntual desde el que se pidió.
+  // Con sesión abre el modal "express" (ResourceRequestModalComponent):
+  // contacto y jurisdicción se heredan del perfil, no se vuelven a pedir
+  // como en el formulario genérico de necesidad privada (ese sigue
+  // existiendo tal cual para el botón flotante "Publicar mi necesidad").
   solicitarRecurso(resourceId: number): void {
     const resource = this.allResources().find((r) => r.id === resourceId);
     if (!resource) {
@@ -752,13 +767,12 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    this.quickNeedLat.set(resource.latitude);
-    this.quickNeedLng.set(resource.longitude);
-    this.quickNeedCategoryId.set(resource.categoryId);
-    this.quickNeedLocality.set(this.territoryFilter());
-
-    this.showQuickNeedForm.set(true);
+    this.resourceRequestTarget.set(resource);
     this.map?.closePopup();
+  }
+
+  closeResourceRequestModal(): void {
+    this.resourceRequestTarget.set(null);
   }
 
   private onPopupOpen(event: L.PopupEvent): void {

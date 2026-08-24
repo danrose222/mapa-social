@@ -11,6 +11,7 @@ import {
   Need,
   Organization,
   Resource,
+  ResourceRequest,
 } from '../../../core/models/mapa-social.model';
 
 @Component({
@@ -32,6 +33,7 @@ export class MiOrganizacionComponent {
   readonly myResources = signal<Resource[]>([]);
   readonly privateNeeds = signal<Need[]>([]);
   readonly collaborationRequests = signal<CollaborationRequest[]>([]);
+  readonly resourceRequests = signal<ResourceRequest[]>([]);
 
   readonly isSaving = signal(false);
   readonly saveMessage = signal('');
@@ -77,6 +79,11 @@ export class MiOrganizacionComponent {
 
             this.publicationsService.getMyCollaborationRequests().subscribe({
               next: (requests) => this.collaborationRequests.set(requests),
+              error: () => {},
+            });
+
+            this.publicationsService.getMyResourceRequests().subscribe({
+              next: (requests) => this.resourceRequests.set(requests),
               error: () => {},
             });
           }

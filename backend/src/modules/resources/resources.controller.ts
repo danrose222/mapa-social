@@ -18,6 +18,7 @@ import { ResourcesService } from './resources.service';
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
 import { CreateCollaborationRequestDto } from './dto/create-collaboration-request.dto';
+import { CreateResourceRequestDto } from './dto/create-resource-request.dto';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
@@ -87,6 +88,18 @@ export class ResourcesController {
     return this.service.findCollaborationRequestsForOrganization(user.id);
   }
 
+  @Get('requests/mine')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Listar las solicitudes express recibidas por mi organización sobre sus recursos',
+  })
+  @ApiResponse({ status: 200, description: 'Listado de solicitudes' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  findMyResourceRequests(@CurrentUser() user: AuthUser) {
+    return this.service.findResourceRequestsForOrganization(user.id);
+  }
+
   @Post(':id/contact')
   @UseGuards(ThrottlerGuard)
   @Throttle({ collaborate: { limit: 3, ttl: 60_000 } })
@@ -109,6 +122,28 @@ export class ResourcesController {
     @Body() dto: CreateCollaborationRequestDto,
   ) {
     return this.service.contactAboutResource(id, dto);
+  }
+
+  @Post(':id/request')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Solicitud express de un usuario logueado hacia un recurso puntual -- contacto y categoría se heredan de la cuenta y el recurso, no se piden de nuevo',
+  })
+  @ApiResponse({ status: 201, description: 'Solicitud registrada' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({
+    status: 404,
+    description: 'Recurso inexistente o sin organización asociada',
+  })
+  requestResource(
+    @Param('id', ParseIntPipe)
+    id: number,
+    @Body() dto: CreateResourceRequestDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.requestResource(id, user.id, dto);
   }
 
   @Get(':id')

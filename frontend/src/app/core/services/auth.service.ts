@@ -29,6 +29,7 @@ export interface UserProfile {
   firstName: string;
   lastName: string;
   email: string;
+  phone?: string | null;
   ciudad?: string | null;
   role: { id: number; name: string };
   organization?: { id: number; name: string; type: OrganizationType; verified: boolean } | null;

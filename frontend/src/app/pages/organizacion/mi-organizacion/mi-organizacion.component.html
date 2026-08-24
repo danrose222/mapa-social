@@ -98,6 +98,41 @@
 
     @if (organization()!.verified) {
       <div class="card mi-org__card">
+        <h2>Solicitudes de recursos ({{ resourceRequests().length }})</h2>
+        <p class="mi-org__private-hint">
+          Pedidos express de usuarios logueados sobre recursos puntuales que publicaron.
+        </p>
+
+        @if (resourceRequests().length === 0) {
+          <p class="mi-org__empty-resources">No hay ninguna por ahora.</p>
+        } @else {
+          <ul class="mi-org__private-list">
+            @for (req of resourceRequests(); track req.id) {
+              <li>
+                <div class="mi-org__private-row">
+                  <span class="mi-org__private-category">{{ req.resource?.title }}</span>
+                </div>
+                <p>
+                  {{ req.user?.firstName }} {{ req.user?.lastName }}
+                  @if (req.detailText) {
+                    — {{ req.detailText }}
+                  }
+                </p>
+                <span class="mi-org__private-contact">
+                  ✉️ {{ req.user?.email }}
+                  @if (req.user?.phone) {
+                    · 📞 {{ req.user?.phone }}
+                  }
+                </span>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
+
+    @if (organization()!.verified) {
+      <div class="card mi-org__card">
         <h2>Mensajes de colaboración ({{ collaborationRequests().length }})</h2>
         <p class="mi-org__private-hint">
           Personas que quieren colaborar con la organización, escritas desde el mapa sin

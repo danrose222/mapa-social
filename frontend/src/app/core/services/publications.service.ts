@@ -8,8 +8,10 @@ import {
   CreateNeedPayload,
   CreatePrivateNeedPayload,
   CreateResourcePayload,
+  CreateResourceRequestPayload,
   Need,
   Resource,
+  ResourceRequest,
   Solicitud,
 } from '../models/mapa-social.model';
 
@@ -168,5 +170,22 @@ export class PublicationsService {
     return this.http.get<CollaborationRequest[]>(
       `${this.resourcesUrl}/collaboration-requests/mine`,
     );
+  }
+
+  // Solicitud "express" de un usuario logueado hacia un recurso puntual --
+  // contacto y categoría se heredan de la cuenta y el recurso.
+  requestResource(
+    resourceId: number,
+    payload: CreateResourceRequestPayload,
+  ): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.resourcesUrl}/${resourceId}/request`,
+      payload,
+    );
+  }
+
+  // Bandeja de solicitudes express recibidas por mi organización.
+  getMyResourceRequests(): Observable<ResourceRequest[]> {
+    return this.http.get<ResourceRequest[]>(`${this.resourcesUrl}/requests/mine`);
   }
 }

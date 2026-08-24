@@ -133,3 +133,24 @@ export interface CreateCollaborationRequestPayload {
   // Honeypot anti-spam: siempre vacío para una persona real.
   website?: string;
 }
+
+export interface ResourceRequest {
+  id: number;
+  userId: number;
+  resourceId: number;
+  organizationId: number;
+  detailText?: string;
+  createdAt: string;
+  user?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+  };
+  resource?: Resource;
+}
+
+export interface CreateResourceRequestPayload {
+  detailText?: string;
+}

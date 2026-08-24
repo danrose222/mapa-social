@@ -4,6 +4,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 
 import { Resource } from './entities/resource.entity';
 import { CollaborationRequest } from './entities/collaboration-request.entity';
+import { ResourceRequest } from './entities/resource-request.entity';
 import { User } from '../users/entities/user.entity';
 import { Category } from '../categories/entities/category.entity';
 import { ModeratorLocality } from '../users/entities/moderator-locality.entity';
@@ -17,6 +18,7 @@ import { ResourcesService } from './resources.service';
     TypeOrmModule.forFeature([
       Resource,
       CollaborationRequest,
+      ResourceRequest,
       User,
       Category,
       ModeratorLocality,

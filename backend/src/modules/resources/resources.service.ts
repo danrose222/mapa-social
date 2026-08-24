@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { Resource } from './entities/resource.entity';
 import { CollaborationRequest } from './entities/collaboration-request.entity';
+import { ResourceRequest } from './entities/resource-request.entity';
 import { User } from '../users/entities/user.entity';
 import { PUBLIC_USER_FIELDS } from '../users/public-user-fields.util';
 import { Category } from '../categories/entities/category.entity';
@@ -17,6 +18,7 @@ import { OrganizationsService } from '../organizations/organizations.service';
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
 import { CreateCollaborationRequestDto } from './dto/create-collaboration-request.dto';
+import { CreateResourceRequestDto } from './dto/create-resource-request.dto';
 interface AuthUser {
   id: number;
   role: string;
@@ -31,6 +33,8 @@ export class ResourcesService {
     private readonly repository: Repository<Resource>,
     @InjectRepository(CollaborationRequest)
     private readonly collaborationRequestRepository: Repository<CollaborationRequest>,
+    @InjectRepository(ResourceRequest)
+    private readonly resourceRequestRepository: Repository<ResourceRequest>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Category)
@@ -300,6 +304,69 @@ export class ResourcesService {
 
     return this.collaborationRequestRepository.find({
       where: { organizationId: user.organizationId },
+      order: { id: 'DESC' },
+    });
+  }
+
+  // "Solicitud express" de un usuario YA logueado hacia ESE recurso puntual
+  // -- a diferencia de contactAboutResource() (anónimo), acá el pedido
+  // queda vinculado a una cuenta real, así que no hace falta pedir de
+  // nuevo contacto/categoría/jurisdicción: se heredan del perfil y del
+  // recurso.
+  async requestResource(
+    resourceId: number,
+    currentUserId: number,
+    dto: CreateResourceRequestDto,
+  ) {
+    const resource = await this.repository.findOne({
+      where: { id: resourceId },
+    });
+    if (!resource) {
+      throw new NotFoundException('Recurso inexistente');
+    }
+    if (!resource.organizationId) {
+      throw new NotFoundException(
+        'Este recurso no pertenece a ninguna organización',
+      );
+    }
+
+    await this.resourceRequestRepository.save(
+      this.resourceRequestRepository.create({
+        userId: currentUserId,
+        resourceId: resource.id,
+        organizationId: resource.organizationId,
+        detailText: dto.detailText,
+      }),
+    );
+
+    return { message: 'Solicitud enviada' };
+  }
+
+  // Bandeja de la organización: solicitudes express recibidas sobre sus
+  // recursos. A diferencia de PUBLIC_USER_FIELDS (pensado para listados
+  // públicos), acá SÍ incluimos email/phone -- es la bandeja privada de la
+  // propia organización, y sin contacto no tiene forma de responderle a
+  // quien pidió.
+  async findResourceRequestsForOrganization(currentUserId: number) {
+    const user = await this.userRepository.findOne({
+      where: { id: currentUserId },
+    });
+    if (!user?.organizationId) {
+      return [];
+    }
+
+    return this.resourceRequestRepository.find({
+      where: { organizationId: user.organizationId },
+      relations: ['user', 'resource'],
+      select: {
+        user: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+        },
+      },
       order: { id: 'DESC' },
     });
   }

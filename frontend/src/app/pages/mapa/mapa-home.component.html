@@ -198,3 +198,11 @@
 @if (collaborateResource(); as resource) {
   <app-collaborate-modal [resource]="resource" (closed)="closeCollaborateModal()" />
 }
+
+@if (resourceRequestTarget(); as resource) {
+  <app-resource-request-modal
+    [resource]="resource"
+    [categoryName]="resourceRequestCategoryName()"
+    (closed)="closeResourceRequestModal()"
+  />
+}
