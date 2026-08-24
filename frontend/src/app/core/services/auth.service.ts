@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, of, tap } from 'rxjs';
+import { Observable, catchError, map, of, switchMap, tap } from 'rxjs';
 
 export type OrganizationType = 'ong' | 'comunidad';
 
@@ -129,7 +129,11 @@ export class AuthService {
         sessionStorage.setItem(USER_KEY, JSON.stringify(response.user));
         this.currentUserSignal.set(response.user);
       }),
-      tap(() => this.refreshProfile().subscribe()),
+      // switchMap, no el tap+subscribe suelto de antes: ese patrón disparaba
+      // el refresh sin esperarlo, así que quien se suscribe a login() (ver
+      // login.component.ts) leía actorRole()/profile() todavía en null y el
+      // redirect por rol nunca funcionaba -- esperar acá lo garantiza.
+      switchMap((response) => this.refreshProfile().pipe(map(() => response))),
     );
   }
 

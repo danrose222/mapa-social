@@ -57,12 +57,16 @@ export class LoginComponent {
           return;
         }
 
-        // 2. Si no hay ruta previa, leemos el rol de la Signal para redirigir
-        const userRole = this.authService.profile()?.role?.name;
+        // 2. Si no hay ruta previa, leemos actorRole() para redirigir --
+        // NO profile()?.role?.name: ese campo solo vale 'seed-role' o
+        // 'moderador', 'ong'/'comunidad' viven en organization.type. Con
+        // profile().role.name esta comparación nunca era true y cualquier
+        // usuario de una organización caía siempre al '/' de abajo.
+        const actorRole = this.authService.actorRole();
 
-        if (userRole === 'moderador') {
+        if (actorRole === 'moderador') {
           this.router.navigate(['/dashboard-moderador']);
-        } else if (userRole === 'ong' || userRole === 'comunidad') {
+        } else if (actorRole === 'ong' || actorRole === 'comunidad') {
           this.router.navigate(['/dashboard-organizacion']);
         } else {
           this.router.navigate(['/']);
