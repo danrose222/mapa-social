@@ -47,15 +47,6 @@
       <a routerLink="/organizacion/mi-organizacion" routerLinkActive="is-active" (click)="closeMenu()">
         Panel Institucional
       </a>
-    } @else if (currentUser()) {
-      <a
-        routerLink="/organizacion/crear"
-        routerLinkActive="is-active"
-        class="shell-header__discreet-link"
-        (click)="closeMenu()"
-      >
-        Registrar mi organización
-      </a>
     }
 
     @if (isModerator()) {
