@@ -21,6 +21,10 @@
         } @else {
           <span class="mi-org__pending">Pendiente de aprobación</span>
         }
+
+        <a [routerLink]="['/organizacion', organization()!.id]" class="mi-org__public-link">
+          Ver perfil público →
+        </a>
       </div>
 
       @if (saveMessage()) {

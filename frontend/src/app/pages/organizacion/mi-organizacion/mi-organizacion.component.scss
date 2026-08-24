@@ -55,7 +55,18 @@
 }
 
 .mi-org__badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 16px;
+}
+
+.mi-org__public-link {
+  color: var(--help-color-text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: underline;
 }
 
 .mi-org__pending {

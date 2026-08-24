@@ -51,9 +51,9 @@
       </div>
     }
 
-    @if (currentUser()) {
+    @if (belongsToOrganization() || isModerator()) {
       <a routerLink="/organizacion/mi-organizacion" routerLinkActive="is-active" (click)="closeMenu()">
-        Mi organización
+        Panel Institucional
       </a>
     }
 
