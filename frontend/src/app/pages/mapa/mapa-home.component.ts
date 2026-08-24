@@ -264,6 +264,8 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       description: string;
       address?: string;
       locality?: string;
+      schedule?: string;
+      organization?: { name: string } | null;
     },
   >(items: T[]): T[] {
     const categories = this.categoryFilter();
@@ -278,13 +280,17 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
 
       // "nombre" -> title, "barrio" -> locality/address (los recursos no
       // tienen locality propia, solo address en texto libre), "tipo de
-      // ayuda" -> nombre de la categoría.
+      // ayuda" -> nombre de la categoría, más horario y organización para
+      // que "Alimentos" o el nombre de un comedor también encuentren algo
+      // aunque esa palabra no esté en el título ni la descripción.
       const matchesTerm =
         term === '' ||
         normalizeText(item.title).includes(term) ||
         normalizeText(item.description).includes(term) ||
         (item.address ? normalizeText(item.address).includes(term) : false) ||
         (item.locality ? normalizeText(item.locality).includes(term) : false) ||
+        (item.schedule ? normalizeText(item.schedule).includes(term) : false) ||
+        (item.organization?.name ? normalizeText(item.organization.name).includes(term) : false) ||
         (this.categoryName(item.categoryId)
           ? normalizeText(this.categoryName(item.categoryId)!).includes(term)
           : false);
