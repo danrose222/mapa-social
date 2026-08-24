@@ -342,6 +342,17 @@ export class ResourcesService {
     return { message: 'Solicitud enviada' };
   }
 
+  // "Mi Actividad" de un usuario común: las solicitudes que ÉL mandó (no
+  // las que recibió su organización -- ver findResourceRequestsForOrganization,
+  // que es la consulta espejo del otro lado).
+  findMySentResourceRequests(currentUserId: number) {
+    return this.resourceRequestRepository.find({
+      where: { userId: currentUserId },
+      relations: ['resource', 'organization'],
+      order: { id: 'DESC' },
+    });
+  }
+
   // Bandeja de la organización: solicitudes express recibidas sobre sus
   // recursos. A diferencia de PUBLIC_USER_FIELDS (pensado para listados
   // públicos), acá SÍ incluimos email/phone -- es la bandeja privada de la

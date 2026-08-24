@@ -149,6 +149,7 @@ export interface ResourceRequest {
     phone?: string;
   };
   resource?: Resource;
+  organization?: Organization;
 }
 
 export interface CreateResourceRequestPayload {

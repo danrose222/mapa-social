@@ -100,6 +100,18 @@ export class ResourcesController {
     return this.service.findResourceRequestsForOrganization(user.id);
   }
 
+  @Get('requests/sent')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Listar las solicitudes express que YO mandé a organizaciones ("Mi Actividad")',
+  })
+  @ApiResponse({ status: 200, description: 'Listado de solicitudes' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  findMySentResourceRequests(@CurrentUser() user: AuthUser) {
+    return this.service.findMySentResourceRequests(user.id);
+  }
+
   @Post(':id/contact')
   @UseGuards(ThrottlerGuard)
   @Throttle({ collaborate: { limit: 3, ttl: 60_000 } })

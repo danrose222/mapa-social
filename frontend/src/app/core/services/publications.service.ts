@@ -188,4 +188,9 @@ export class PublicationsService {
   getMyResourceRequests(): Observable<ResourceRequest[]> {
     return this.http.get<ResourceRequest[]>(`${this.resourcesUrl}/requests/mine`);
   }
+
+  // "Mi Actividad": las solicitudes express que YO mandé.
+  getMySentResourceRequests(): Observable<ResourceRequest[]> {
+    return this.http.get<ResourceRequest[]>(`${this.resourcesUrl}/requests/sent`);
+  }
 }
