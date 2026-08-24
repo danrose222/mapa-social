@@ -402,7 +402,12 @@
   // para este tamaño/peso -- --help-color-text ya es la variante pensada
   // para texto (6.73:1) y comparte el mismo tono.
   background: var(--help-color-text);
-  color: #fff;
+  // !important necesario: este botón es un <a> dentro del popup de
+  // Leaflet, inyectado como HTML plano (no vía binding de Angular) --
+  // Leaflet le pone su propio color de link (.leaflet-container a), con
+  // más especificidad que una sola clase nuestra. Sin esto el texto queda
+  // en el azul de Leaflet (#0078a8), casi invisible sobre este fondo.
+  color: #fff !important;
   font-size: 0.84rem;
   font-weight: 700;
   text-align: center;
