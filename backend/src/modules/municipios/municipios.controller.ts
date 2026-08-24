@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 
@@ -43,6 +44,16 @@ export class MunicipiosController {
   @ApiResponse({ status: 200, description: 'Listado de municipios' })
   findAll() {
     return this.service.findAll();
+  }
+
+  @Get('check')
+  @ApiOperation({
+    summary:
+      'Verificar si una ciudad tiene Municipio registrado (público; feedback en tiempo real del selector de localidad al registrar una organización)',
+  })
+  @ApiResponse({ status: 200, description: 'Resultado de la verificación' })
+  checkCiudad(@Query('ciudad') ciudad?: string) {
+    return this.service.checkCiudad(ciudad ?? '');
   }
 
   @Get(':id')

@@ -5,14 +5,15 @@
       @if (submittedVerified()) {
         <h1>¡Organización creada y activa!</h1>
         <p>
-          Tu localidad se autogestiona (no tiene un Municipio registrado en la plataforma), así
-          que ya podés publicar recursos en su nombre.
+          {{ submittedCiudad() }} se autogestiona (no tiene un Municipio registrado en la
+          plataforma), así que ya podés publicar recursos en su nombre.
         </p>
       } @else {
-        <h1>¡Organización creada!</h1>
+        <h1>Solicitud enviada al Municipio de {{ submittedCiudad() }}</h1>
         <p>
-          Queda pendiente de aprobación. Un moderador de esa localidad la va a revisar antes de
-          que puedas publicar recursos en su nombre.
+          Un moderador de esa localidad va a revisar tu organización antes de que puedas publicar
+          recursos en su nombre. Podés ver el estado de tu solicitud en cualquier momento desde tu
+          Panel Institucional.
         </p>
       }
       <button type="button" class="btn" (click)="irAlPanel()">Ir a mi Panel Institucional</button>
@@ -87,6 +88,19 @@
             <app-locality-autocomplete (localitySelected)="onLocalitySelected($event)" />
             @if (form.controls.ciudad.invalid && form.controls.ciudad.touched) {
               <span class="field__error">Elegí una localidad de la lista.</span>
+            }
+            @if (jurisdictionCheck() === 'checking') {
+              <p class="crear-org__jurisdiction-hint">Verificando jurisdicción…</p>
+            } @else if (jurisdictionCheck() === 'city') {
+              <p class="crear-org__jurisdiction-hint crear-org__jurisdiction-hint--city">
+                🏛️ Esta localidad requiere aprobación municipal. Un moderador revisará tu
+                organización antes de activar tu perfil.
+              </p>
+            } @else if (jurisdictionCheck() === 'self-managed') {
+              <p class="crear-org__jurisdiction-hint crear-org__jurisdiction-hint--self">
+                🤝 Modo autogestión vecinal. Tu organización se activará inmediatamente al
+                registrarte.
+              </p>
             }
           </div>
 

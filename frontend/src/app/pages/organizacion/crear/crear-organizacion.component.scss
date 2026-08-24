@@ -89,6 +89,22 @@
   }
 }
 
+.crear-org__jurisdiction-hint {
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
+.crear-org__jurisdiction-hint--city {
+  color: var(--need-color-text);
+}
+
+.crear-org__jurisdiction-hint--self {
+  color: var(--verified);
+}
+
 @media (max-width: 560px) {
   .crear-org__explain-row {
     grid-template-columns: 1fr;

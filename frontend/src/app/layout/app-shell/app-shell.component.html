@@ -67,6 +67,9 @@
           [attr.aria-expanded]="isModeratorMenuOpen()"
         >
           Moderación
+          @if (pendingOrgCount() > 0) {
+            <span class="shell-header__badge">{{ pendingOrgCount() }}</span>
+          }
           <span class="shell-header__chevron">⌄</span>
         </button>
 
@@ -78,6 +81,9 @@
 
             <a routerLink="/moderador/organizaciones" routerLinkActive="is-active" (click)="closeMenu()">
               Organizaciones
+              @if (pendingOrgCount() > 0) {
+                <span class="shell-header__badge">{{ pendingOrgCount() }}</span>
+              }
             </a>
 
             <a routerLink="/moderador/mis-localidades" routerLinkActive="is-active" (click)="closeMenu()">

@@ -15,6 +15,7 @@ export interface Organization {
   type: string;
   ciudad: string;
   verified: boolean;
+  createdAt?: string;
 }
 
 export interface Need {

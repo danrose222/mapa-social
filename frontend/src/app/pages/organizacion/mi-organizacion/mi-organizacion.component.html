@@ -14,7 +14,8 @@
       <a routerLink="/organizacion/crear" class="btn">Registrar una organización</a>
     </div>
   } @else {
-    <div class="card mi-org__card">
+    <div class="card mi-org__card mi-org__validation">
+      <h2>Estado de validación</h2>
       <div class="mi-org__badge-row">
         @if (organization()!.verified) {
           <span class="badge-verified">✓ Verificada</span>
@@ -27,6 +28,18 @@
         </a>
       </div>
 
+      @if (organization()!.createdAt) {
+        <p class="mi-org__validation-date">
+          Solicitud enviada el {{ organization()!.createdAt | date: 'dd/MM/yyyy' }}
+        </p>
+      }
+
+      @if (!organization()!.verified) {
+        <p class="mi-org__validation-note">En revisión por autoridad local.</p>
+      }
+    </div>
+
+    <div class="card mi-org__card">
       @if (saveMessage()) {
         <p class="mi-org__saved">{{ saveMessage() }}</p>
       }

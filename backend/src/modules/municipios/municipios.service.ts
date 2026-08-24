@@ -98,6 +98,16 @@ export class MunicipiosService {
     return municipios.some((m) => localitiesMatch(m.ciudad, normalized));
   }
 
+  // Feedback en tiempo real del selector de localidad en "Registrar una
+  // organización" (ver crear-organizacion.component.ts): expone la misma
+  // regla de escala territorial que ya evalúa TerritorialScaleInterceptor
+  // al crear, para que el usuario la vea ANTES de enviar el formulario.
+  async checkCiudad(ciudad: string): Promise<{ isCityScale: boolean }> {
+    return {
+      isCityScale: await this.hasMunicipioForCiudad(ciudad),
+    };
+  }
+
   async remove(id: number) {
     const municipio = await this.findOne(id);
 

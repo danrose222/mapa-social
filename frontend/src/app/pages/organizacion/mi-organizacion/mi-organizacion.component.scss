@@ -78,6 +78,18 @@
   font-weight: 700;
 }
 
+.mi-org__validation-date {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+.mi-org__validation-note {
+  margin: 4px 0 0;
+  color: var(--need-color-text);
+  font-size: 0.82rem;
+}
+
 .mi-org__saved {
   margin: 0 0 14px;
   color: var(--need-color-text);
