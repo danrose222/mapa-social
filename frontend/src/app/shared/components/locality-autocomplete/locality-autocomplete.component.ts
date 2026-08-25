@@ -58,6 +58,14 @@ export class LocalityAutocompleteComponent implements OnInit {
 
   private readonly queryChanges = new Subject<string>();
 
+  // Se incrementa en cada tipeo nuevo y en cada llamado a
+  // confirmTypedLocality() -- esta última dispara su propio subscribe()
+  // fuera del pipe con switchMap de arriba (que sí se autocancela), así
+  // que sin este contador una respuesta vieja (ej. el usuario borró todo
+  // y escribió una localidad distinta antes de que llegara) podía pisar
+  // la localidad correcta con una vieja.
+  private requestId = 0;
+
   constructor() {
     this.queryChanges
       .pipe(
@@ -92,7 +100,11 @@ export class LocalityAutocompleteComponent implements OnInit {
 
   onInput(): void {
     this.confirmed = false;
-    this.queryChanges.next(this.queryText);
+    this.requestId++;
+    // Trimeado acá (no solo al comparar) para que resultsForTerm y
+    // queryText.trim() nunca queden desalineados por un espacio final --
+    // mismo criterio que address-autocomplete.component.ts.
+    this.queryChanges.next(this.queryText.trim());
   }
 
   // Sin esto, Enter en este input dispara el submit nativo del <form> que
@@ -109,9 +121,22 @@ export class LocalityAutocompleteComponent implements OnInit {
 
     const [first] = this.results();
 
-    if (this.isOpen() && first) {
-      this.select(first);
+    if (!this.isOpen() || !first) {
+      return;
     }
+
+    // Mismo criterio que autoSelectExactMatch: si la primera sugerencia
+    // tiene un homónimo en otra provincia (ej. "La Falda" existe en
+    // Córdoba y en San Juan, sin que GeoRef las ordene por relevancia
+    // local), preferimos el de Córdoba en vez de lo que el orden de la
+    // API haya puesto primero -- sin tocar cuál es "la primera sugerencia"
+    // cuando no hay ambigüedad real.
+    const homonyms = this.results().filter(
+      (l) => normalizeText(l.nombre) === normalizeText(first.nombre),
+    );
+    const match = homonyms.find((l) => l.provincia.nombre === 'Córdoba') ?? first;
+
+    this.select(match);
   }
 
   select(locality: GeorefLocality): void {
@@ -149,8 +174,18 @@ export class LocalityAutocompleteComponent implements OnInit {
       return;
     }
 
+    const requestId = ++this.requestId;
+
     this.georefService.searchLocalities(typed).subscribe({
-      next: (localities) => this.autoSelectExactMatch(typed, localities),
+      next: (localities) => {
+        if (requestId !== this.requestId) {
+          // El usuario ya volvió a tipear (u otro blur disparó una
+          // confirmación más nueva) antes de que llegara esta respuesta --
+          // aplicarla ahora pisaría con algo viejo lo que se ve en pantalla.
+          return;
+        }
+        this.autoSelectExactMatch(typed, localities);
+      },
       error: () => {},
     });
   }
@@ -166,10 +201,17 @@ export class LocalityAutocompleteComponent implements OnInit {
     // Nombres de localidad se repiten entre provincias (ej: "La Falda"
     // existe en Córdoba y en San Juan, y GeoRef no las ordena por
     // relevancia local) -- esta app es de alcance provincial, así que
-    // ante una coincidencia exacta ambigua preferimos la de Córdoba en
-    // vez de la que el orden de la API ponga primero.
-    const match = exactMatches.find((l) => l.provincia.nombre === 'Córdoba') ?? exactMatches[0];
+    // ante una coincidencia exacta ambigua preferimos la de Córdoba. Si
+    // NINGUNA de varias coincidencias es de Córdoba, no adivinamos cuál
+    // -- mismo criterio que georef.service.ts::geocodeLocality ("más
+    // seguro no matchear que confirmar la provincia equivocada"). Con una
+    // sola coincidencia (sin ambigüedad real) se confirma igual, sea cual
+    // sea la provincia.
+    const cordobaMatch = exactMatches.find((l) => l.provincia.nombre === 'Córdoba');
+    const match = cordobaMatch ?? (exactMatches.length === 1 ? exactMatches[0] : undefined);
 
-    this.select(match);
+    if (match) {
+      this.select(match);
+    }
   }
 }
