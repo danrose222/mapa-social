@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -37,6 +37,19 @@ export class StatsService {
     const localities = await this.localityRepository.find({
       where: { userId: currentUser.id },
     });
+
+    if (localities.length === 0) {
+      // Mismo criterio que assertCityInModeratorScope() en
+      // organizations.service.ts y assertCallerHasLocality() en
+      // users.service.ts: sin ninguna localidad asignada (ej. otro
+      // moderador le sacó la última), 0/0 en las tres pantallas de stats
+      // es indistinguible de "no hay nada que reportar" -- un 403
+      // explícito le avisa que el problema es su perfil, no que su zona
+      // esté en paz.
+      throw new ForbiddenException(
+        'No tenés ninguna localidad asignada -- pedile a otro moderador que te la asigne en tu perfil.',
+      );
+    }
 
     return localities.map((l) => l.locality);
   }
