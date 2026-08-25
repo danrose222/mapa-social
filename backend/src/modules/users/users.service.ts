@@ -96,7 +96,11 @@ export class UsersService {
 
     const saved = await this.userRepository.save(user);
 
-    await this.mailService.sendVerificationEmail(
+    // Sin await: MailService ya atrapa sus propios errores (el registro no
+    // debe fallar porque el correo no salió) -- esperarlo acá solo demora
+    // la respuesta HTTP el tiempo entero del round-trip SMTP sin ganar nada,
+    // porque el resultado nunca se usa.
+    void this.mailService.sendVerificationEmail(
       saved.email,
       saved.firstName,
       emailVerificationToken,
@@ -148,7 +152,8 @@ export class UsersService {
       ),
     });
 
-    await this.mailService.sendVerificationEmail(
+    // Sin await: ver el comentario equivalente en create().
+    void this.mailService.sendVerificationEmail(
       user.email,
       user.firstName,
       emailVerificationToken,
@@ -398,7 +403,8 @@ export class UsersService {
 
     const saved = await this.moderatorRequestRepository.save(request);
 
-    await this.mailService.sendModeratorVerificationEmail(
+    // Sin await: ver el comentario equivalente en create().
+    void this.mailService.sendModeratorVerificationEmail(
       saved.officialEmail,
       user.firstName,
       saved.institutionName,
