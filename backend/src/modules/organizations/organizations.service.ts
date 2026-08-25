@@ -15,6 +15,7 @@ import { Resource } from '../resources/entities/resource.entity';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { localitiesMatch } from '../../common/utils/locality-match.util';
+import { saveOrConflict } from '../../common/utils/save-or-conflict.util';
 
 interface AuthUser {
   id: number;
@@ -58,15 +59,19 @@ export class OrganizationsService {
       );
     }
 
-    const organization = await this.repository.save(
-      this.repository.create({
-        ...dto,
-        // Regla de escala territorial ("Burocracia vs. Confianza"): en
-        // una ciudad con Municipio registrado, queda Pendiente hasta el
-        // aval explícito de un moderador; en un pueblo sin esa
-        // estructura, se autogestiona y nace ya avalada.
-        verified: !isCityScale,
-      }),
+    const organization = await saveOrConflict(
+      () =>
+        this.repository.save(
+          this.repository.create({
+            ...dto,
+            // Regla de escala territorial ("Burocracia vs. Confianza"): en
+            // una ciudad con Municipio registrado, queda Pendiente hasta el
+            // aval explícito de un moderador; en un pueblo sin esa
+            // estructura, se autogestiona y nace ya avalada.
+            verified: !isCityScale,
+          }),
+        ),
+      'Ya existe una organización registrada con ese nombre',
     );
 
     const hasModeratorAccess =
@@ -206,7 +211,10 @@ export class OrganizationsService {
 
     Object.assign(organization, dto);
 
-    return this.repository.save(organization);
+    return saveOrConflict(
+      () => this.repository.save(organization),
+      'Ya existe una organización registrada con ese nombre',
+    );
   }
 
   async remove(id: number, currentUser: AuthUser) {
