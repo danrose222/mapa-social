@@ -228,13 +228,20 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
 
   // Estado vacío de búsqueda: solo tiene sentido cuando los recursos están
   // a la vista (con kindFilter 'necesidades' no se muestran recursos en
-  // absoluto, así que no hay "vacío" que señalar).
+  // absoluto, así que no hay "vacío" que señalar). Con 'todos', además,
+  // no alcanza con que no haya recursos -- si hay necesidades visibles el
+  // mapa no está vacío, así que el overlay de "no hay recursos" no debe
+  // taparlo (contradiría lo que se ve en pantalla).
   readonly showEmptyState = computed(() => {
     if (this.isLoading() || this.kindFilter() === 'necesidades') {
       return false;
     }
 
-    return this.filteredResources().length === 0;
+    if (this.filteredResources().length > 0) {
+      return false;
+    }
+
+    return this.kindFilter() !== 'todos' || this.filteredNeeds().length === 0;
   });
 
   readonly emptyStateMessage = computed(() => {
