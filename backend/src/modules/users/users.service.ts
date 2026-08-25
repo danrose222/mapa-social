@@ -19,7 +19,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AddModeratorLocalityDto } from './dto/add-moderator-locality.dto';
 import { CreateModeratorRequestDto } from './dto/create-moderator-request.dto';
-import { localitiesMatch } from '../../common/utils/locality-match.util';
+import { matchesAnyLocality } from '../../common/utils/locality-match.util';
 import { isDuplicateKeyError } from '../../common/utils/save-or-conflict.util';
 import { MailService } from '../mail/mail.service';
 
@@ -263,8 +263,9 @@ export class UsersService {
       where: { userId: currentUser.id },
     });
 
-    const inScope = callerLocalities.some((l) =>
-      localitiesMatch(l.locality, locality),
+    const inScope = matchesAnyLocality(
+      callerLocalities.map((l) => l.locality),
+      locality,
     );
 
     if (!inScope) {

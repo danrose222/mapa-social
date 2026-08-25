@@ -14,7 +14,7 @@ import { Need } from '../needs/entities/need.entity';
 import { Resource } from '../resources/entities/resource.entity';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
-import { localitiesMatch } from '../../common/utils/locality-match.util';
+import { matchesAnyLocality } from '../../common/utils/locality-match.util';
 import { saveOrConflict } from '../../common/utils/save-or-conflict.util';
 
 interface AuthUser {
@@ -145,7 +145,10 @@ export class OrganizationsService {
     // distingue ciudad de barrio, así que "Córdoba" (moderador) y "Nueva
     // Córdoba" (una organización) tienen que considerarse la misma
     // jurisdicción.
-    const isInScope = localities.some((l) => localitiesMatch(l.locality, targetCity));
+    const isInScope = matchesAnyLocality(
+      localities.map((l) => l.locality),
+      targetCity,
+    );
 
     if (!isInScope) {
       throw new ForbiddenException(

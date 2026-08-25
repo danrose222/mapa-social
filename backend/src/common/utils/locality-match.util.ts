@@ -38,3 +38,12 @@ export function localitiesMatch(a: string, b: string): boolean {
 function stripDiacritics(value: string): string {
   return value.normalize('NFD').replace(/\p{M}/gu, '');
 }
+
+// El "traer todas las localidades/municipios de X y hacer .some() con
+// localitiesMatch()" se repetía igual en organizations.service.ts,
+// solicitudes.service.ts, users.service.ts, municipios.service.ts y
+// stats.service.ts -- cada uno con su propio fetch (por eso queda afuera
+// de acá), pero todos terminaban en este mismo chequeo.
+export function matchesAnyLocality(candidates: string[], target: string): boolean {
+  return candidates.some((candidate) => localitiesMatch(candidate, target));
+}

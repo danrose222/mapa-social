@@ -6,7 +6,7 @@ import { Need } from '../needs/entities/need.entity';
 import { Resource } from '../resources/entities/resource.entity';
 import { Category } from '../categories/entities/category.entity';
 import { ModeratorLocality } from '../users/entities/moderator-locality.entity';
-import { localitiesMatch } from '../../common/utils/locality-match.util';
+import { matchesAnyLocality } from '../../common/utils/locality-match.util';
 
 interface AuthUser {
   id: number;
@@ -59,7 +59,7 @@ export class StatsService {
       return false;
     }
 
-    return moderatorLocalities.some((ml) => localitiesMatch(ml, need.locality!));
+    return matchesAnyLocality(moderatorLocalities, need.locality!);
   }
 
   // Resource no tiene columna de localidad propia (solo 'address' en
@@ -75,9 +75,7 @@ export class StatsService {
       return false;
     }
 
-    return moderatorLocalities.some((ml) =>
-      localitiesMatch(ml, resource.organization!.ciudad),
-    );
+    return matchesAnyLocality(moderatorLocalities, resource.organization!.ciudad);
   }
 
   // Conteo de necesidades y recursos por categoría, acotado a las

@@ -12,7 +12,7 @@ import { Municipio } from './entities/municipio.entity';
 
 import { CreateMunicipioDto } from './dto/create-municipio.dto';
 import { UpdateMunicipioDto } from './dto/update-municipio.dto';
-import { localitiesMatch } from '../../common/utils/locality-match.util';
+import { matchesAnyLocality } from '../../common/utils/locality-match.util';
 import { saveOrConflict } from '../../common/utils/save-or-conflict.util';
 
 @Injectable()
@@ -102,7 +102,10 @@ export class MunicipiosService {
 
     const municipios = await this.repository.find();
 
-    return municipios.some((m) => localitiesMatch(m.ciudad, normalized));
+    return matchesAnyLocality(
+      municipios.map((m) => m.ciudad),
+      normalized,
+    );
   }
 
   // Feedback en tiempo real del selector de localidad en "Registrar una
