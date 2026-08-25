@@ -73,6 +73,9 @@
           <div class="field">
             <label for="org-name">Nombre de la organización</label>
             <input id="org-name" type="text" formControlName="name" placeholder="Ej: Comedor Los Pinos" />
+            @if (form.controls.name.invalid && form.controls.name.touched) {
+              <span class="field__error">Ingresá el nombre de la organización.</span>
+            }
           </div>
 
           <div class="field">
@@ -142,7 +145,7 @@
           <button
             type="submit"
             class="btn btn--block"
-            [disabled]="isSubmitting() || form.controls.acceptTerms.invalid"
+            [disabled]="isSubmitting() || form.invalid"
           >
             {{ isSubmitting() ? 'Creando…' : 'Crear organización' }}
           </button>
