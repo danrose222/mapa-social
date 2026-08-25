@@ -223,6 +223,7 @@ export class ResourcesService {
   ) {
     const resource = await this.repository.findOne({
       where: { id: resourceId },
+      relations: ['organization'],
     });
     if (!resource) {
       throw new NotFoundException('Recurso inexistente');
@@ -231,6 +232,9 @@ export class ResourcesService {
       throw new NotFoundException(
         'Este recurso no pertenece a ninguna organización',
       );
+    }
+    if (!resource.organization?.verified) {
+      throw new NotFoundException('Recurso inexistente');
     }
 
     // Honeypot: un campo oculto para personas, visible para un bot que
@@ -279,6 +283,7 @@ export class ResourcesService {
   ) {
     const resource = await this.repository.findOne({
       where: { id: resourceId },
+      relations: ['organization'],
     });
     if (!resource) {
       throw new NotFoundException('Recurso inexistente');
@@ -287,6 +292,9 @@ export class ResourcesService {
       throw new NotFoundException(
         'Este recurso no pertenece a ninguna organización',
       );
+    }
+    if (!resource.organization?.verified) {
+      throw new NotFoundException('Recurso inexistente');
     }
 
     await this.resourceRequestRepository.save(
