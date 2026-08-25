@@ -9,6 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, debounceTime } from 'rxjs';
 import * as L from 'leaflet';
 
@@ -109,8 +110,25 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   // este mismo problema (una respuesta lenta no debe pisar algo más nuevo).
   private searchGeocodeId = 0;
 
+  // loadRadiusPage()/loadLocalityPage() comparten este contador: los dos
+  // escriben el mismo estado (allNeeds, territoryTotal*), así que una
+  // respuesta vieja de cualquiera de las dos (ej. tocar "Buscar en esta
+  // zona" y enseguida paginar) no debe pisar el resultado de un pedido
+  // más nuevo, sea del mismo método o del otro.
+  private territoryRequestId = 0;
+
+  // flyToLocality() geocodifica de forma independiente -- no toca el
+  // estado de arriba, así que tiene su propio contador en vez de
+  // compartir territoryRequestId.
+  private flyToRequestId = 0;
+
   constructor() {
-    this.searchTermChanges.pipe(debounceTime(400)).subscribe(() => {
+    // Sin takeUntilDestroyed(), navegar fuera de /mapa dentro de la
+    // ventana de debounce (ej. el usuario tipeó y se fue antes de los
+    // 400ms) deja el timer pendiente vivo -- dispara geocode + searchNeeds
+    // igual, y termina llamando renderMarkers() sobre un markersLayer de
+    // un mapa Leaflet ya destruido en ngOnDestroy().
+    this.searchTermChanges.pipe(debounceTime(400), takeUntilDestroyed()).subscribe(() => {
       const term = this.searchTerm().trim();
       const requestId = ++this.searchGeocodeId;
 
@@ -595,6 +613,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     }
 
     this.territoryLoading.set(true);
+    const requestId = ++this.territoryRequestId;
 
     this.publicationsService
       .searchNeeds({
@@ -606,6 +625,9 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       })
       .subscribe({
         next: (result) => {
+          if (requestId !== this.territoryRequestId) {
+            return;
+          }
           this.allNeeds.set(result.items);
           this.territoryTotalPages.set(result.totalPages);
           this.territoryTotal.set(result.total);
@@ -615,6 +637,9 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
           this.renderMarkers();
         },
         error: () => {
+          if (requestId !== this.territoryRequestId) {
+            return;
+          }
           this.territoryLoading.set(false);
           this.needsDataLoaded = true;
           this.checkFullyLoaded();
@@ -630,6 +655,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     }
 
     this.territoryLoading.set(true);
+    const requestId = ++this.territoryRequestId;
 
     this.publicationsService
       .searchNeeds({
@@ -639,6 +665,9 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       })
       .subscribe({
         next: (result) => {
+          if (requestId !== this.territoryRequestId) {
+            return;
+          }
           this.allNeeds.set(result.items);
           this.territoryTotalPages.set(result.totalPages);
           this.territoryTotal.set(result.total);
@@ -648,6 +677,9 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
           this.renderMarkers();
         },
         error: () => {
+          if (requestId !== this.territoryRequestId) {
+            return;
+          }
           this.territoryLoading.set(false);
           this.needsDataLoaded = true;
           this.checkFullyLoaded();
@@ -675,8 +707,13 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   // perfil, y se mueve el mapa ahí con flyTo (paneo animado, a diferencia
   // del setView seco que usa la búsqueda por radio).
   private flyToLocality(locality: string): void {
+    const requestId = ++this.flyToRequestId;
+
     this.georefService.geocodeLocality(locality).subscribe({
       next: (point) => {
+        if (requestId !== this.flyToRequestId) {
+          return;
+        }
         if (point && this.map) {
           this.map.flyTo([point.lat, point.lng], 13);
         }
