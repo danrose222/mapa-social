@@ -38,6 +38,11 @@ export class CrearOrganizacionComponent {
   readonly submittedCiudad = signal('');
   readonly jurisdictionCheck = signal<JurisdictionCheck>('idle');
 
+  // Descarta una respuesta de checkCiudad() vieja si el usuario ya eligió
+  // otra localidad antes de que llegara -- mismo patrón que searchGeocodeId
+  // en mapa-home.component.ts.
+  private jurisdictionRequestId = 0;
+
   readonly form = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(150)]],
     type: ['comunidad' as 'comunidad' | 'ong', [Validators.required]],
@@ -53,11 +58,21 @@ export class CrearOrganizacionComponent {
     this.form.patchValue({ ciudad: selection.locality });
 
     this.jurisdictionCheck.set('checking');
+    const requestId = ++this.jurisdictionRequestId;
+
     this.municipiosService.checkCiudad(selection.locality).subscribe({
       next: ({ isCityScale }) => {
+        if (requestId !== this.jurisdictionRequestId) {
+          return;
+        }
         this.jurisdictionCheck.set(isCityScale ? 'city' : 'self-managed');
       },
-      error: () => this.jurisdictionCheck.set('idle'),
+      error: () => {
+        if (requestId !== this.jurisdictionRequestId) {
+          return;
+        }
+        this.jurisdictionCheck.set('idle');
+      },
     });
   }
 
