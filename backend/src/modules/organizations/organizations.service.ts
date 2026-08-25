@@ -1,9 +1,4 @@
-import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -15,7 +10,7 @@ import { Resource } from '../resources/entities/resource.entity';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { matchesAnyLocality } from '../../common/utils/locality-match.util';
-import { saveOrConflict } from '../../common/utils/save-or-conflict.util';
+import { ensureUnique, saveOrConflict } from '../../common/utils/save-or-conflict.util';
 
 interface AuthUser {
   id: number;
@@ -52,14 +47,11 @@ export class OrganizationsService {
     // "Comedor" vs "COMEDOR") convivían sin ningún aviso. Se compara por
     // nombre Y ciudad, no solo nombre: dos organizaciones sin relación en
     // ciudades distintas pueden compartir un nombre genérico legítimo.
-    const existing = await this.repository.findOne({
-      where: { name: dto.name, ciudad: dto.ciudad },
-    });
-    if (existing) {
-      throw new ConflictException(
-        'Ya existe una organización registrada con ese nombre en esa ciudad',
-      );
-    }
+    await ensureUnique(
+      this.repository,
+      { name: dto.name, ciudad: dto.ciudad },
+      'Ya existe una organización registrada con ese nombre en esa ciudad',
+    );
 
     const organization = await saveOrConflict(
       () =>

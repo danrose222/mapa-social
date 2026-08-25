@@ -20,7 +20,11 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { AddModeratorLocalityDto } from './dto/add-moderator-locality.dto';
 import { CreateModeratorRequestDto } from './dto/create-moderator-request.dto';
 import { matchesAnyLocality } from '../../common/utils/locality-match.util';
-import { isDuplicateKeyError } from '../../common/utils/save-or-conflict.util';
+import {
+  ensureUnique,
+  isDuplicateKeyError,
+  saveOrConflict,
+} from '../../common/utils/save-or-conflict.util';
 import { MailService } from '../mail/mail.service';
 
 interface AuthUser {
@@ -54,17 +58,11 @@ export class UsersService {
     // 'unique' de la columna y MySQL/TypeORM lo devuelve como un error sin
     // capturar (500 genérico) en vez de un 409 -- el frontend de registro
     // ya asume que existe este chequeo y espera un 409 puntualmente.
-    const existingUser = await this.userRepository.findOne({
-      where: {
-        email: dto.email,
-      },
-    });
-
-    if (existingUser) {
-      throw new ConflictException(
-        'Ya existe un usuario registrado con ese email.',
-      );
-    }
+    await ensureUnique(
+      this.userRepository,
+      { email: dto.email },
+      'Ya existe un usuario registrado con ese email.',
+    );
 
     const defaultRole = await this.roleRepository.findOne({
       where: {
@@ -94,7 +92,10 @@ export class UsersService {
       ),
     });
 
-    const saved = await this.userRepository.save(user);
+    const saved = await saveOrConflict(
+      () => this.userRepository.save(user),
+      'Ya existe un usuario registrado con ese email.',
+    );
 
     // Sin await: MailService ya atrapa sus propios errores (el registro no
     // debe fallar porque el correo no salió) -- esperarlo acá solo demora

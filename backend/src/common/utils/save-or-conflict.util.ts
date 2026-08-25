@@ -1,5 +1,5 @@
 import { ConflictException } from '@nestjs/common';
-import { QueryFailedError } from 'typeorm';
+import { FindOptionsWhere, ObjectLiteral, QueryFailedError, Repository } from 'typeorm';
 
 interface MysqlDriverError {
   code?: string;
@@ -32,5 +32,21 @@ export async function saveOrConflict<T>(
     }
 
     throw error;
+  }
+}
+
+// El "findOne por un campo único, 409 legible si ya existe" (el pre-chequeo
+// de arriba, no el catch de la constraint) se repetía igual en
+// users.service.ts (email), organizations.service.ts (name+ciudad) y
+// municipios.service.ts (ciudad, en create() y en update()).
+export async function ensureUnique<T extends ObjectLiteral>(
+  repository: Repository<T>,
+  where: FindOptionsWhere<T>,
+  message: string,
+): Promise<void> {
+  const existing = await repository.findOne({ where });
+
+  if (existing) {
+    throw new ConflictException(message);
   }
 }

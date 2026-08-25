@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -13,7 +9,7 @@ import { Municipio } from './entities/municipio.entity';
 import { CreateMunicipioDto } from './dto/create-municipio.dto';
 import { UpdateMunicipioDto } from './dto/update-municipio.dto';
 import { matchesAnyLocality } from '../../common/utils/locality-match.util';
-import { saveOrConflict } from '../../common/utils/save-or-conflict.util';
+import { ensureUnique, saveOrConflict } from '../../common/utils/save-or-conflict.util';
 
 @Injectable()
 export class MunicipiosService {
@@ -26,15 +22,11 @@ export class MunicipiosService {
     // Mismo chequeo que UsersService.create() para email: sin esto, una
     // ciudad repetida llega directo a la constraint UNIQUE y MySQL/TypeORM
     // la devuelve como 500 genérico en vez de un 409 legible.
-    const existing = await this.repository.findOne({
-      where: { ciudad: dto.ciudad },
-    });
-
-    if (existing) {
-      throw new ConflictException(
-        'Ya existe un municipio registrado para esa ciudad.',
-      );
-    }
+    await ensureUnique(
+      this.repository,
+      { ciudad: dto.ciudad },
+      'Ya existe un municipio registrado para esa ciudad.',
+    );
 
     const municipio = this.repository.create(dto);
 
@@ -68,15 +60,11 @@ export class MunicipiosService {
     const municipio = await this.findOne(id);
 
     if (dto.ciudad !== undefined && dto.ciudad !== municipio.ciudad) {
-      const existing = await this.repository.findOne({
-        where: { ciudad: dto.ciudad },
-      });
-
-      if (existing) {
-        throw new ConflictException(
-          'Ya existe un municipio registrado para esa ciudad.',
-        );
-      }
+      await ensureUnique(
+        this.repository,
+        { ciudad: dto.ciudad },
+        'Ya existe un municipio registrado para esa ciudad.',
+      );
     }
 
     Object.assign(municipio, dto);
