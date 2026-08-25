@@ -4,7 +4,7 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 import { AuthService } from '../../core/services/auth.service';
 import { OrganizationsService } from '../../core/services/organizations.service';
 import { IconComponent } from '../../shared/icons/icon.component';
-import { localitiesMatch } from '../../shared/utils/locality-match.util';
+import { inModeratorScope } from '../../shared/utils/locality-match.util';
 
 @Component({
   selector: 'app-shell',
@@ -73,9 +73,8 @@ export class AppShellComponent {
 
       this.organizationsService.getAll().subscribe({
         next: (organizations) => {
-          const count = organizations.filter(
-            (org) =>
-              !org.verified && myLocalities.some((mine) => localitiesMatch(mine, org.ciudad)),
+          const count = inModeratorScope(organizations, myLocalities).filter(
+            (org) => !org.verified,
           ).length;
           this.pendingOrgCount.set(count);
         },
