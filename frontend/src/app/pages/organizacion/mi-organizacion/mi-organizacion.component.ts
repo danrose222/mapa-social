@@ -1,17 +1,24 @@
 import { Component, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../core/services/auth.service';
 import { OrganizationsService } from '../../../core/services/organizations.service';
 import { PublicationsService } from '../../../core/services/publications.service';
-import { Organization, Resource } from '../../../core/models/mapa-social.model';
+import {
+  CollaborationRequest,
+  Need,
+  Organization,
+  Resource,
+  ResourceRequest,
+} from '../../../core/models/mapa-social.model';
 
 @Component({
   selector: 'app-mi-organizacion',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, DatePipe],
   templateUrl: './mi-organizacion.component.html',
   styleUrl: './mi-organizacion.component.scss',
 })
@@ -25,6 +32,9 @@ export class MiOrganizacionComponent {
   readonly loadError = signal(false);
   readonly organization = signal<Organization | null>(null);
   readonly myResources = signal<Resource[]>([]);
+  readonly privateNeeds = signal<Need[]>([]);
+  readonly collaborationRequests = signal<CollaborationRequest[]>([]);
+  readonly resourceRequests = signal<ResourceRequest[]>([]);
 
   readonly isSaving = signal(false);
   readonly saveMessage = signal('');
@@ -35,6 +45,7 @@ export class MiOrganizacionComponent {
     description: [''],
     contactInfo: [''],
     address: [''],
+    website: [''],
   });
 
   constructor() {
@@ -54,8 +65,29 @@ export class MiOrganizacionComponent {
             description: org.description ?? '',
             contactInfo: org.contactInfo ?? '',
             address: org.address ?? '',
+            website: org.website ?? '',
           });
           this.isLoading.set(false);
+
+          // Bandeja de necesidades privadas: solo tiene sentido pedirla si
+          // ya está avalada -- el backend rechaza con 403 a una organización
+          // Pendiente (ver NeedsService.findPrivateForViewer()).
+          if (org.verified) {
+            this.publicationsService.getPrivateNeedsQueue().subscribe({
+              next: (needs) => this.privateNeeds.set(needs),
+              error: () => {},
+            });
+
+            this.publicationsService.getMyCollaborationRequests().subscribe({
+              next: (requests) => this.collaborationRequests.set(requests),
+              error: () => {},
+            });
+
+            this.publicationsService.getMyResourceRequests().subscribe({
+              next: (requests) => this.resourceRequests.set(requests),
+              error: () => {},
+            });
+          }
         },
         error: () => {
           this.isLoading.set(false);
@@ -89,6 +121,7 @@ export class MiOrganizacionComponent {
         description: raw.description || undefined,
         contactInfo: raw.contactInfo || undefined,
         address: raw.address || undefined,
+        website: raw.website || undefined,
       })
       .subscribe({
         next: (updated) => {

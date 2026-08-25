@@ -1,10 +1,12 @@
 <div class="locality-ac">
   <input
     type="text"
+    [id]="id"
     [(ngModel)]="queryText"
     (input)="onInput()"
     (focus)="onInput()"
     (blur)="onBlur()"
+    (keydown.enter)="onEnter($event)"
     placeholder="Escribí una localidad (ej: Río Segundo)"
     autocomplete="off"
   />

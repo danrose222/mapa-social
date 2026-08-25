@@ -3,10 +3,15 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import {
+  CollaborationRequest,
+  CreateCollaborationRequestPayload,
   CreateNeedPayload,
+  CreatePrivateNeedPayload,
   CreateResourcePayload,
+  CreateResourceRequestPayload,
   Need,
   Resource,
+  ResourceRequest,
   Solicitud,
 } from '../models/mapa-social.model';
 
@@ -77,6 +82,18 @@ export class PublicationsService {
     return this.http.post<Need>(this.needsUrl, payload);
   }
 
+  // Estado vacío de búsqueda -> "publicá tu necesidad": nunca aparece en
+  // el mapa público (ver comentario en needs.service.ts del backend).
+  createPrivateNeed(payload: CreatePrivateNeedPayload): Observable<Need> {
+    return this.http.post<Need>(`${this.needsUrl}/private`, payload);
+  }
+
+  // Bandeja de necesidades privadas para un moderador o una organización
+  // avalada -- ver mi-organizacion.component.ts.
+  getPrivateNeedsQueue(): Observable<Need[]> {
+    return this.http.get<Need[]>(`${this.needsUrl}/privadas`);
+  }
+
   getResources(): Observable<Resource[]> {
     return this.http.get<Resource[]>(this.resourcesUrl);
   }
@@ -134,5 +151,46 @@ export class PublicationsService {
 
   getMySolicitudes(): Observable<Solicitud[]> {
     return this.http.get<Solicitud[]>('/api/solicitudes/mias');
+  }
+
+  // "Quiero Colaborar": mensaje anónimo hacia la organización dueña del
+  // recurso -- público, sin necesidad de sesión.
+  contactAboutResource(
+    resourceId: number,
+    payload: CreateCollaborationRequestPayload,
+  ): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.resourcesUrl}/${resourceId}/contact`,
+      payload,
+    );
+  }
+
+  // Bandeja de mensajes de colaboración recibidos por mi organización.
+  getMyCollaborationRequests(): Observable<CollaborationRequest[]> {
+    return this.http.get<CollaborationRequest[]>(
+      `${this.resourcesUrl}/collaboration-requests/mine`,
+    );
+  }
+
+  // Solicitud "express" de un usuario logueado hacia un recurso puntual --
+  // contacto y categoría se heredan de la cuenta y el recurso.
+  requestResource(
+    resourceId: number,
+    payload: CreateResourceRequestPayload,
+  ): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.resourcesUrl}/${resourceId}/request`,
+      payload,
+    );
+  }
+
+  // Bandeja de solicitudes express recibidas por mi organización.
+  getMyResourceRequests(): Observable<ResourceRequest[]> {
+    return this.http.get<ResourceRequest[]>(`${this.resourcesUrl}/requests/mine`);
+  }
+
+  // "Mi Actividad": las solicitudes express que YO mandé.
+  getMySentResourceRequests(): Observable<ResourceRequest[]> {
+    return this.http.get<ResourceRequest[]>(`${this.resourcesUrl}/requests/sent`);
   }
 }

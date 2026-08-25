@@ -27,31 +27,70 @@ export class QuieroAyudarComponent {
   readonly currentNeed = computed<Need | null>(() => {
     const list = this.needs();
     const index = this.currentIndex();
-    return list.length ? list[index % list.length] : null;
+
+    return list.length
+      ? list[index % list.length]
+      : null;
   });
 
   readonly categoryName = computed(() => {
     const need = this.currentNeed();
+
     if (!need) {
       return '';
     }
-    return this.categories().find((c) => c.id === need.categoryId)?.name ?? '';
+
+    return (
+      this.categories().find(
+        (category) => category.id === need.categoryId,
+      )?.name ?? ''
+    );
+  });
+
+  readonly organizationName = computed(() => {
+    return this.currentNeed()?.organization?.name ?? '';
+  });
+
+  readonly organizationId = computed(() => {
+    return this.currentNeed()?.organizationId ?? null;
+  });
+
+  readonly contactInfo = computed(() => {
+    const need = this.currentNeed();
+
+    return (
+      need?.contactInfo?.trim() ||
+      need?.organization?.contactInfo?.trim() ||
+      ''
+    );
   });
 
   private dragStartX: number | null = null;
+
   readonly dragOffset = signal(0);
 
   constructor() {
     this.categoriesService.getAll().subscribe({
-      next: (categories) => this.categories.set(categories),
+      next: (categories) => {
+        this.categories.set(categories);
+      },
+
       error: () => {},
     });
 
     this.publicationsService.getNeeds().subscribe({
       next: (needs) => {
-        this.needs.set(needs.filter((n) => n.status === 'active'));
+        const donationNeeds = needs.filter(
+          (need) =>
+            need.status === 'active' &&
+            need.organizationId != null &&
+            need.organization != null,
+        );
+
+        this.needs.set(donationNeeds);
         this.isLoading.set(false);
       },
+
       error: () => {
         this.isLoading.set(false);
         this.loadError.set(true);
@@ -63,22 +102,49 @@ export class QuieroAyudarComponent {
     if (!this.needs().length) {
       return;
     }
-    this.currentIndex.update((i) => (i + 1) % this.needs().length);
+
+    this.currentIndex.update(
+      (index) =>
+        (index + 1) % this.needs().length,
+    );
   }
 
   anterior(): void {
     if (!this.needs().length) {
       return;
     }
-    this.currentIndex.update((i) => (i - 1 + this.needs().length) % this.needs().length);
+
+    this.currentIndex.update(
+      (index) =>
+        (index - 1 + this.needs().length) %
+        this.needs().length,
+    );
   }
 
   ayudar(): void {
     const need = this.currentNeed();
+
     if (!need) {
       return;
     }
-    this.router.navigate(['/publicar/quiero-ayudar', need.id]);
+
+    this.router.navigate([
+      '/publicar/quiero-ayudar',
+      need.id,
+    ]);
+  }
+
+  verOrganizacion(): void {
+    const organizationId = this.organizationId();
+
+    if (!organizationId) {
+      return;
+    }
+
+    this.router.navigate([
+      '/organizacion',
+      organizationId,
+    ]);
   }
 
   onPointerDown(event: PointerEvent): void {
@@ -89,16 +155,21 @@ export class QuieroAyudarComponent {
     if (this.dragStartX === null) {
       return;
     }
-    this.dragOffset.set(event.clientX - this.dragStartX);
+
+    this.dragOffset.set(
+      event.clientX - this.dragStartX,
+    );
   }
 
   onPointerUp(): void {
     const offset = this.dragOffset();
+
     if (offset > 90) {
       this.anterior();
     } else if (offset < -90) {
       this.siguiente();
     }
+
     this.dragStartX = null;
     this.dragOffset.set(0);
   }

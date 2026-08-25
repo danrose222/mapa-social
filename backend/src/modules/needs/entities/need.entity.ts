@@ -81,6 +81,23 @@ export class Need extends BaseEntity {
     default: false,
   })
   requiresSolicitud!: boolean;
+  // Una necesidad privada nunca aparece en findAll()/search()/localities()
+  // (el mapa público, con o sin sesión) -- solo la ve su dueño, un
+  // moderador, o una organización avalada de la misma ciudad que ya
+  // publicó algún recurso en esta categoría (ver
+  // NeedsService.findPrivateForViewer()).
+  @Column({
+    name: 'is_private',
+    default: false,
+  })
+  isPrivate!: boolean;
+  // Nivel de urgencia declarado en el formulario rápido de necesidad
+  // privada -- 'baja' | 'media' | 'alta'. No se usa en el flujo público.
+  @Column({
+    length: 20,
+    nullable: true,
+  })
+  urgency?: string;
   // Se completan solos cuando un moderador cambia el status -- nunca
   // vienen del body del cliente (ver needs.service.ts -> update()).
   // Tipo "number | null" (no solo "number | undefined"): TypeORM

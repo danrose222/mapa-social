@@ -10,6 +10,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { NeedsModule } from './modules/needs/needs.module';
 import { ResourcesModule } from './modules/resources/resources.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
+import { MunicipiosModule } from './modules/municipios/municipios.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { SolicitudesModule } from './modules/solicitudes/solicitudes.module';
 import { StatsModule } from './modules/stats/stats.module';
@@ -37,6 +38,7 @@ import { StatsModule } from './modules/stats/stats.module';
     NeedsModule,
     ResourcesModule,
     OrganizationsModule,
+    MunicipiosModule,
     UploadsModule,
     SolicitudesModule,
     StatsModule,

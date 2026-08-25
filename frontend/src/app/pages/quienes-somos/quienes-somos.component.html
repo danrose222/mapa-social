@@ -55,59 +55,36 @@
     </p>
   </section>
 
-  <section class="about__actions">
-    <a routerLink="/mapa" class="card about__action-card">
-      <span class="about__action-icon" style="background: var(--brand-soft); color: var(--brand-dark)">
-        <app-icon name="pin" [size]="20" />
-      </span>
-      <div>
-        <h3>Ver el mapa</h3>
-        <p>Recorré las necesidades y recursos activos cerca tuyo.</p>
-      </div>
-    </a>
-
-    <a routerLink="/publicar/necesito-ayuda" class="card about__action-card">
-      <span class="about__action-icon" style="background: var(--need-color-soft); color: var(--need-color)">
-        <app-icon name="hands" [size]="20" />
-      </span>
-      <div>
-        <h3>Necesito ayuda</h3>
-        <p>Publicá tu necesidad para que la comunidad la vea.</p>
-      </div>
-    </a>
-
-    <a routerLink="/publicar/quiero-ayudar" class="card about__action-card">
-      <span class="about__action-icon" style="background: var(--help-color-soft); color: var(--help-color)">
-        <app-icon name="helpingHand" [size]="20" />
-      </span>
-      <div>
-        <h3>Quiero ayudar</h3>
-        <p>Mirá necesidades activas y ofrecé una mano.</p>
-      </div>
+  <section class="about__explore">
+    <a routerLink="/mapa" class="about__explore-link">
+      <app-icon name="pin" [size]="16" />
+      Explorar el mapa
     </a>
   </section>
 
-  <section class="about__how">
-    <h2>Cómo funciona</h2>
+  <section class="about__values">
+    <h2>Nuestra filosofía</h2>
 
-    <ol class="about__steps">
-      <li>
-        <span class="about__step-number">1</span>
-        <p>Te registrás — sin restricción de rol, cualquiera puede pedir o dar ayuda.</p>
-      </li>
-      <li>
-        <span class="about__step-number">2</span>
-        <p>Publicás una necesidad, u ofrecés ayuda respondiendo a una que ya existe.</p>
-      </li>
-      <li>
-        <span class="about__step-number">3</span>
-        <p>Se ponen en contacto directo para coordinar la ayuda.</p>
-      </li>
-    </ol>
+    <div class="about__value">
+      <h3>Confianza territorial</h3>
+      <p>
+        En una ciudad con Municipio registrado en la plataforma, un moderador de esa
+        localidad avala a cada organización antes de que pueda publicar recursos en su
+        nombre — por eso vas a ver el sello "Verificada" en algunas publicaciones. En un
+        pueblo sin esa estructura de gobierno, la organización se autogestiona: queda
+        activa apenas se registra. Ninguna de las dos formas es "la correcta" — cada una
+        responde a la escala real que tiene cada lugar.
+      </p>
+    </div>
 
-    <p class="about__note">
-      Las organizaciones que ofrecen recursos pasan primero por una revisión del
-      municipio — por eso vas a ver el sello "Verificada" en algunas publicaciones.
-    </p>
+    <div class="about__value">
+      <h3>Asimetría de roles</h3>
+      <p>
+        Lo personal y lo institucional no se mezclan. Un vecino pide ayuda o solicita un
+        recurso puntual desde su propia cuenta; una organización gestiona sus recursos,
+        su perfil público y el estado de su aval desde su Panel Institucional. Cada quien
+        ve, en el menú y en el mapa, solo lo que le corresponde a su rol.
+      </p>
+    </div>
   </section>
 </div>

@@ -48,7 +48,7 @@
 
 .mis-loc__success {
   margin-top: 10px;
-  color: var(--help-color);
+  color: var(--help-color-text);
   font-size: 0.82rem;
   font-weight: 600;
 }
@@ -87,12 +87,12 @@
 
 .mis-loc__request-tag--pending {
   background: var(--need-color-soft);
-  color: var(--need-color);
+  color: var(--need-color-text);
 }
 
 .mis-loc__request-tag--approved {
   background: var(--help-color-soft);
-  color: var(--help-color);
+  color: var(--help-color-text);
 }
 
 .mis-loc__request-tag--rejected {

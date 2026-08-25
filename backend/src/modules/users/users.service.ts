@@ -8,15 +8,19 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { Repository } from 'typeorm';
+import { randomUUID } from 'crypto';
 
 import { User } from './entities/user.entity';
 import { ModeratorLocality } from './entities/moderator-locality.entity';
+import { ModeratorRequest } from './entities/moderator-request.entity';
 import { Role } from '../roles/entities/role.entity';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AddModeratorLocalityDto } from './dto/add-moderator-locality.dto';
+import { CreateModeratorRequestDto } from './dto/create-moderator-request.dto';
 import { localitiesMatch } from '../../common/utils/locality-match.util';
+import { MailService } from '../mail/mail.service';
 
 interface AuthUser {
   id: number;
@@ -24,6 +28,7 @@ interface AuthUser {
 }
 
 const DEFAULT_ROLE_NAME = 'seed-role';
+const VERIFICATION_TOKEN_TTL_HOURS = 48;
 
 @Injectable()
 export class UsersService {
@@ -36,6 +41,11 @@ export class UsersService {
 
     @InjectRepository(ModeratorLocality)
     private readonly localityRepository: Repository<ModeratorLocality>,
+
+    @InjectRepository(ModeratorRequest)
+    private readonly moderatorRequestRepository: Repository<ModeratorRequest>,
+
+    private readonly mailService: MailService,
   ) {}
 
   async create(dto: CreateUserDto) {
@@ -67,12 +77,83 @@ export class UsersService {
       );
     }
 
+    const emailVerificationToken = randomUUID();
+
     const user = this.userRepository.create({
       ...dto,
       roleId: defaultRole.id,
+      // Cualquier cuenta nueva (común, ONG o comunidad -- no hay
+      // distinción acá, el rol por defecto es el mismo para todas) arranca
+      // sin verificar, pisando el DEFAULT true de la columna (pensado para
+      // no romper las cuentas ya existentes, ver migración 022).
+      emailVerified: false,
+      emailVerificationToken,
+      emailVerificationExpiresAt: new Date(
+        Date.now() + VERIFICATION_TOKEN_TTL_HOURS * 60 * 60 * 1000,
+      ),
     });
 
-    return this.userRepository.save(user);
+    const saved = await this.userRepository.save(user);
+
+    await this.mailService.sendVerificationEmail(
+      saved.email,
+      saved.firstName,
+      emailVerificationToken,
+    );
+
+    return saved;
+  }
+
+  async verifyEmail(token: string) {
+    const user = await this.userRepository.findOne({
+      where: { emailVerificationToken: token },
+    });
+
+    if (!user) {
+      throw new NotFoundException('El enlace de verificación no es válido.');
+    }
+
+    if (
+      !user.emailVerificationExpiresAt ||
+      user.emailVerificationExpiresAt.getTime() < Date.now()
+    ) {
+      throw new ForbiddenException(
+        'El enlace de verificación venció. Pedí que te reenvíen uno nuevo.',
+      );
+    }
+
+    user.emailVerified = true;
+    user.emailVerificationToken = null;
+    user.emailVerificationExpiresAt = null;
+
+    await this.userRepository.save(user);
+
+    return { message: 'Cuenta verificada.' };
+  }
+
+  async resendVerification(userId: number) {
+    const user = await this.findOne(userId);
+
+    if (user.emailVerified) {
+      return { message: 'Tu cuenta ya está verificada.' };
+    }
+
+    const emailVerificationToken = randomUUID();
+
+    await this.userRepository.update(userId, {
+      emailVerificationToken,
+      emailVerificationExpiresAt: new Date(
+        Date.now() + VERIFICATION_TOKEN_TTL_HOURS * 60 * 60 * 1000,
+      ),
+    });
+
+    await this.mailService.sendVerificationEmail(
+      user.email,
+      user.firstName,
+      emailVerificationToken,
+    );
+
+    return { message: 'Te reenviamos el correo de verificación.' };
   }
 
   findAll() {
@@ -100,7 +181,10 @@ export class UsersService {
   async findByEmail(email: string) {
     return this.userRepository.findOne({
       where: { email },
-      relations: ['role'],
+      // 'organization' se agrega para que AuthService.login() pueda emitir
+      // organizationType sin una query aparte -- único caller de este
+      // método (verificado), así que no afecta a nadie más.
+      relations: ['role', 'organization'],
     });
   }
 
@@ -258,5 +342,107 @@ export class UsersService {
     await this.localityRepository.remove(locality);
 
     return { message: 'Localidad quitada' };
+  }
+
+  // Cualquier cuenta común puede pedir convertirse en moderador de una
+  // localidad -- sigue funcionando como ciudadano normal mientras tanto,
+  // no queda bloqueada. No hay revisión humana: confirmar el link enviado
+  // a officialEmail (ver mail.service.ts) es la única prueba real de que
+  // quien pide esto controla ese canal institucional.
+  async requestModerator(dto: CreateModeratorRequestDto, currentUser: AuthUser) {
+    if (currentUser.role === 'moderador') {
+      throw new ForbiddenException('Ya sos moderador');
+    }
+
+    const existing = await this.moderatorRequestRepository.findOne({
+      where: { userId: currentUser.id },
+    });
+
+    if (existing) {
+      throw new ConflictException('Ya tenés una solicitud pendiente');
+    }
+
+    const user = await this.userRepository.findOne({ where: { id: currentUser.id } });
+
+    if (!user) {
+      throw new NotFoundException('Usuario inexistente');
+    }
+
+    const verificationToken = randomUUID();
+
+    const request = this.moderatorRequestRepository.create({
+      userId: currentUser.id,
+      locality: dto.locality.trim(),
+      provincia: dto.provincia?.trim(),
+      institutionName: dto.institutionName.trim(),
+      position: dto.position.trim(),
+      officialEmail: dto.officialEmail.trim(),
+      officialPhone: dto.officialPhone.trim(),
+      justification: dto.justification?.trim(),
+      verificationToken,
+      verificationExpiresAt: new Date(
+        Date.now() + VERIFICATION_TOKEN_TTL_HOURS * 60 * 60 * 1000,
+      ),
+    });
+
+    const saved = await this.moderatorRequestRepository.save(request);
+
+    await this.mailService.sendModeratorVerificationEmail(
+      saved.officialEmail,
+      user.firstName,
+      saved.institutionName,
+      saved.locality,
+      verificationToken,
+    );
+
+    return saved;
+  }
+
+  // Dispara desde el link del email institucional (ver
+  // mail.service.ts::sendModeratorVerificationEmail) -- público a
+  // propósito, como verifyEmail(), no requiere estar logueado con la
+  // sesión que hizo el pedido.
+  async verifyModeratorRequest(token: string) {
+    const request = await this.moderatorRequestRepository.findOne({
+      where: { verificationToken: token },
+    });
+
+    if (!request) {
+      throw new NotFoundException('Token inválido');
+    }
+
+    if (request.verificationExpiresAt.getTime() < Date.now()) {
+      throw new ForbiddenException('El enlace venció -- volvé a pedir el aval municipal.');
+    }
+
+    const moderatorRole = await this.roleRepository.findOne({
+      where: { name: 'moderador' },
+    });
+
+    if (!moderatorRole) {
+      throw new NotFoundException('Rol moderador inexistente');
+    }
+
+    await this.userRepository.update(request.userId, { roleId: moderatorRole.id });
+
+    const existingLocality = await this.localityRepository.findOne({
+      where: { userId: request.userId, locality: request.locality },
+    });
+
+    if (!existingLocality) {
+      await this.localityRepository.save(
+        this.localityRepository.create({
+          userId: request.userId,
+          locality: request.locality,
+          provincia: request.provincia,
+        }),
+      );
+    }
+
+    const locality = request.locality;
+
+    await this.moderatorRequestRepository.remove(request);
+
+    return { message: 'Cuenta convertida en moderador', locality };
   }
 }

@@ -8,6 +8,13 @@
     <h1>Iniciar sesión</h1>
     <p class="auth__lead">Entrá para publicar necesidades y ofrecer recursos.</p>
 
+    @if (justRegistered()) {
+      <p class="auth__notice">
+        ¡Cuenta creada! Te mandamos un correo para confirmarla -- hasta que lo hagas, vas a poder
+        entrar pero no publicar ni enviar solicitudes.
+      </p>
+    }
+
     @if (errorMessage()) {
       <p class="auth__alert">{{ errorMessage() }}</p>
     }

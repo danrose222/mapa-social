@@ -32,9 +32,10 @@
 .mod-org__loc-link {
   display: inline-block;
   margin-top: 8px;
-  color: var(--help-color);
+  color: var(--help-color-text);
   font-size: 0.84rem;
   font-weight: 600;
+  text-decoration: underline;
 }
 
 .mod-org__status {
@@ -87,9 +88,9 @@
   padding: 16px 18px;
 }
 
-.mod-org__item--verified {
-  opacity: 0.85;
-}
+// Sin opacity: reducía el contraste de --verified y --ink-soft por debajo
+// de AA (una organización ya avalada igual se distingue por el badge
+// "✓ Verificada" de acá abajo, no hace falta atenuar toda la fila).
 
 .mod-org__name {
   display: flex;

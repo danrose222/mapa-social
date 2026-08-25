@@ -37,9 +37,31 @@
   font-size: 0.85rem;
 }
 
+.auth__notice {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
 .auth__switch {
   margin: 18px 0 0;
   color: var(--ink-soft);
   font-size: 0.86rem;
   text-align: center;
+
+  // Sin esto el link hereda el mismo color que el texto de alrededor
+  // (a { color: inherit } global) y queda invisible como link -- ni color
+  // ni subrayado lo distinguen (WCAG 1.4.1).
+  a {
+    // --brand-dark da 4.1:1 sobre el fondo --surface de esta tarjeta, por
+    // debajo de AA -- --need-color-text está pensado justamente para texto
+    // (ver el comentario en styles.scss) y da 6.28:1 acá.
+    color: var(--need-color-text);
+    font-weight: 700;
+    text-decoration: underline;
+  }
 }

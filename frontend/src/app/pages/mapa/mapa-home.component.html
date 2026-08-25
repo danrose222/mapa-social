@@ -2,7 +2,7 @@
   <div class="mapa__search">
     <input
       type="search"
-      placeholder="Buscar por título o descripción…"
+      placeholder="Buscar por nombre, barrio o tipo de ayuda…"
       [value]="searchTerm()"
       (input)="onSearchChange($any($event.target).value)"
     />
@@ -67,8 +67,12 @@
       class="chip chip--tinted"
       [style.--chip-color]="'var(--brand)'"
       [class.is-active]="kindFilter() === 'todos'"
+      [class.chip--locked]="isKindLocked('todos')"
       (click)="setKindFilter('todos')"
     >
+      @if (isKindLocked('todos')) {
+        <app-icon name="lock" [size]="13" />
+      }
       Todos
     </button>
 
@@ -77,8 +81,12 @@
       class="chip chip--tinted"
       [style.--chip-color]="'var(--need-color)'"
       [class.is-active]="kindFilter() === 'necesidades'"
+      [class.chip--locked]="isKindLocked('necesidades')"
       (click)="setKindFilter('necesidades')"
     >
+      @if (isKindLocked('necesidades')) {
+        <app-icon name="lock" [size]="13" />
+      }
       Necesidades
     </button>
 
@@ -94,7 +102,7 @@
 
     <span class="mapa__chips-divider" aria-hidden="true"></span>
 
-    @for (category of categories(); track category.id) {
+    @for (category of visibleCategories(); track category.id) {
       <button
         type="button"
         class="chip chip--tinted"
@@ -112,6 +120,24 @@
       </button>
     }
   </div>
+
+  @if (privacyNotice()) {
+    <div class="mapa__privacy-banner" role="alert">
+      <app-icon name="lock" [size]="16" />
+      <span>{{ privacyNotice() }}</span>
+      <button type="button" class="mapa__privacy-banner-login" (click)="goToLogin()">
+        Iniciar sesión
+      </button>
+      <button
+        type="button"
+        class="mapa__privacy-banner-close"
+        aria-label="Cerrar aviso"
+        (click)="dismissPrivacyNotice()"
+      >
+        ✕
+      </button>
+    </div>
+  }
 
   <div class="mapa__canvas-wrap">
     @if (isLoading()) {
@@ -133,11 +159,47 @@
       </button>
     }
 
+    @if (showEmptyState()) {
+      <div class="mapa__empty-state">
+        <p>{{ emptyStateMessage() }}</p>
+        @if (needEntryMode) {
+          <button type="button" class="btn" (click)="openQuickNeedForm()">
+            ¿No encontraste lo que buscabas? Publicá tu necesidad
+          </button>
+        }
+      </div>
+    }
+
     <div class="mapa__count">{{ visibleCount() }} puntos visibles</div>
   </div>
 
-  <button type="button" class="mapa__publish-btn" (click)="goToPublicar()">
-    <app-icon name="heart" [size]="16" [filled]="true" />
-    Publicar
-  </button>
+  @if (needEntryMode) {
+    <button type="button" class="mapa__publish-btn" (click)="openQuickNeedForm()">
+      <app-icon name="heart" [size]="16" [filled]="true" />
+      Publicar mi necesidad
+    </button>
+  }
 </div>
+
+@if (showQuickNeedForm()) {
+  <app-quick-need-form
+    [categories]="visibleCategories()"
+    [defaultCategoryId]="quickNeedCategoryId()"
+    [defaultLocality]="quickNeedLocality()"
+    [latitude]="quickNeedLat()"
+    [longitude]="quickNeedLng()"
+    (closed)="closeQuickNeedForm()"
+  />
+}
+
+@if (collaborateResource(); as resource) {
+  <app-collaborate-modal [resource]="resource" (closed)="closeCollaborateModal()" />
+}
+
+@if (resourceRequestTarget(); as resource) {
+  <app-resource-request-modal
+    [resource]="resource"
+    [categoryName]="resourceRequestCategoryName()"
+    (closed)="closeResourceRequestModal()"
+  />
+}

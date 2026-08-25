@@ -11,15 +11,18 @@ export interface Organization {
   description?: string;
   contactInfo?: string;
   address?: string;
+  website?: string;
   type: string;
   ciudad: string;
   verified: boolean;
+  createdAt?: string;
 }
 
 export interface Need {
   id: number;
   userId: number;
   categoryId: number;
+  category?: Category;
   organizationId?: number;
   organization?: Organization;
   title: string;
@@ -32,6 +35,8 @@ export interface Need {
   contactInfo?: string;
   imageUrl?: string;
   requiresSolicitud?: boolean;
+  isPrivate?: boolean;
+  urgency?: 'baja' | 'media' | 'alta';
   status: string;
   resolvedBy?: { id: number; firstName: string; lastName: string } | null;
   resolvedAt?: string | null;
@@ -90,6 +95,16 @@ export interface CreateNeedPayload {
   imageUrl?: string;
 }
 
+export interface CreatePrivateNeedPayload {
+  categoryId: number;
+  description: string;
+  urgency: 'baja' | 'media' | 'alta';
+  contactInfo: string;
+  latitude: number;
+  longitude: number;
+  locality?: string;
+}
+
 export interface CreateResourcePayload {
   title: string;
   description: string;
@@ -101,4 +116,43 @@ export interface CreateResourcePayload {
   contactName?: string;
   contactInfo?: string;
   imageUrl?: string;
+}
+
+export interface CollaborationRequest {
+  id: number;
+  organizationId: number;
+  contactName: string;
+  contactEmail: string;
+  message?: string;
+  createdAt: string;
+}
+
+export interface CreateCollaborationRequestPayload {
+  contactName: string;
+  contactEmail: string;
+  message?: string;
+  // Honeypot anti-spam: siempre vacío para una persona real.
+  website?: string;
+}
+
+export interface ResourceRequest {
+  id: number;
+  userId: number;
+  resourceId: number;
+  organizationId: number;
+  detailText?: string;
+  createdAt: string;
+  user?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+  };
+  resource?: Resource;
+  organization?: Organization;
+}
+
+export interface CreateResourceRequestPayload {
+  detailText?: string;
 }

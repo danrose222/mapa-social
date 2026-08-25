@@ -2,6 +2,8 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, of, tap } from 'rxjs';
 
+export type OrganizationType = 'ong' | 'comunidad';
+
 export interface AuthUser {
   id: number;
   firstName: string;
@@ -9,6 +11,7 @@ export interface AuthUser {
   email: string;
   role: string;
   ciudad?: string | null;
+  organizationType?: OrganizationType | null;
 }
 
 export interface LoginResponse {
@@ -26,9 +29,11 @@ export interface UserProfile {
   firstName: string;
   lastName: string;
   email: string;
+  phone?: string | null;
   ciudad?: string | null;
+  emailVerified: boolean;
   role: { id: number; name: string };
-  organization?: { id: number; name: string; verified: boolean } | null;
+  organization?: { id: number; name: string; type: OrganizationType; verified: boolean } | null;
   localities?: { id: number; locality: string; provincia?: string }[];
 }
 
@@ -47,17 +52,51 @@ export class AuthService {
   readonly profile = this.profileSignal.asReadonly();
   readonly profileLoaded = this.profileLoadedSignal.asReadonly();
 
-  // true si es moderador, o si pertenece a una organización ya avalada.
+  // true si es moderador, o si pertenece a una organización ya avalada --
+  // en cualquier caso, con el email confirmado (ver emailVerified más
+  // abajo): sin esto alcanzaba con avalar la organización para publicar,
+  // aunque la cuenta que la representa nunca haya confirmado su email.
   readonly canPublishResource = computed(() => {
     const profile = this.profileSignal();
-    if (!profile) {
+
+    if (!profile || !profile.emailVerified) {
       return false;
     }
+
     const isModerator = profile.role.name === 'moderador';
+
     return isModerator || profile.organization?.verified === true;
   });
 
-  readonly isModerator = computed(() => this.profileSignal()?.role.name === 'moderador');
+  // Perfil sin cargar todavía => no bloqueamos en falso mientras se
+  // resuelve (evita un parpadeo de "cartel bloqueado" antes de que llegue
+  // la respuesta real de /users/me).
+  readonly emailVerified = computed(() => this.profileSignal()?.emailVerified ?? true);
+
+  readonly isModerator = computed(() => {
+    const profile = this.profileSignal();
+
+    if (profile) {
+      return profile.role.name === 'moderador';
+    }
+
+    return this.currentUserSignal()?.role === 'moderador';
+  });
+
+  // Distingue al "Usuario Común" (vecino/donante) de quien tiene un rol
+  // organizacional -- separa las acciones personales ("Mi espacio") de las
+  // institucionales en el nav. Mismo patrón de fallback que isModerator:
+  // profile() es la fuente fresca, pero recién resuelve async, así que sin
+  // ella cae al organizationType liviano que ya trae el login.
+  readonly belongsToOrganization = computed(() => {
+    const profile = this.profileSignal();
+
+    if (profile) {
+      return profile.organization != null;
+    }
+
+    return this.currentUserSignal()?.organizationType != null;
+  });
 
   // Explica EN QUÉ CONDICIÓN puede (o no puede) publicar -- para mostrarlo
   // en la UI en vez de un simple sí/no.
@@ -66,6 +105,10 @@ export class AuthService {
 
     if (!profile) {
       return null;
+    }
+
+    if (!profile.emailVerified) {
+      return 'Confirmá tu email para poder publicar. Revisá tu casilla de correo.';
     }
 
     if (profile.role.name === 'moderador') {
@@ -109,6 +152,7 @@ export class AuthService {
       catchError(() => {
         this.profileSignal.set(null);
         this.profileLoadedSignal.set(true);
+
         return of(null);
       }),
     );
@@ -125,6 +169,14 @@ export class AuthService {
     return this.http.post('/api/users', payload);
   }
 
+  verifyEmail(token: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>('/api/users/verify-email', { token });
+  }
+
+  resendVerification(): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>('/api/users/resend-verification', {});
+  }
+
   logout(): void {
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(USER_KEY);
@@ -139,6 +191,7 @@ export class AuthService {
 
   private readStoredUser(): AuthUser | null {
     const raw = sessionStorage.getItem(USER_KEY);
+
     return raw ? (JSON.parse(raw) as AuthUser) : null;
   }
 }

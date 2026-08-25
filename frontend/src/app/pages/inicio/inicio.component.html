@@ -3,66 +3,75 @@
     <app-hero-network />
 
     <div class="hero-content">
-      <span class="inicio__eyebrow">Plataforma colaborativa territorial</span>
-      <h1>Conectamos necesidades comunitarias con recursos disponibles</h1>
+      <span class="inicio__eyebrow">
+        Plataforma colaborativa territorial
+      </span>
+
+      <h1>
+        Conectamos necesidades comunitarias con recursos disponibles
+      </h1>
+
       <p>
         Explorá el mapa, publicá una necesidad o compartí un recurso que pueda
         ayudar a alguien de tu comunidad.
       </p>
 
       <div class="inicio__cta-row">
-        <a routerLink="/mapa" class="btn">
-          <app-icon name="pin" [size]="18" />
-          Explorar el mapa
+        <a routerLink="/mapa" [queryParams]="{ type: 'need' }" class="btn btn--ghost">
+          <app-icon name="hands" [size]="18" />
+          Necesito Ayuda
         </a>
-        <a routerLink="/publicar" class="btn btn--ghost">Quiero publicar</a>
+
+        <a routerLink="/mapa" [queryParams]="{ type: 'help' }" class="btn btn--cta-donar">
+          <app-icon name="helpingHand" [size]="18" />
+          Quiero Ayudar / Donar
+        </a>
       </div>
     </div>
   </section>
 
-  <section class="inicio__actions">
-    <a routerLink="/mapa" class="card inicio__action-card">
-      <span class="inicio__action-icon" style="background: var(--brand-soft); color: var(--brand-dark)">
-        <app-icon name="pin" [size]="20" />
-      </span>
-      <div>
-        <h3>Ver el mapa</h3>
-        <p>Recorré las necesidades y recursos activos cerca tuyo.</p>
-      </div>
-    </a>
+  <section class="inicio__how" aria-labelledby="inicio-how-heading">
+    <h2 id="inicio-how-heading">¿Cómo funciona Mapa Social?</h2>
 
-    <a routerLink="/publicar/necesito-ayuda" class="card inicio__action-card">
-      <span class="inicio__action-icon" style="background: var(--need-color-soft); color: var(--need-color)">
-        <app-icon name="hands" [size]="20" />
-      </span>
-      <div>
-        <h3>Necesito ayuda</h3>
-        <p>Publicá tu necesidad para que la comunidad la vea.</p>
+    <div class="inicio__how-steps">
+      <div class="inicio__how-step">
+        <span
+          class="inicio__how-icon"
+          style="background: var(--brand-soft); color: var(--brand-dark)"
+        >
+          <app-icon name="pin" [size]="22" />
+        </span>
+        <span class="inicio__how-number">1</span>
+        <p>Buscá ayuda cerca tuyo</p>
       </div>
-    </a>
 
-    <a routerLink="/publicar/quiero-ayudar" class="card inicio__action-card">
-      <span class="inicio__action-icon" style="background: var(--help-color-soft); color: var(--help-color)">
-        <app-icon name="helpingHand" [size]="20" />
-      </span>
-      <div>
-        <h3>Quiero ayudar</h3>
-        <p>Mirá necesidades activas y ofrecé una mano.</p>
+      <div class="inicio__how-step">
+        <span
+          class="inicio__how-icon"
+          style="background: var(--need-color-soft); color: var(--need-color)"
+        >
+          <app-icon name="hands" [size]="22" />
+        </span>
+        <span class="inicio__how-number">2</span>
+        <p>Publicá tu necesidad si no la encontrás</p>
       </div>
-    </a>
 
-    <a routerLink="/publicar/ofrecer-recurso" class="card inicio__action-card">
-      <span class="inicio__action-icon" style="background: var(--help-color-soft); color: var(--verified)">
-        <app-icon name="building" [size]="20" />
-      </span>
-      <div>
-        <h3>Ofrecer un recurso</h3>
-        <p>Como moderador u organización avalada, publicá lo que tenés disponible.</p>
+      <div class="inicio__how-step">
+        <span
+          class="inicio__how-icon"
+          style="background: var(--help-color-soft); color: var(--help-color)"
+        >
+          <app-icon name="helpingHand" [size]="22" />
+        </span>
+        <span class="inicio__how-number">3</span>
+        <p>Doná o recibí apoyo directamente</p>
       </div>
-    </a>
+    </div>
   </section>
 
-  <p class="inicio__more">
-    <a routerLink="/quienes-somos">¿Cómo funciona Mapa Social? →</a>
-  </p>
+  <section class="inicio__org-cta">
+    <a routerLink="/organizacion/crear" class="btn btn--block">
+      ¿Sos una Organización? Ofrecé tus recursos
+    </a>
+  </section>
 </div>

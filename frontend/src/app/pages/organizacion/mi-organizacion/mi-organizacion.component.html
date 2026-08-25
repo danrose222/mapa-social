@@ -1,6 +1,13 @@
 <div class="mi-org">
   <header class="mi-org__header">
-    <a routerLink="/mapa" class="mi-org__back">← Volver al mapa</a>
+    <div class="mi-org__header-top">
+      <a routerLink="/mapa" class="mi-org__back">← Volver al mapa</a>
+
+      <div class="mi-org__personal-links">
+        <a routerLink="/mis-publicaciones">Mis publicaciones</a>
+        <a routerLink="/mis-solicitudes">Mis solicitudes</a>
+      </div>
+    </div>
     <h1>Mi organización</h1>
   </header>
 
@@ -14,15 +21,32 @@
       <a routerLink="/organizacion/crear" class="btn">Registrar una organización</a>
     </div>
   } @else {
-    <div class="card mi-org__card">
+    <div class="card mi-org__card mi-org__validation">
+      <h2>Estado de validación</h2>
       <div class="mi-org__badge-row">
         @if (organization()!.verified) {
           <span class="badge-verified">✓ Verificada</span>
         } @else {
           <span class="mi-org__pending">Pendiente de aprobación</span>
         }
+
+        <a [routerLink]="['/organizacion', organization()!.id]" class="mi-org__public-link">
+          Ver perfil público →
+        </a>
       </div>
 
+      @if (organization()!.createdAt) {
+        <p class="mi-org__validation-date">
+          Solicitud enviada el {{ organization()!.createdAt | date: 'dd/MM/yyyy' }}
+        </p>
+      }
+
+      @if (!organization()!.verified) {
+        <p class="mi-org__validation-note">En revisión por autoridad local.</p>
+      }
+    </div>
+
+    <div class="card mi-org__card">
       @if (saveMessage()) {
         <p class="mi-org__saved">{{ saveMessage() }}</p>
       }
@@ -52,11 +76,108 @@
           <input id="mo-contact" type="text" formControlName="contactInfo" />
         </div>
 
+        <div class="field">
+          <label for="mo-website">Sitio web o red social</label>
+          <input id="mo-website" type="text" formControlName="website" />
+        </div>
+
         <button type="submit" class="btn" [disabled]="isSaving()">
           {{ isSaving() ? 'Guardando…' : 'Guardar cambios' }}
         </button>
       </form>
     </div>
+
+    @if (organization()!.verified) {
+      <div class="card mi-org__card">
+        <h2>Necesidades privadas para vos ({{ privateNeeds().length }})</h2>
+        <p class="mi-org__private-hint">
+          Necesidades que nadie más ve en el mapa: son de tu ciudad, en una categoría donde ya
+          publicaste algún recurso.
+        </p>
+
+        @if (privateNeeds().length === 0) {
+          <p class="mi-org__empty-resources">No hay ninguna por ahora.</p>
+        } @else {
+          <ul class="mi-org__private-list">
+            @for (need of privateNeeds(); track need.id) {
+              <li>
+                <div class="mi-org__private-row">
+                  <span class="mi-org__private-category">{{ need.category?.name }}</span>
+                  <span class="mi-org__private-urgency" [attr.data-urgency]="need.urgency">
+                    {{ need.urgency }}
+                  </span>
+                </div>
+                <p>{{ need.description }}</p>
+                <span class="mi-org__private-contact">📞 {{ need.contactInfo }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
+
+    @if (organization()!.verified) {
+      <div class="card mi-org__card">
+        <h2>Solicitudes de recursos ({{ resourceRequests().length }})</h2>
+        <p class="mi-org__private-hint">
+          Pedidos express de usuarios logueados sobre recursos puntuales que publicaron.
+        </p>
+
+        @if (resourceRequests().length === 0) {
+          <p class="mi-org__empty-resources">No hay ninguna por ahora.</p>
+        } @else {
+          <ul class="mi-org__private-list">
+            @for (req of resourceRequests(); track req.id) {
+              <li>
+                <div class="mi-org__private-row">
+                  <span class="mi-org__private-category">{{ req.resource?.title }}</span>
+                </div>
+                <p>
+                  {{ req.user?.firstName }} {{ req.user?.lastName }}
+                  @if (req.detailText) {
+                    — {{ req.detailText }}
+                  }
+                </p>
+                <span class="mi-org__private-contact">
+                  ✉️ {{ req.user?.email }}
+                  @if (req.user?.phone) {
+                    · 📞 {{ req.user?.phone }}
+                  }
+                </span>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
+
+    @if (organization()!.verified) {
+      <div class="card mi-org__card">
+        <h2>Mensajes de colaboración ({{ collaborationRequests().length }})</h2>
+        <p class="mi-org__private-hint">
+          Personas que quieren colaborar con la organización, escritas desde el mapa sin
+          necesidad de cuenta.
+        </p>
+
+        @if (collaborationRequests().length === 0) {
+          <p class="mi-org__empty-resources">No hay ninguno por ahora.</p>
+        } @else {
+          <ul class="mi-org__private-list">
+            @for (req of collaborationRequests(); track req.id) {
+              <li>
+                <div class="mi-org__private-row">
+                  <span class="mi-org__private-category">{{ req.contactName }}</span>
+                </div>
+                @if (req.message) {
+                  <p>{{ req.message }}</p>
+                }
+                <span class="mi-org__private-contact">✉️ {{ req.contactEmail }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
 
     <div class="card mi-org__card">
       <h2>Nuestros recursos ({{ myResources().length }})</h2>

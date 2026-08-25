@@ -44,10 +44,25 @@ services:
       DB_USER: ${DB_USER:-mapa_user}
       DB_PASS: ${DB_PASS:-mapa_password}
       DB_NAME: mapa_social
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
+      MAIL_FROM: "Mapa Social <no-responder@mapasocial.local>"
+      APP_URL: http://localhost:8080
 
     depends_on:
       - db
+      - mailhog
 
+    restart: unless-stopped
+
+  # Servidor SMTP falso para desarrollo: ver el comentario equivalente en
+  # docker-compose.yml.
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mapa_social_mailhog_dev
+    ports:
+      - "8025:8025"
+      - "1025:1025"
     restart: unless-stopped
 
   frontend:

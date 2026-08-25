@@ -11,6 +11,7 @@ export interface CreateOrganizationPayload {
   description?: string;
   contactInfo?: string;
   address?: string;
+  website?: string;
 }
 
 export interface UpdateOrganizationPayload {
@@ -18,6 +19,7 @@ export interface UpdateOrganizationPayload {
   description?: string;
   contactInfo?: string;
   address?: string;
+  website?: string;
 }
 
 @Injectable({ providedIn: 'root' })
