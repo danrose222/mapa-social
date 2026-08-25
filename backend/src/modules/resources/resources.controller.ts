@@ -139,7 +139,8 @@ export class ResourcesController {
   }
 
   @Post(':id/request')
-  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard, ThrottlerGuard)
+  @Throttle({ resourceRequest: { limit: 5, ttl: 60_000 } })
   @ApiBearerAuth()
   @ApiOperation({
     summary:
@@ -149,11 +150,16 @@ export class ResourcesController {
   @ApiResponse({ status: 401, description: 'No autenticado' })
   @ApiResponse({
     status: 403,
-    description: 'El email de la cuenta todavía no fue confirmado',
+    description:
+      'El email de la cuenta todavía no fue confirmado, o el recurso pertenece a tu propia organización',
   })
   @ApiResponse({
     status: 404,
     description: 'Recurso inexistente o sin organización asociada',
+  })
+  @ApiResponse({
+    status: 429,
+    description: 'Demasiados intentos, esperar antes de reintentar',
   })
   requestResource(
     @Param('id', ParseIntPipe)
