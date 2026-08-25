@@ -6,12 +6,12 @@ import {
   Output,
   SimpleChanges,
   inject,
-  signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Subject, catchError, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
+import { of } from 'rxjs';
 
 import { GeorefAddressMatch, GeorefService } from '../../../core/services/georef.service';
+import { DebouncedSearch } from '../../utils/debounced-search.util';
 
 interface AddressQuery {
   term: string;
@@ -41,72 +41,36 @@ export class AddressAutocompleteComponent implements OnChanges {
   @Output() readonly addressSelected = new EventEmitter<GeorefAddressMatch>();
 
   queryText = '';
-  readonly results = signal<GeorefAddressMatch[]>([]);
-  readonly isSearching = signal(false);
-  readonly isOpen = signal(false);
 
-  // Bajo qué {term, locality} se generaron los `results()` actuales --
-  // onEnter/onBlur no deben confirmar una coincidencia que en realidad
-  // quedó de una búsqueda anterior (texto reescrito o localidad
-  // cambiada) mientras la respuesta debounced nueva todavía no llegó.
-  private resultsFor: AddressQuery | null = null;
+  private readonly search = new DebouncedSearch<AddressQuery, GeorefAddressMatch>({
+    debounceMs: 400,
+    isEqual: (a, b) => a.term === b.term && a.locality === b.locality,
+    search: (query) =>
+      query.locality
+        ? this.georefService.searchAddresses(query.term, query.locality)
+        : of([]),
+  });
 
-  private readonly queryChanges = new Subject<AddressQuery>();
-
-  constructor() {
-    this.queryChanges
-      .pipe(
-        debounceTime(400),
-        distinctUntilChanged((a, b) => a.term === b.term && a.locality === b.locality),
-        switchMap((query) => {
-          if (!query.locality) {
-            return of<{ query: AddressQuery; matches: GeorefAddressMatch[] }>({
-              query,
-              matches: [],
-            });
-          }
-
-          this.isSearching.set(true);
-
-          // catchError ACÁ (adentro del switchMap): ver el comentario
-          // equivalente en locality-autocomplete.component.ts.
-          return this.georefService.searchAddresses(query.term, query.locality).pipe(
-            map((matches) => ({ query, matches })),
-            catchError(() => {
-              this.isSearching.set(false);
-              return of({ query, matches: [] as GeorefAddressMatch[] });
-            }),
-          );
-        }),
-      )
-      .subscribe({
-        next: ({ query, matches }) => {
-          this.isSearching.set(false);
-          this.resultsFor = query;
-          this.results.set(matches);
-          this.isOpen.set(matches.length > 0);
-        },
-      });
-  }
+  readonly results = this.search.results;
+  readonly isSearching = this.search.isSearching;
+  readonly isOpen = this.search.isOpen;
 
   // Sin esto, cambiar la localidad después de haber buscado una
   // dirección deja `results()` con coincidencias de la localidad
   // anterior, seleccionables como si fueran de la nueva.
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['locality'] && !changes['locality'].firstChange) {
-      this.results.set([]);
-      this.isOpen.set(false);
-      this.resultsFor = null;
+      this.search.reset();
 
       if (this.queryText.trim()) {
-        this.queryChanges.next({ term: this.queryText.trim(), locality: this.locality });
+        this.search.search({ term: this.queryText.trim(), locality: this.locality });
       }
     }
   }
 
   onInput(): void {
     this.textChange.emit(this.queryText);
-    this.queryChanges.next({ term: this.queryText.trim(), locality: this.locality });
+    this.search.search({ term: this.queryText.trim(), locality: this.locality });
   }
 
   // Mismo motivo que en locality-autocomplete: sin esto, Enter dispara el
@@ -153,8 +117,8 @@ export class AddressAutocompleteComponent implements OnChanges {
   }
 
   private resultsMatchCurrentQuery(): boolean {
-    return (
-      this.resultsFor?.term === this.queryText.trim() && this.resultsFor?.locality === this.locality
+    return this.search.matchesLastQuery(
+      (last) => last.term === this.queryText.trim() && last.locality === this.locality,
     );
   }
 }

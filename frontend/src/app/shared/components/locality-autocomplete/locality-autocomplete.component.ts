@@ -1,9 +1,9 @@
-import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Subject, catchError, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
 import { GeorefLocality, GeorefService } from '../../../core/services/georef.service';
 import { normalizeText } from '../../utils/normalize-text.util';
+import { DebouncedSearch } from '../../utils/debounced-search.util';
 
 export interface LocalitySelection {
   locality: string;
@@ -39,15 +39,16 @@ export class LocalityAutocompleteComponent implements OnInit {
       this.queryText = this.initialValue;
     }
   }
-  readonly results = signal<GeorefLocality[]>([]);
-  readonly isSearching = signal(false);
-  readonly isOpen = signal(false);
 
-  // Qué término produjo los `results()` actuales -- onEnter no debe
-  // confirmar una coincidencia que en realidad quedó de una búsqueda
-  // anterior porque el usuario reescribió el campo y todavía no llegó
-  // la respuesta debounced de la búsqueda nueva.
-  private resultsForTerm = '';
+  private readonly search = new DebouncedSearch<string, GeorefLocality>({
+    debounceMs: 300,
+    isEqual: (a, b) => a === b,
+    search: (term) => this.georefService.searchLocalities(term),
+  });
+
+  readonly results = this.search.results;
+  readonly isSearching = this.search.isSearching;
+  readonly isOpen = this.search.isOpen;
 
   // Evita que onBlur dispare una segunda búsqueda (confirmTypedLocality)
   // después de una selección explícita ya confirmada por click o Enter
@@ -56,55 +57,20 @@ export class LocalityAutocompleteComponent implements OnInit {
   // camino feliz.
   private confirmed = false;
 
-  private readonly queryChanges = new Subject<string>();
-
-  // Se incrementa en cada tipeo nuevo y en cada llamado a
-  // confirmTypedLocality() -- esta última dispara su propio subscribe()
-  // fuera del pipe con switchMap de arriba (que sí se autocancela), así
-  // que sin este contador una respuesta vieja (ej. el usuario borró todo
-  // y escribió una localidad distinta antes de que llegara) podía pisar
-  // la localidad correcta con una vieja.
+  // confirmTypedLocality() dispara su propio subscribe() por fuera de
+  // DebouncedSearch (no es una búsqueda "mientras se tipea", es la
+  // confirmación puntual del blur) -- sin este contador, una respuesta
+  // vieja podía pisar la localidad correcta con una vieja.
   private requestId = 0;
-
-  constructor() {
-    this.queryChanges
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        switchMap((term) => {
-          this.isSearching.set(true);
-          // catchError ACÁ (adentro del switchMap), no en el .subscribe()
-          // de afuera: un error del lado de Georef en la fuente interna
-          // corta para siempre la suscripción externa completa -- sin
-          // esto, el primer error de red mataba el autocomplete para el
-          // resto de la vida de este componente, sin ninguna forma de
-          // recuperarse salvo recargar la página.
-          return this.georefService.searchLocalities(term).pipe(
-            map((localities) => ({ term, localities })),
-            catchError(() => {
-              this.isSearching.set(false);
-              return of({ term, localities: [] as GeorefLocality[] });
-            }),
-          );
-        }),
-      )
-      .subscribe({
-        next: ({ term, localities }) => {
-          this.isSearching.set(false);
-          this.resultsForTerm = term;
-          this.results.set(localities);
-          this.isOpen.set(localities.length > 0);
-        },
-      });
-  }
 
   onInput(): void {
     this.confirmed = false;
     this.requestId++;
-    // Trimeado acá (no solo al comparar) para que resultsForTerm y
-    // queryText.trim() nunca queden desalineados por un espacio final --
-    // mismo criterio que address-autocomplete.component.ts.
-    this.queryChanges.next(this.queryText.trim());
+    // Trimeado acá (no solo al comparar) para que el último query
+    // recordado por DebouncedSearch y queryText.trim() nunca queden
+    // desalineados por un espacio final -- mismo criterio que
+    // address-autocomplete.component.ts.
+    this.search.search(this.queryText.trim());
   }
 
   // Sin esto, Enter en este input dispara el submit nativo del <form> que
@@ -115,7 +81,7 @@ export class LocalityAutocompleteComponent implements OnInit {
   onEnter(event: Event): void {
     event.preventDefault();
 
-    if (this.resultsForTerm !== this.queryText.trim()) {
+    if (!this.search.matchesLastQuery((last) => last === this.queryText.trim())) {
       return;
     }
 
