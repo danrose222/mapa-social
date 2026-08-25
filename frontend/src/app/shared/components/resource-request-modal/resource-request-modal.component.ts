@@ -6,6 +6,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { PublicationsService } from '../../../core/services/publications.service';
 import { Resource } from '../../../core/models/mapa-social.model';
 import { IconComponent } from '../../icons/icon.component';
+import { ModalShellComponent } from '../modal-shell/modal-shell.component';
 
 // Modal "express" para un usuario YA logueado que pide un recurso puntual:
 // a diferencia de CollaborateModalComponent (anónimo, pide nombre/email),
@@ -15,7 +16,7 @@ import { IconComponent } from '../../icons/icon.component';
 @Component({
   selector: 'app-resource-request-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, IconComponent],
+  imports: [ReactiveFormsModule, IconComponent, ModalShellComponent],
   templateUrl: './resource-request-modal.component.html',
   styleUrl: './resource-request-modal.component.scss',
 })
