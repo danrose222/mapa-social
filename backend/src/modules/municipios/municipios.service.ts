@@ -13,6 +13,7 @@ import { Municipio } from './entities/municipio.entity';
 import { CreateMunicipioDto } from './dto/create-municipio.dto';
 import { UpdateMunicipioDto } from './dto/update-municipio.dto';
 import { localitiesMatch } from '../../common/utils/locality-match.util';
+import { saveOrConflict } from '../../common/utils/save-or-conflict.util';
 
 @Injectable()
 export class MunicipiosService {
@@ -37,7 +38,10 @@ export class MunicipiosService {
 
     const municipio = this.repository.create(dto);
 
-    return this.repository.save(municipio);
+    return saveOrConflict(
+      () => this.repository.save(municipio),
+      'Ya existe un municipio registrado para esa ciudad.',
+    );
   }
 
   findAll() {
@@ -63,7 +67,7 @@ export class MunicipiosService {
   async update(id: number, dto: UpdateMunicipioDto) {
     const municipio = await this.findOne(id);
 
-    if (dto.ciudad && dto.ciudad !== municipio.ciudad) {
+    if (dto.ciudad !== undefined && dto.ciudad !== municipio.ciudad) {
       const existing = await this.repository.findOne({
         where: { ciudad: dto.ciudad },
       });
@@ -77,7 +81,10 @@ export class MunicipiosService {
 
     Object.assign(municipio, dto);
 
-    return this.repository.save(municipio);
+    return saveOrConflict(
+      () => this.repository.save(municipio),
+      'Ya existe un municipio registrado para esa ciudad.',
+    );
   }
 
   // Regla de escala territorial ("Burocracia vs. Confianza" del
