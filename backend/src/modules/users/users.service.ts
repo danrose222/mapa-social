@@ -20,6 +20,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { AddModeratorLocalityDto } from './dto/add-moderator-locality.dto';
 import { CreateModeratorRequestDto } from './dto/create-moderator-request.dto';
 import { localitiesMatch } from '../../common/utils/locality-match.util';
+import { isDuplicateKeyError } from '../../common/utils/save-or-conflict.util';
 import { MailService } from '../mail/mail.service';
 
 interface AuthUser {
@@ -349,7 +350,10 @@ export class UsersService {
   // no queda bloqueada. No hay revisión humana: confirmar el link enviado
   // a officialEmail (ver mail.service.ts) es la única prueba real de que
   // quien pide esto controla ese canal institucional.
-  async requestModerator(dto: CreateModeratorRequestDto, currentUser: AuthUser) {
+  async requestModerator(
+    dto: CreateModeratorRequestDto,
+    currentUser: AuthUser,
+  ) {
     if (currentUser.role === 'moderador') {
       throw new ForbiddenException('Ya sos moderador');
     }
@@ -359,10 +363,17 @@ export class UsersService {
     });
 
     if (existing) {
-      throw new ConflictException('Ya tenés una solicitud pendiente');
+      if (existing.verificationExpiresAt > new Date()) {
+        throw new ConflictException('Ya tenés una solicitud pendiente');
+      }
+      // Vencida y nunca confirmada -- no bloquea un pedido nuevo, se
+      // reemplaza (la restricción UNIQUE en user_id no deja convivir dos).
+      await this.moderatorRequestRepository.remove(existing);
     }
 
-    const user = await this.userRepository.findOne({ where: { id: currentUser.id } });
+    const user = await this.userRepository.findOne({
+      where: { id: currentUser.id },
+    });
 
     if (!user) {
       throw new NotFoundException('Usuario inexistente');
@@ -412,7 +423,9 @@ export class UsersService {
     }
 
     if (request.verificationExpiresAt.getTime() < Date.now()) {
-      throw new ForbiddenException('El enlace venció -- volvé a pedir el aval municipal.');
+      throw new ForbiddenException(
+        'El enlace venció -- volvé a pedir el aval municipal.',
+      );
     }
 
     const moderatorRole = await this.roleRepository.findOne({
@@ -423,20 +436,32 @@ export class UsersService {
       throw new NotFoundException('Rol moderador inexistente');
     }
 
-    await this.userRepository.update(request.userId, { roleId: moderatorRole.id });
+    await this.userRepository.update(request.userId, {
+      roleId: moderatorRole.id,
+    });
 
     const existingLocality = await this.localityRepository.findOne({
       where: { userId: request.userId, locality: request.locality },
     });
 
     if (!existingLocality) {
-      await this.localityRepository.save(
-        this.localityRepository.create({
-          userId: request.userId,
-          locality: request.locality,
-          provincia: request.provincia,
-        }),
-      );
+      try {
+        await this.localityRepository.save(
+          this.localityRepository.create({
+            userId: request.userId,
+            locality: request.locality,
+            provincia: request.provincia,
+          }),
+        );
+      } catch (error) {
+        // Confirmar el mismo link dos veces casi en simultáneo (ej. un
+        // prefetch del cliente de correo) puede hacer que las dos lecturas
+        // de existingLocality den null -- la restricción UNIQUE evita la
+        // fila duplicada, y acá tratamos esa carrera como éxito, no error.
+        if (!isDuplicateKeyError(error)) {
+          throw error;
+        }
+      }
     }
 
     const locality = request.locality;
