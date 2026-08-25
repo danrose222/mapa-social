@@ -70,14 +70,17 @@ export class StatsService {
   // Conteo de necesidades y recursos por categoría, acotado a las
   // localidades del moderador logueado.
   async byCategory(currentUser: AuthUser) {
-    const moderatorLocalities = await this.moderatorLocalities(currentUser);
+    const [moderatorLocalities, categories, needs, resources] =
+      await Promise.all([
+        this.moderatorLocalities(currentUser),
+        this.categoryRepository.find({ where: { active: true } }),
+        this.needRepository.find(),
+        this.resourceRepository.find({ relations: ['organization'] }),
+      ]);
 
-    const categories = await this.categoryRepository.find({ where: { active: true } });
-
-    const needs = await this.needRepository.find();
-    const needsInScope = needs.filter((n) => this.needInScope(n, moderatorLocalities));
-
-    const resources = await this.resourceRepository.find({ relations: ['organization'] });
+    const needsInScope = needs.filter((n) =>
+      this.needInScope(n, moderatorLocalities),
+    );
     const resourcesInScope = resources.filter((r) =>
       this.resourceInScope(r, moderatorLocalities),
     );
@@ -106,10 +109,13 @@ export class StatsService {
   // Conteo de necesidades por localidad, solo entre las localidades del
   // moderador -- ya no es un ranking sitewide.
   async byLocality(currentUser: AuthUser) {
-    const moderatorLocalities = await this.moderatorLocalities(currentUser);
-
-    const needs = await this.needRepository.find();
-    const needsInScope = needs.filter((n) => this.needInScope(n, moderatorLocalities));
+    const [moderatorLocalities, needs] = await Promise.all([
+      this.moderatorLocalities(currentUser),
+      this.needRepository.find(),
+    ]);
+    const needsInScope = needs.filter((n) =>
+      this.needInScope(n, moderatorLocalities),
+    );
 
     const counts = new Map<string, number>();
     for (const need of needsInScope) {
@@ -124,12 +130,15 @@ export class StatsService {
   // % resuelto vs pendiente, para necesidades y recursos por separado,
   // acotado a las localidades del moderador.
   async resolutionRate(currentUser: AuthUser) {
-    const moderatorLocalities = await this.moderatorLocalities(currentUser);
+    const [moderatorLocalities, needs, resources] = await Promise.all([
+      this.moderatorLocalities(currentUser),
+      this.needRepository.find(),
+      this.resourceRepository.find({ relations: ['organization'] }),
+    ]);
 
-    const needs = await this.needRepository.find();
-    const needsInScope = needs.filter((n) => this.needInScope(n, moderatorLocalities));
-
-    const resources = await this.resourceRepository.find({ relations: ['organization'] });
+    const needsInScope = needs.filter((n) =>
+      this.needInScope(n, moderatorLocalities),
+    );
     const resourcesInScope = resources.filter((r) =>
       this.resourceInScope(r, moderatorLocalities),
     );
