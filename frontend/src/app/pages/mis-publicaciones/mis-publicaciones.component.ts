@@ -27,8 +27,18 @@ export class MisPublicacionesComponent {
   // organizaciones, que a un miembro de organización no le sirven acá.
   readonly belongsToOrganization = this.authService.belongsToOrganization;
 
-  readonly tab = signal<Tab>(
-    this.authService.belongsToOrganization() ? 'needs' : 'solicitudes',
+  // El signal de abajo (no un valor fijo calculado una sola vez acá) es a
+  // propósito: belongsToOrganization() puede seguir cambiando después de
+  // construirse este componente (el perfil real todavía no llegó, ver el
+  // mismo comentario en app-shell.component.ts) -- con un valor fijo, la
+  // pestaña por defecto quedaba pegada al estado viejo aunque los botones
+  // de pestaña (que sí son reactivos) ya reflejaran el rol correcto. Una
+  // vez que el usuario clickea una pestaña, esa elección manda por sobre
+  // el default reactivo.
+  private readonly manualTab = signal<Tab | null>(null);
+
+  readonly tab = computed<Tab>(
+    () => this.manualTab() ?? (this.authService.belongsToOrganization() ? 'needs' : 'solicitudes'),
   );
   readonly isLoading = signal(true);
   readonly loadError = signal(false);
@@ -86,7 +96,7 @@ export class MisPublicacionesComponent {
   }
 
   setTab(tab: Tab): void {
-    this.tab.set(tab);
+    this.manualTab.set(tab);
   }
 
   categoryName(categoryId: number): string {
