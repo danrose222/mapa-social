@@ -274,13 +274,15 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     return resource ? (this.categoryName(resource.categoryId) ?? '') : '';
   });
 
-  private filteredNeeds(): Need[] {
-    return this.applyFilters(this.allNeeds());
-  }
+  // computed(), no un método plano: visibleCount, showEmptyState y
+  // renderMarkers() leen esto varias veces en el mismo ciclo -- como
+  // método, cada lectura repetía el filtro completo (normalizeText sobre
+  // 6 campos más el lookup de categoría) desde cero; como computed(),
+  // Angular cachea el resultado y solo lo recalcula cuando de verdad
+  // cambia alguna de sus dependencias.
+  private readonly filteredNeeds = computed(() => this.applyFilters(this.allNeeds()));
 
-  private filteredResources(): Resource[] {
-    return this.applyFilters(this.allResources());
-  }
+  private readonly filteredResources = computed(() => this.applyFilters(this.allResources()));
 
   private applyFilters<
     T extends {
@@ -308,6 +310,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       // ayuda" -> nombre de la categoría, más horario y organización para
       // que "Alimentos" o el nombre de un comedor también encuentren algo
       // aunque esa palabra no esté en el título ni la descripción.
+      const categoryName = this.categoryName(item.categoryId);
       const matchesTerm =
         term === '' ||
         normalizeText(item.title).includes(term) ||
@@ -316,9 +319,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
         (item.locality ? normalizeText(item.locality).includes(term) : false) ||
         (item.schedule ? normalizeText(item.schedule).includes(term) : false) ||
         (item.organization?.name ? normalizeText(item.organization.name).includes(term) : false) ||
-        (this.categoryName(item.categoryId)
-          ? normalizeText(this.categoryName(item.categoryId)!).includes(term)
-          : false);
+        (categoryName ? normalizeText(categoryName).includes(term) : false);
 
       return matchesCategory && matchesTerm;
     });
