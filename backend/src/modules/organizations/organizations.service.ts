@@ -48,14 +48,16 @@ export class OrganizationsService {
   ) {
     // La colación de la columna (utf8mb4_0900_ai_ci) ya es insensible a
     // mayúsculas/acentos, así que esta comparación exacta alcanza -- sin
-    // esto, dos organizaciones con el mismo nombre (o "Comedor" vs
-    // "COMEDOR") convivían sin ningún aviso.
+    // esto, dos organizaciones con el mismo nombre en la misma ciudad (o
+    // "Comedor" vs "COMEDOR") convivían sin ningún aviso. Se compara por
+    // nombre Y ciudad, no solo nombre: dos organizaciones sin relación en
+    // ciudades distintas pueden compartir un nombre genérico legítimo.
     const existing = await this.repository.findOne({
-      where: { name: dto.name },
+      where: { name: dto.name, ciudad: dto.ciudad },
     });
     if (existing) {
       throw new ConflictException(
-        'Ya existe una organización registrada con ese nombre',
+        'Ya existe una organización registrada con ese nombre en esa ciudad',
       );
     }
 
@@ -71,7 +73,7 @@ export class OrganizationsService {
             verified: !isCityScale,
           }),
         ),
-      'Ya existe una organización registrada con ese nombre',
+      'Ya existe una organización registrada con ese nombre en esa ciudad',
     );
 
     const hasModeratorAccess =
@@ -213,7 +215,7 @@ export class OrganizationsService {
 
     return saveOrConflict(
       () => this.repository.save(organization),
-      'Ya existe una organización registrada con ese nombre',
+      'Ya existe una organización registrada con ese nombre en esa ciudad',
     );
   }
 

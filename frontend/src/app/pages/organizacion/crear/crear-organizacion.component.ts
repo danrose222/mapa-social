@@ -95,7 +95,7 @@ export class CrearOrganizacionComponent {
             error.status === 401
               ? 'Tu sesión expiró. Iniciá sesión de nuevo.'
               : error.status === 409
-                ? 'Ya existe una organización registrada con ese nombre.'
+                ? 'Ya existe una organización registrada con ese nombre en esa ciudad.'
                 : 'No se pudo crear la organización. Intentá de nuevo más tarde.',
           );
         },
