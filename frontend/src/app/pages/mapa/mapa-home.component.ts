@@ -1028,7 +1028,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       } else if (isEmail) {
         contactHtml =
           `<a class="v2map-popup__contact-btn" ` +
-          `href="mailto:${raw}">✉️ Escribir — ${this.escapeHtml(raw)}</a>`;
+          `href="mailto:${this.escapeHtml(raw)}">✉️ Escribir — ${this.escapeHtml(raw)}</a>`;
       } else {
         contactHtml =
           `<p class="v2map-popup__row">${this.escapeHtml(raw)}</p>`;
