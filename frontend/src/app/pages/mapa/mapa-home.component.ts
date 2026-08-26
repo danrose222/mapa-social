@@ -110,17 +110,9 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   // este mismo problema (una respuesta lenta no debe pisar algo más nuevo).
   private searchGeocodeId = 0;
 
-  // loadRadiusPage()/loadLocalityPage() comparten este contador: los dos
-  // escriben el mismo estado (allNeeds, territoryTotal*), así que una
-  // respuesta vieja de cualquiera de las dos (ej. tocar "Buscar en esta
-  // zona" y enseguida paginar) no debe pisar el resultado de un pedido
-  // más nuevo, sea del mismo método o del otro.
-  private territoryRequestId = 0;
-
-  // flyToLocality() geocodifica de forma independiente -- no toca el
-  // estado de arriba, así que tiene su propio contador en vez de
-  // compartir territoryRequestId.
-  private flyToRequestId = 0;
+  // Indica que, después de cargar los resultados de una búsqueda por texto,
+  // el mapa debe ajustarse para mostrarlos automáticamente.
+  private focusAfterSearchLoad = false;
 
   constructor() {
     // Sin takeUntilDestroyed(), navegar fuera de /mapa dentro de la
@@ -133,6 +125,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       const requestId = ++this.searchGeocodeId;
 
       if (term.length < 3) {
+        this.focusAfterSearchLoad = false;
         this.refetchNeedsForCurrentSearch();
         return;
       }
@@ -144,14 +137,31 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
           }
 
           if (point) {
+            // Es una ubicación real: mantenemos el comportamiento actual.
+            this.focusAfterSearchLoad = false;
             this.startRadiusSearch(point.lat, point.lng, true, 'manual');
           } else {
+            // Es una búsqueda por contenido:
+            // organización, título, descripción, horario, etc.
+            this.focusAfterSearchLoad = true;
             this.refetchNeedsForCurrentSearch();
+
+            // En modo "all" no hay una nueva carga paginada que esperar.
+            if (this.searchMode() === 'all') {
+              this.focusAfterSearchLoad = false;
+              this.focusSearchResults();
+            }
           }
         },
         error: () => {
           if (requestId === this.searchGeocodeId) {
+            this.focusAfterSearchLoad = true;
             this.refetchNeedsForCurrentSearch();
+
+            if (this.searchMode() === 'all') {
+              this.focusAfterSearchLoad = false;
+              this.focusSearchResults();
+            }
           }
         },
       });
@@ -643,6 +653,11 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
           this.needsDataLoaded = true;
           this.checkFullyLoaded();
           this.renderMarkers();
+
+          if (this.focusAfterSearchLoad) {
+            this.focusAfterSearchLoad = false;
+            this.focusSearchResults();
+          }
         },
         error: () => {
           if (requestId !== this.territoryRequestId) {
@@ -683,6 +698,11 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
           this.needsDataLoaded = true;
           this.checkFullyLoaded();
           this.renderMarkers();
+
+          if (this.focusAfterSearchLoad) {
+            this.focusAfterSearchLoad = false;
+            this.focusSearchResults();
+          }
         },
         error: () => {
           if (requestId !== this.territoryRequestId) {
@@ -966,6 +986,38 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   // normal.
   private needsFetchLimit(): number {
     return this.searchTerm().trim() ? SEARCH_ALL_LIMIT : TERRITORY_PAGE_SIZE;
+  }
+
+  private focusSearchResults(): void {
+    if (!this.map || !this.searchTerm().trim()) {
+      return;
+    }
+
+    const kind = this.kindFilter();
+    const points: L.LatLngExpression[] = [];
+
+    if (kind !== 'recursos') {
+      this.filteredNeeds().forEach((need) => {
+        points.push([need.latitude, need.longitude]);
+      });
+    }
+
+    if (kind !== 'necesidades') {
+      this.filteredResources().forEach((resource) => {
+        points.push([resource.latitude, resource.longitude]);
+      });
+    }
+
+    if (points.length === 0) {
+      return;
+    }
+
+    const bounds = L.latLngBounds(points);
+
+    this.map.fitBounds(bounds, {
+      padding: [50, 50],
+      maxZoom: 14,
+    });
   }
 
   private renderMarkers(): void {
