@@ -3,33 +3,55 @@
   min-height: 100vh;
 }
 
+// Ya no fuerza un ancho angosto para toda la página -- cada sección decide
+// si es full-bleed (hero) o de lectura (how/org-cta, sin tocar todavía:
+// llevan su propio max-width más abajo para no correrse de lugar).
 .inicio {
-  max-width: 780px;
-  margin: 0 auto;
-  padding: 48px 20px 72px;
+  padding-bottom: 72px;
 }
 
+// Full-bleed real: de borde a borde de la ventana, con altura de "momento"
+// (no una franja fina) para que la red animada de fondo tenga lugar de
+// respirar. El contenido de texto se centra en su propio ancho de lectura
+// adentro.
 .inicio__hero {
   position: relative;
   overflow: hidden;
-  margin: 0 0 44px;
-  padding: 64px 24px;
-  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: min(88vh, 680px);
+  // max() con env(safe-area-inset-*): en un dispositivo con notch (ej. un
+  // iPhone en horizontal) el padding fijo no alcanza a correr el contenido
+  // de la zona segura -- antes esto no importaba (la sección nunca tocaba
+  // el borde), ahora que es full-bleed sí.
+  padding: 80px max(24px, env(safe-area-inset-right)) 80px max(24px, env(safe-area-inset-left));
   background: linear-gradient(135deg, var(--ink), var(--brand-dark));
   text-align: center;
 
   .hero-content {
     position: relative;
     z-index: 1;
-    max-width: 560px;
+    max-width: 720px;
     margin: 0 auto;
   }
 
+  // Entrada escalonada (eyebrow ya la hereda de .inicio__eyebrow más abajo):
+  // título y subtítulo aparecen con un pequeño delay cada uno, no todos
+  // juntos, para que se lea como una secuencia y no un flash.
+  h1,
+  p,
+  .inicio__cta-row {
+    animation: inicio-hero-in 700ms ease-out both;
+  }
+
   h1 {
-    margin: 10px 0 16px;
+    margin: 10px 0 18px;
     color: #fff;
-    font-size: 2rem;
+    font-size: clamp(2.5rem, 1.6rem + 3.6vw, 4rem);
+    line-height: 1.12;
     text-wrap: balance;
+    animation-delay: 90ms;
   }
 
   // Blanco sólido (no translúcido): el gradiente va de --ink a --brand-dark,
@@ -37,9 +59,31 @@
   // por debajo del 4.5:1 que pide WCAG AA para texto normal. Sólido da 4.56:1
   // en el peor punto del gradiente.
   p {
+    max-width: 480px;
+    margin-inline: auto;
     color: #fff;
-    font-size: 1rem;
+    font-size: 1.1rem;
     line-height: 1.7;
+    animation-delay: 180ms;
+  }
+}
+
+@keyframes inicio-hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .inicio__hero {
+    min-height: auto;
+    padding: 64px max(20px, env(safe-area-inset-right)) 64px max(20px, env(safe-area-inset-left));
   }
 }
 
@@ -54,6 +98,7 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  animation: inicio-hero-in 700ms ease-out both;
 }
 
 .inicio__cta-row {
@@ -61,11 +106,28 @@
   justify-content: center;
   gap: 12px;
   margin-top: 24px;
+  animation-delay: 270ms;
 
   .btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
+  }
+
+  // Microinteracción: sin esto el hover de .btn (solo cambia el fondo) se
+  // siente estático en un hero grande -- un levantamiento leve avisa que
+  // es clickeable sin ser ruidoso. Más específica que el :active global
+  // (.btn:active:not(:disabled) en styles.scss), así que hay que repetir
+  // el gesto de "apretado" acá para no perderlo mientras se sigue
+  // hovereando.
+  .btn:hover:not(:disabled) {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: var(--shadow-2);
+  }
+
+  .btn:active:not(:disabled) {
+    transform: translateY(-1px) scale(0.99);
   }
 
   // El foco por defecto (outline var(--brand)) contra la esquina
@@ -104,8 +166,13 @@
   }
 }
 
+// max-width acá y no en .inicio (que ya no lo tiene, ver arriba): esta
+// sección sigue siendo una tarjeta angosta por ahora -- el rediseño de
+// "cómo funciona" es la próxima sección a encarar, esto solo evita que se
+// rompa al full-bleed del hero.
 .inicio__how {
-  margin: 0 0 32px;
+  max-width: 780px;
+  margin: 44px auto 0;
   padding: 28px 20px;
   border-radius: var(--radius-lg);
   background: var(--surface);
@@ -154,7 +221,9 @@
 }
 
 .inicio__org-cta {
-  margin-top: 20px;
+  max-width: 780px;
+  margin: 20px auto 0;
+  padding: 0 20px;
 }
 
 @media (max-width: 560px) {
