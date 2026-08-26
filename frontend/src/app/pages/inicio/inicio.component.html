@@ -1,31 +1,40 @@
 <div class="inicio">
   <section class="inicio__hero">
-    <app-hero-network />
+    <div class="inicio__hero-blobs" aria-hidden="true">
+      <span class="inicio__hero-blob inicio__hero-blob--a"></span>
+      <span class="inicio__hero-blob inicio__hero-blob--b"></span>
+    </div>
 
-    <div class="hero-content">
-      <span class="inicio__eyebrow">
-        Plataforma colaborativa territorial
-      </span>
+    <div class="inicio__hero-grid">
+      <div class="hero-content">
+        <span class="inicio__eyebrow">
+          Plataforma colaborativa territorial
+        </span>
 
-      <h1>
-        Conectamos necesidades comunitarias con recursos disponibles
-      </h1>
+        <h1>
+          Conectamos necesidades comunitarias con recursos disponibles
+        </h1>
 
-      <p>
-        Explorá el mapa, publicá una necesidad o compartí un recurso que pueda
-        ayudar a alguien de tu comunidad.
-      </p>
+        <p>
+          Explorá el mapa, publicá una necesidad o compartí un recurso que pueda
+          ayudar a alguien de tu comunidad.
+        </p>
 
-      <div class="inicio__cta-row">
-        <a routerLink="/mapa" [queryParams]="{ type: 'need' }" class="btn btn--cta-ayuda">
-          <i class="ph-bold ph-hand-waving" aria-hidden="true"></i>
-          Necesito Ayuda
-        </a>
+        <div class="inicio__cta-row">
+          <a routerLink="/mapa" [queryParams]="{ type: 'need' }" class="btn btn--cta-ayuda">
+            <i class="ph-fill ph-hand-waving" aria-hidden="true"></i>
+            Necesito Ayuda
+          </a>
 
-        <a routerLink="/mapa" [queryParams]="{ type: 'help' }" class="btn btn--cta-donar">
-          <i class="ph-bold ph-hand-heart" aria-hidden="true"></i>
-          Quiero Ayudar / Donar
-        </a>
+          <a routerLink="/mapa" [queryParams]="{ type: 'help' }" class="btn btn--cta-donar">
+            <i class="ph-fill ph-hand-heart" aria-hidden="true"></i>
+            Quiero Ayudar / Donar
+          </a>
+        </div>
+      </div>
+
+      <div class="inicio__hero-preview">
+        <app-hero-map-preview />
       </div>
     </div>
   </section>

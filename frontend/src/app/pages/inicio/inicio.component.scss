@@ -11,9 +11,8 @@
 }
 
 // Full-bleed real: de borde a borde de la ventana, con altura de "momento"
-// (no una franja fina) para que la red animada de fondo tenga lugar de
-// respirar. El contenido de texto se centra en su propio ancho de lectura
-// adentro.
+// (no una franja fina). Dos columnas en desktop (texto + prueba visual del
+// producto); en mobile se apila (ver media query).
 .inicio__hero {
   position: relative;
   overflow: hidden;
@@ -26,14 +25,11 @@
   // de la zona segura -- antes esto no importaba (la sección nunca tocaba
   // el borde), ahora que es full-bleed sí.
   padding: 80px max(24px, env(safe-area-inset-right)) 80px max(24px, env(safe-area-inset-left));
-  background: linear-gradient(135deg, var(--ink), var(--brand-dark));
-  text-align: center;
+  background: var(--gradient-warm);
 
   .hero-content {
     position: relative;
     z-index: 1;
-    max-width: 720px;
-    margin: 0 auto;
   }
 
   // Entrada escalonada (eyebrow ya la hereda de .inicio__eyebrow más abajo):
@@ -48,8 +44,8 @@
   h1 {
     margin: 10px 0 18px;
     color: #fff;
-    font-size: clamp(2.5rem, 1.6rem + 3.6vw, 4rem);
-    line-height: 1.12;
+    font-size: var(--text-3xl);
+    line-height: 1.1;
     text-wrap: balance;
     animation-delay: 90ms;
   }
@@ -60,11 +56,77 @@
   // en el peor punto del gradiente.
   p {
     max-width: 480px;
-    margin-inline: auto;
     color: #fff;
-    font-size: 1.1rem;
+    font-size: var(--text-md);
     line-height: 1.7;
     animation-delay: 180ms;
+  }
+}
+
+// Capas de profundidad detrás del contenido: dos formas orgánicas grandes,
+// muy desenfocadas -- sugieren atmósfera sin dibujar nada literal. z-index
+// 0 (el grid de contenido va en 1) y overflow:hidden en el hero las recorta.
+.inicio__hero-blobs {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.inicio__hero-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.16;
+}
+
+.inicio__hero-blob--a {
+  top: -220px;
+  left: -200px;
+  width: 480px;
+  height: 480px;
+  background: var(--brand);
+}
+
+.inicio__hero-blob--b {
+  right: -180px;
+  bottom: -240px;
+  width: 440px;
+  height: 440px;
+  background: var(--help-color);
+}
+
+.inicio__hero-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  align-items: center;
+  gap: 56px;
+  max-width: 1180px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+  .inicio__hero-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    text-align: center;
+  }
+
+  .inicio__hero {
+    .hero-content p {
+      margin-inline: auto;
+    }
+  }
+
+  .inicio__cta-row {
+    justify-content: center;
+  }
+
+  .inicio__hero-preview {
+    max-width: 420px;
+    margin: 0 auto;
   }
 }
 
@@ -103,7 +165,7 @@
 
 .inicio__cta-row {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 12px;
   margin-top: 24px;
   animation-delay: 270ms;
@@ -124,10 +186,16 @@
   // es clickeable sin ser ruidoso. Más específica que el :active global
   // (.btn:active:not(:disabled) en styles.scss), así que hay que repetir
   // el gesto de "apretado" acá para no perderlo mientras se sigue
-  // hovereando.
-  .btn:hover:not(:disabled) {
+  // hovereando. Sombra con tinte de marca (no --shadow-2 gris neutro):
+  // este botón sí tiene un color propio, la sombra lo acompaña.
+  .btn--cta-ayuda:hover:not(:disabled) {
     transform: translateY(-3px) scale(1.02);
-    box-shadow: var(--shadow-2);
+    box-shadow: var(--shadow-brand-md);
+  }
+
+  .btn--cta-donar:hover:not(:disabled) {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: var(--shadow-help-md);
   }
 
   .btn:active:not(:disabled) {
@@ -181,7 +249,7 @@
 
   h2 {
     margin: 0 0 8px;
-    font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.1rem);
+    font-size: var(--text-xl);
     text-wrap: balance;
   }
 }

@@ -1,0 +1,30 @@
+<div class="hero-map">
+  <div class="hero-map__surface">
+    <span class="hero-map__block hero-map__block--a" aria-hidden="true"></span>
+    <span class="hero-map__block hero-map__block--b" aria-hidden="true"></span>
+    <span class="hero-map__road hero-map__road--h" aria-hidden="true"></span>
+    <span class="hero-map__road hero-map__road--v" aria-hidden="true"></span>
+
+    @for (pin of pins; track pin.label; let i = $index) {
+      <span
+        class="hero-map__pin"
+        [class]="'hero-map__pin--' + pin.type"
+        [style.top.%]="pin.top"
+        [style.left.%]="pin.left"
+        [style.--pin-delay.ms]="i * 160"
+      >
+        <i class="ph-fill" [class]="'ph-' + pin.icon" aria-hidden="true"></i>
+        <span class="hero-map__pulse" aria-hidden="true"></span>
+      </span>
+    }
+  </div>
+
+  <ul class="hero-map__legend">
+    @for (pin of pins; track pin.label) {
+      <li class="hero-map__legend-item">
+        <span class="hero-map__legend-dot" [class]="'hero-map__pin--' + pin.type" aria-hidden="true"></span>
+        {{ pin.label }}
+      </li>
+    }
+  </ul>
+</div>
