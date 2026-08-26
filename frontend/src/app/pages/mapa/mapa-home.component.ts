@@ -16,7 +16,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { CategoriesService } from '../../core/services/categories.service';
 import { GeorefService } from '../../core/services/georef.service';
 import { NeedLocality, PublicationsService } from '../../core/services/publications.service';
-import { Category, Need, Resource } from '../../core/models/mapa-social.model';
+import { Category, Need, Organization, Resource } from '../../core/models/mapa-social.model';
 import { IconComponent } from '../../shared/icons/icon.component';
 import { QuickNeedFormComponent } from '../../shared/components/quick-need-form/quick-need-form.component';
 import { CollaborateModalComponent } from '../../shared/components/collaborate-modal/collaborate-modal.component';
@@ -384,36 +384,56 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   private readonly NEED_PIN_COLOR = '#e65f32';
   private readonly RESOURCE_PIN_COLOR = '#2f83a8';
 
-  private buildNeedIcon(): L.DivIcon {
-    return L.divIcon({
-      className: '',
-      html: `
-        <svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
-          <path d="M15 0C6.7 0 0 6.7 0 15c0 10.5 15 25 15 25s15-14.5 15-25C30 6.7 23.3 0 15 0Z"
-            fill="${this.NEED_PIN_COLOR}" stroke="#fff" stroke-width="2"/>
-          <path d="M15 21c-5.4-3.7-9.4-6.7-9.4-10.7a4.3 4.3 0 0 1 8-2.7 4.3 4.3 0 0 1 8 2.7c0 4-4 7-9.4 10.7Z"
-            fill="#fff"/>
-        </svg>`,
-      iconSize: [30, 40],
-      iconAnchor: [15, 40],
-      popupAnchor: [0, -36],
-    });
+  private readonly NEED_PIN_INNER = `
+    <path d="M15 21c-5.4-3.7-9.4-6.7-9.4-10.7a4.3 4.3 0 0 1 8-2.7 4.3 4.3 0 0 1 8 2.7c0 4-4 7-9.4 10.7Z"
+      fill="#fff"/>`;
+
+  private readonly RESOURCE_PIN_INNER = `
+    <rect x="11.3" y="16" width="7.4" height="8.4" rx="2" fill="#fff"/>
+    <rect x="11.4" y="8" width="1.6" height="8.6" rx="0.8" fill="#fff"/>
+    <rect x="13.4" y="6.2" width="1.6" height="10.4" rx="0.8" fill="#fff"/>
+    <rect x="15.4" y="6.2" width="1.6" height="10.4" rx="0.8" fill="#fff"/>
+    <rect x="17.4" y="8" width="1.6" height="8.6" rx="0.8" fill="#fff"/>
+    <rect x="8.2" y="15.3" width="1.6" height="6" rx="0.8" fill="#fff" transform="rotate(-32 9 18.3)"/>`;
+
+  // 'individual' (cuenta común, sin organización) es el caso más frecuente
+  // y no suma badge -- solo comunidad/ONG traen un aval institucional que
+  // vale la pena distinguir en el mapa. Municipio no publica needs/resources
+  // directamente (avala organizaciones, ver /moderador/organizaciones), así
+  // que no hace falta un tercer badge.
+  private actorOf(item: { organization?: Organization | null }): 'individual' | 'comunidad' | 'ong' {
+    const type = item.organization?.type;
+    return type === 'comunidad' || type === 'ong' ? type : 'individual';
   }
 
-  private buildResourceIcon(): L.DivIcon {
+  private buildPinIcon(
+    kind: 'need' | 'resource',
+    actor: 'individual' | 'comunidad' | 'ong',
+  ): L.DivIcon {
+    const color = kind === 'need' ? this.NEED_PIN_COLOR : this.RESOURCE_PIN_COLOR;
+    const inner = kind === 'need' ? this.NEED_PIN_INNER : this.RESOURCE_PIN_INNER;
+
+    // El badge de actor se pinta con el mismo color del pin (no un tono
+    // nuevo) para no salirse de la paleta naranja/teal -- solo cambia la
+    // letra adentro, C de Comunidad u O de ONG.
+    const badge =
+      actor === 'individual'
+        ? ''
+        : `<span class="mapa-pin__badge" style="border-color:${color}">${
+            actor === 'comunidad' ? 'C' : 'O'
+          }</span>`;
+
     return L.divIcon({
-      className: '',
+      className: `mapa-pin mapa-pin--${kind} mapa-pin--actor-${actor}`,
       html: `
-        <svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
-          <path d="M15 0C6.7 0 0 6.7 0 15c0 10.5 15 25 15 25s15-14.5 15-25C30 6.7 23.3 0 15 0Z"
-            fill="${this.RESOURCE_PIN_COLOR}" stroke="#fff" stroke-width="2"/>
-          <rect x="11.3" y="16" width="7.4" height="8.4" rx="2" fill="#fff"/>
-          <rect x="11.4" y="8" width="1.6" height="8.6" rx="0.8" fill="#fff"/>
-          <rect x="13.4" y="6.2" width="1.6" height="10.4" rx="0.8" fill="#fff"/>
-          <rect x="15.4" y="6.2" width="1.6" height="10.4" rx="0.8" fill="#fff"/>
-          <rect x="17.4" y="8" width="1.6" height="8.6" rx="0.8" fill="#fff"/>
-          <rect x="8.2" y="15.3" width="1.6" height="6" rx="0.8" fill="#fff" transform="rotate(-32 9 18.3)"/>
-        </svg>`,
+        <div class="mapa-pin__body">
+          <svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 0C6.7 0 0 6.7 0 15c0 10.5 15 25 15 25s15-14.5 15-25C30 6.7 23.3 0 15 0Z"
+              fill="${color}" stroke="#fff" stroke-width="2"/>
+            ${inner}
+          </svg>
+          ${badge}
+        </div>`,
       iconSize: [30, 40],
       iconAnchor: [15, 40],
       popupAnchor: [0, -36],
@@ -998,7 +1018,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
 
     if (kind !== 'recursos') {
       this.filteredNeeds().forEach((need) => {
-        const icon = this.buildNeedIcon();
+        const icon = this.buildPinIcon('need', this.actorOf(need));
 
         L.marker(
           [need.latitude, need.longitude],
@@ -1017,7 +1037,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     if (kind !== 'necesidades') {
       this.filteredResources().forEach(
         (resource) => {
-          const icon = this.buildResourceIcon();
+          const icon = this.buildPinIcon('resource', this.actorOf(resource));
 
           L.marker(
             [resource.latitude, resource.longitude],
