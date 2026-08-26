@@ -57,14 +57,15 @@ export class NeedsController {
   }
 
   @Post('private')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
   @ApiBearerAuth()
   @ApiOperation({
     summary:
-      'Publicar una necesidad privada (estado vacío de búsqueda): nunca aparece en el mapa público, ni logueado ni no -- solo la ve un moderador o una organización avalada de la misma ciudad con una categoría compatible',
+      'Publicar una necesidad privada (estado vacío de búsqueda; requiere el email confirmado): nunca aparece en el mapa público, ni logueado ni no -- solo la ve un moderador o una organización avalada de la misma ciudad con una categoría compatible',
   })
   @ApiResponse({ status: 201, description: 'Necesidad privada creada' })
   @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({ status: 403, description: 'El email de la cuenta todavía no fue confirmado' })
   @ApiResponse({ status: 404, description: 'Categoría inexistente' })
   createPrivate(
     @Body() dto: CreatePrivateNeedDto,

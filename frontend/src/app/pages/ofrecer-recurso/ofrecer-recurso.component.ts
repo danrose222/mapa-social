@@ -152,6 +152,7 @@ export class OfrecerRecursoComponent {
     this.locationActionId++;
     this.form.patchValue({ latitude: location.lat, longitude: location.lng });
     this.locationConfirmed.set(true);
+    this.errorMessage.set('');
   }
 
   submit(): void {

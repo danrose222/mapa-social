@@ -2,50 +2,11 @@
   display: block;
 }
 
-.rrq-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 2000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: rgb(24 63 82 / 55%);
-}
-
-.rrq-modal {
-  position: relative;
-  width: 100%;
-  max-width: 400px;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 28px 24px 24px;
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-2);
-
-  h2 {
-    margin: 0 0 16px;
-    padding-right: 24px;
-    font-size: 1.05rem;
-    line-height: 1.4;
-  }
-}
-
-.rrq-close {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  padding: 4px 8px;
-  border: 0;
-  background: transparent;
-  color: var(--ink-soft);
-  font-size: 1rem;
-  cursor: pointer;
-
-  &:hover {
-    color: var(--ink);
-  }
+h2 {
+  margin: 0 0 16px;
+  padding-right: 24px;
+  font-size: 1.05rem;
+  line-height: 1.4;
 }
 
 .rrq-summary {

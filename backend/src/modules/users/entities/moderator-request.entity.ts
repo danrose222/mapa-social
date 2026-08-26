@@ -6,6 +6,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 
 import { User } from './user.entity';
 
@@ -53,9 +54,11 @@ export class ModeratorRequest {
   @Column({ type: 'text', nullable: true })
   justification?: string;
 
+  @Exclude()
   @Column({ name: 'verification_token', length: 255 })
   verificationToken!: string;
 
+  @Exclude()
   @Column({ name: 'verification_expires_at' })
   verificationExpiresAt!: Date;
 

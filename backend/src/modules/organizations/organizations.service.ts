@@ -1,9 +1,4 @@
-import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -14,7 +9,8 @@ import { Need } from '../needs/entities/need.entity';
 import { Resource } from '../resources/entities/resource.entity';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
-import { localitiesMatch } from '../../common/utils/locality-match.util';
+import { matchesAnyLocality } from '../../common/utils/locality-match.util';
+import { ensureUnique, saveOrConflict } from '../../common/utils/save-or-conflict.util';
 
 interface AuthUser {
   id: number;
@@ -47,26 +43,29 @@ export class OrganizationsService {
   ) {
     // La colación de la columna (utf8mb4_0900_ai_ci) ya es insensible a
     // mayúsculas/acentos, así que esta comparación exacta alcanza -- sin
-    // esto, dos organizaciones con el mismo nombre (o "Comedor" vs
-    // "COMEDOR") convivían sin ningún aviso.
-    const existing = await this.repository.findOne({
-      where: { name: dto.name },
-    });
-    if (existing) {
-      throw new ConflictException(
-        'Ya existe una organización registrada con ese nombre',
-      );
-    }
+    // esto, dos organizaciones con el mismo nombre en la misma ciudad (o
+    // "Comedor" vs "COMEDOR") convivían sin ningún aviso. Se compara por
+    // nombre Y ciudad, no solo nombre: dos organizaciones sin relación en
+    // ciudades distintas pueden compartir un nombre genérico legítimo.
+    await ensureUnique(
+      this.repository,
+      { name: dto.name, ciudad: dto.ciudad },
+      'Ya existe una organización registrada con ese nombre en esa ciudad',
+    );
 
-    const organization = await this.repository.save(
-      this.repository.create({
-        ...dto,
-        // Regla de escala territorial ("Burocracia vs. Confianza"): en
-        // una ciudad con Municipio registrado, queda Pendiente hasta el
-        // aval explícito de un moderador; en un pueblo sin esa
-        // estructura, se autogestiona y nace ya avalada.
-        verified: !isCityScale,
-      }),
+    const organization = await saveOrConflict(
+      () =>
+        this.repository.save(
+          this.repository.create({
+            ...dto,
+            // Regla de escala territorial ("Burocracia vs. Confianza"): en
+            // una ciudad con Municipio registrado, queda Pendiente hasta el
+            // aval explícito de un moderador; en un pueblo sin esa
+            // estructura, se autogestiona y nace ya avalada.
+            verified: !isCityScale,
+          }),
+        ),
+      'Ya existe una organización registrada con ese nombre en esa ciudad',
     );
 
     const hasModeratorAccess =
@@ -138,7 +137,10 @@ export class OrganizationsService {
     // distingue ciudad de barrio, así que "Córdoba" (moderador) y "Nueva
     // Córdoba" (una organización) tienen que considerarse la misma
     // jurisdicción.
-    const isInScope = localities.some((l) => localitiesMatch(l.locality, targetCity));
+    const isInScope = matchesAnyLocality(
+      localities.map((l) => l.locality),
+      targetCity,
+    );
 
     if (!isInScope) {
       throw new ForbiddenException(
@@ -206,7 +208,10 @@ export class OrganizationsService {
 
     Object.assign(organization, dto);
 
-    return this.repository.save(organization);
+    return saveOrConflict(
+      () => this.repository.save(organization),
+      'Ya existe una organización registrada con ese nombre en esa ciudad',
+    );
   }
 
   async remove(id: number, currentUser: AuthUser) {

@@ -12,7 +12,7 @@ import { Need } from '../needs/entities/need.entity';
 import { ModeratorLocality } from '../users/entities/moderator-locality.entity';
 import { CreateSolicitudDto } from './dto/create-solicitud.dto';
 import { UpdateSolicitudDto } from './dto/update-solicitud.dto';
-import { localitiesMatch } from '../../common/utils/locality-match.util';
+import { matchesAnyLocality } from '../../common/utils/locality-match.util';
 
 interface AuthUser {
   id: number;
@@ -66,8 +66,9 @@ export class SolicitudesService {
       where: { userId: currentUser.id },
     });
 
-    const inScope = localities.some((l) =>
-      localitiesMatch(l.locality, targetLocality),
+    const inScope = matchesAnyLocality(
+      localities.map((l) => l.locality),
+      targetLocality,
     );
 
     if (!inScope) {

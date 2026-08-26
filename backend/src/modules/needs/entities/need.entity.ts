@@ -72,10 +72,10 @@ export class Need extends BaseEntity {
   })
   imageUrl?: string;
 
-  // Por defecto (false), cualquier persona logueada ve el contacto. Un
-  // moderador puede prenderlo para forzar el circuito de Solicitudes en un
-  // caso puntual (necesidad sensible, por ejemplo) -- el dueño nunca lo
-  // decide, solo un moderador.
+  // Por defecto (false), cualquier persona logueada ve el contacto. El
+  // dueño puede prenderlo para forzar el circuito de Solicitudes en un
+  // caso puntual (necesidad sensible, por ejemplo) antes de mostrar el
+  // contacto directamente.
   @Column({
     name: 'requires_solicitud',
     default: false,

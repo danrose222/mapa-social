@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { OrganizationsService } from '../../../core/services/organizations.service';
 import { Organization } from '../../../core/models/mapa-social.model';
-import { localitiesMatch } from '../../../shared/utils/locality-match.util';
+import { inModeratorScope } from '../../../shared/utils/locality-match.util';
 
 @Component({
   selector: 'app-organizaciones-moderador',
@@ -34,9 +34,7 @@ export class OrganizacionesModeradorComponent {
   // vuelve a validar en el PATCH/DELETE, esto es nomás para no mostrar en
   // la lista algo que después va a rebotar con 403.
   private readonly inScopeOrganizations = computed(() =>
-    this.allOrganizations().filter((org) =>
-      this.myLocalityNames().some((mine) => localitiesMatch(mine, org.ciudad)),
-    ),
+    inModeratorScope(this.allOrganizations(), this.myLocalityNames()),
   );
 
   readonly pending = computed(() => this.inScopeOrganizations().filter((o) => !o.verified));

@@ -92,19 +92,15 @@ export class GeorefService {
           // Mismo criterio que locality-autocomplete.component.ts: nombres
           // de localidad se repiten entre provincias (ej: "La Falda" existe
           // en Córdoba y en San Juan) y GeoRef no las ordena por relevancia
-          // local -- sin esto, pedir max:1 podía devolver la de otra
-          // provincia y centrar el mapa a cientos de km de donde
-          // corresponde. Esta app es de alcance provincial, así que ante
-          // ambigüedad preferimos la de Córdoba -- y si NINGÚN resultado es
-          // de Córdoba (ej: "Alberdi" solo existe como localidad en Buenos
-          // Aires, aunque acá se use como nombre de barrio dentro de la
-          // capital cordobesa), es más seguro no matchear que centrar el
-          // mapa a cientos de km en la provincia equivocada.
-          const match = localidades.find((l) => l.provincia?.nombre === 'Córdoba');
-
-          if (!match) {
-            return null;
-          }
+          // local. El registro no restringe la ciudad a Córdoba, así que
+          // esta función tampoco puede hacerlo -- devolver null acá para
+          // cualquier localidad fuera de Córdoba rompía la geolocalización
+          // de cualquier usuario/organización de otra provincia. Ante
+          // ambigüedad se prefiere igual la de Córdoba (la mayoría real de
+          // los datos), pero si ninguna coincidencia es de Córdoba se
+          // matchea la primera en vez de no matchear nada.
+          const match =
+            localidades.find((l) => l.provincia?.nombre === 'Córdoba') ?? localidades[0];
 
           return {
             lat: roundCoordinate(match.centroide.lat),

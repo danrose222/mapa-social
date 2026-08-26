@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -6,7 +6,7 @@ import { Need } from '../needs/entities/need.entity';
 import { Resource } from '../resources/entities/resource.entity';
 import { Category } from '../categories/entities/category.entity';
 import { ModeratorLocality } from '../users/entities/moderator-locality.entity';
-import { localitiesMatch } from '../../common/utils/locality-match.util';
+import { matchesAnyLocality } from '../../common/utils/locality-match.util';
 
 interface AuthUser {
   id: number;
@@ -38,6 +38,19 @@ export class StatsService {
       where: { userId: currentUser.id },
     });
 
+    if (localities.length === 0) {
+      // Mismo criterio que assertCityInModeratorScope() en
+      // organizations.service.ts y assertCallerHasLocality() en
+      // users.service.ts: sin ninguna localidad asignada (ej. otro
+      // moderador le sacó la última), 0/0 en las tres pantallas de stats
+      // es indistinguible de "no hay nada que reportar" -- un 403
+      // explícito le avisa que el problema es su perfil, no que su zona
+      // esté en paz.
+      throw new ForbiddenException(
+        'No tenés ninguna localidad asignada -- pedile a otro moderador que te la asigne en tu perfil.',
+      );
+    }
+
     return localities.map((l) => l.locality);
   }
 
@@ -46,7 +59,7 @@ export class StatsService {
       return false;
     }
 
-    return moderatorLocalities.some((ml) => localitiesMatch(ml, need.locality!));
+    return matchesAnyLocality(moderatorLocalities, need.locality!);
   }
 
   // Resource no tiene columna de localidad propia (solo 'address' en
@@ -62,22 +75,23 @@ export class StatsService {
       return false;
     }
 
-    return moderatorLocalities.some((ml) =>
-      localitiesMatch(ml, resource.organization!.ciudad),
-    );
+    return matchesAnyLocality(moderatorLocalities, resource.organization!.ciudad);
   }
 
   // Conteo de necesidades y recursos por categoría, acotado a las
   // localidades del moderador logueado.
   async byCategory(currentUser: AuthUser) {
-    const moderatorLocalities = await this.moderatorLocalities(currentUser);
+    const [moderatorLocalities, categories, needs, resources] =
+      await Promise.all([
+        this.moderatorLocalities(currentUser),
+        this.categoryRepository.find({ where: { active: true } }),
+        this.needRepository.find(),
+        this.resourceRepository.find({ relations: ['organization'] }),
+      ]);
 
-    const categories = await this.categoryRepository.find({ where: { active: true } });
-
-    const needs = await this.needRepository.find();
-    const needsInScope = needs.filter((n) => this.needInScope(n, moderatorLocalities));
-
-    const resources = await this.resourceRepository.find({ relations: ['organization'] });
+    const needsInScope = needs.filter((n) =>
+      this.needInScope(n, moderatorLocalities),
+    );
     const resourcesInScope = resources.filter((r) =>
       this.resourceInScope(r, moderatorLocalities),
     );
@@ -106,10 +120,13 @@ export class StatsService {
   // Conteo de necesidades por localidad, solo entre las localidades del
   // moderador -- ya no es un ranking sitewide.
   async byLocality(currentUser: AuthUser) {
-    const moderatorLocalities = await this.moderatorLocalities(currentUser);
-
-    const needs = await this.needRepository.find();
-    const needsInScope = needs.filter((n) => this.needInScope(n, moderatorLocalities));
+    const [moderatorLocalities, needs] = await Promise.all([
+      this.moderatorLocalities(currentUser),
+      this.needRepository.find(),
+    ]);
+    const needsInScope = needs.filter((n) =>
+      this.needInScope(n, moderatorLocalities),
+    );
 
     const counts = new Map<string, number>();
     for (const need of needsInScope) {
@@ -124,12 +141,15 @@ export class StatsService {
   // % resuelto vs pendiente, para necesidades y recursos por separado,
   // acotado a las localidades del moderador.
   async resolutionRate(currentUser: AuthUser) {
-    const moderatorLocalities = await this.moderatorLocalities(currentUser);
+    const [moderatorLocalities, needs, resources] = await Promise.all([
+      this.moderatorLocalities(currentUser),
+      this.needRepository.find(),
+      this.resourceRepository.find({ relations: ['organization'] }),
+    ]);
 
-    const needs = await this.needRepository.find();
-    const needsInScope = needs.filter((n) => this.needInScope(n, moderatorLocalities));
-
-    const resources = await this.resourceRepository.find({ relations: ['organization'] });
+    const needsInScope = needs.filter((n) =>
+      this.needInScope(n, moderatorLocalities),
+    );
     const resourcesInScope = resources.filter((r) =>
       this.resourceInScope(r, moderatorLocalities),
     );

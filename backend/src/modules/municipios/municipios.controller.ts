@@ -17,6 +17,7 @@ import { MunicipiosService } from './municipios.service';
 
 import { CreateMunicipioDto } from './dto/create-municipio.dto';
 import { UpdateMunicipioDto } from './dto/update-municipio.dto';
+import { CheckCiudadDto } from './dto/check-ciudad.dto';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -52,8 +53,8 @@ export class MunicipiosController {
       'Verificar si una ciudad tiene Municipio registrado (público; feedback en tiempo real del selector de localidad al registrar una organización)',
   })
   @ApiResponse({ status: 200, description: 'Resultado de la verificación' })
-  checkCiudad(@Query('ciudad') ciudad?: string) {
-    return this.service.checkCiudad(ciudad ?? '');
+  checkCiudad(@Query() dto: CheckCiudadDto) {
+    return this.service.checkCiudad(dto.ciudad ?? '');
   }
 
   @Get(':id')

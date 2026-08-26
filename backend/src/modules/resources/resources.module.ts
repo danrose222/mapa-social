@@ -24,14 +24,19 @@ import { ResourcesService } from './resources.service';
       ModeratorLocality,
     ]),
     OrganizationsModule,
-    // Acotado a POST /resources/:id/contact (ver el guard en
-    // resources.controller.ts) -- mismo patrón aislado que 'login' en
-    // AuthModule, no un límite global de la API.
+    // Acotado a POST /resources/:id/contact y POST /resources/:id/request
+    // (ver los guards en resources.controller.ts) -- mismo patrón aislado
+    // que 'login' en AuthModule, no un límite global de la API.
     ThrottlerModule.forRoot([
       {
         name: 'collaborate',
         ttl: 60_000,
         limit: 3,
+      },
+      {
+        name: 'resourceRequest',
+        ttl: 60_000,
+        limit: 5,
       },
     ]),
   ],

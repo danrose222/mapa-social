@@ -93,12 +93,28 @@
 
           <div class="field">
             <label for="res-address">Referencia de dirección (opcional)</label>
-            <app-address-autocomplete
-              id="res-address"
-              [locality]="organizationCiudad()"
-              (textChange)="onAddressTextChanged($event)"
-              (addressSelected)="onAddressSelected($event)"
-            />
+            @if (organizationCiudad()) {
+              <app-address-autocomplete
+                id="res-address"
+                [locality]="organizationCiudad()"
+                (textChange)="onAddressTextChanged($event)"
+                (addressSelected)="onAddressSelected($event)"
+              />
+            } @else {
+              <!-- Un moderador sin organización no tiene una ciudad conocida
+                   para acotar la búsqueda (a diferencia de un miembro de
+                   organización, que la hereda de su perfil) -- sin esto,
+                   app-address-autocomplete queda deshabilitado para siempre
+                   con un placeholder que pide elegir una localidad que esta
+                   página nunca ofrece. El campo es opcional: texto libre sin
+                   sugerencias alcanza, la ubicación real la marca el mapa. -->
+              <input
+                id="res-address"
+                type="text"
+                formControlName="address"
+                placeholder="Ej: Sarmiento 850"
+              />
+            }
           </div>
         </div>
 

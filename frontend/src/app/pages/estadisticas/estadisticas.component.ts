@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
@@ -31,6 +31,7 @@ export class EstadisticasComponent {
 
   readonly isLoading = signal(true);
   readonly loadError = signal(false);
+  readonly errorMessage = signal('No se pudo conectar con el servidor.');
 
   readonly byCategory = signal<CategoryStat[]>([]);
   readonly byLocality = signal<LocalityStat[]>([]);
@@ -56,9 +57,16 @@ export class EstadisticasComponent {
         this.resolution.set(resolution ?? null);
         this.isLoading.set(false);
       })
-      .catch(() => {
+      .catch((error: HttpErrorResponse) => {
         this.isLoading.set(false);
         this.loadError.set(true);
+        // Un moderador sin ninguna localidad asignada recibe un 403 con un
+        // mensaje puntual del backend -- mostrar "no se pudo conectar" ahí
+        // sería directamente falso, y no le diría qué es lo que tiene que
+        // arreglar (pedirle a otro moderador que le asigne una localidad).
+        if (error.status === 403 && error.error?.message) {
+          this.errorMessage.set(error.error.message);
+        }
       });
   }
 

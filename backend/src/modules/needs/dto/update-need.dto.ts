@@ -8,7 +8,7 @@ export class UpdateNeedDto extends PartialType(CreateNeedDto) {
   @ApiProperty({
     example: true,
     description:
-      'Solo un moderador puede cambiar esto. Si es true, el contacto queda oculto hasta que el dueño acepte una Solicitud -- si es false (default), cualquier persona logueada ve el contacto directamente.',
+      'Lo decide el dueño de la publicación. Si es true, el contacto queda oculto hasta que acepte una Solicitud -- si es false (default), cualquier persona logueada ve el contacto directamente.',
     required: false,
   })
   @IsOptional()
