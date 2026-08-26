@@ -166,41 +166,98 @@
   }
 }
 
-// max-width acá y no en .inicio (que ya no lo tiene, ver arriba): esta
-// sección sigue siendo una tarjeta angosta por ahora -- el rediseño de
-// "cómo funciona" es la próxima sección a encarar, esto solo evita que se
-// rompa al full-bleed del hero.
+// Segunda banda full-bleed del ritmo vertical (hero oscuro -> esta, clara,
+// wash de teal muy suave): mismo criterio que el hero, ancho real de borde
+// a borde con un contenido centrado adentro.
 .inicio__how {
-  max-width: 780px;
-  margin: 44px auto 0;
-  padding: 28px 20px;
-  border-radius: var(--radius-lg);
-  background: var(--surface);
+  width: 100%;
+  padding: 72px max(24px, env(safe-area-inset-right)) 72px max(24px, env(safe-area-inset-left));
+  background: linear-gradient(180deg, var(--surface), var(--help-color-soft) 140%);
   text-align: center;
 
   h2 {
-    margin: 0 0 20px;
-    font-size: 1.2rem;
+    margin: 0 0 8px;
+    font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.1rem);
+    text-wrap: balance;
   }
 }
 
+.inicio__how-inner {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
 .inicio__how-steps {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 28px;
+  margin-top: 48px;
+
+  // El "hilo" que conecta los 3 pasos como un flujo: pasa por detrás de
+  // cada tarjeta (su propio fondo opaco lo tapa) y solo se ve en los huecos
+  // entre ellas -- alcanza para leerse como una línea continua sin tener
+  // que perforar las tarjetas. Alineado a la altura del CENTRO del círculo
+  // de ícono (padding-top de la tarjeta + la mitad de su alto).
+  &::before {
+    content: '';
+    position: absolute;
+    top: 74px;
+    left: calc(100% / 6);
+    right: calc(100% / 6);
+    height: 2px;
+    background: repeating-linear-gradient(
+      to right,
+      var(--border) 0,
+      var(--border) 8px,
+      transparent 8px,
+      transparent 16px
+    );
+  }
 }
 
 .inicio__how-step {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
+  padding: 36px 24px 30px;
+  border-radius: var(--radius-lg);
+  background: #fff;
+  box-shadow: var(--shadow-1);
+  text-align: center;
+  // Estado "no revelado" para appScrollReveal: la tarjeta parte más abajo y
+  // transparente, .is-revealed la lleva a su lugar. --reveal-delay lo pone
+  // el @for de cada tarjeta (0ms/110ms/220ms) para que aparezcan en fila.
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 600ms ease, transform 600ms ease, box-shadow 200ms ease;
+  transition-delay: var(--reveal-delay, 0ms);
+
+  &.is-revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  &:hover {
+    box-shadow: var(--shadow-2);
+    transform: translateY(-4px);
+  }
+
+  &.is-revealed:hover {
+    // Sin esto, el transform del hover hereda el transition-delay de la
+    // revelación (--reveal-delay) y el hover queda con lag.
+    transition-delay: 0ms;
+  }
 
   p {
     margin: 0;
+    max-width: 22ch;
     color: var(--ink-soft);
-    font-size: 0.85rem;
-    line-height: 1.4;
+    font-size: 0.92rem;
+    line-height: 1.5;
   }
 }
 
@@ -208,16 +265,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 76px;
+  height: 76px;
   border-radius: 50%;
+  box-shadow: 0 0 0 6px #fff;
 }
 
 .inicio__how-number {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 0.75rem;
-  color: var(--ink-soft);
+  font-size: 0.95rem;
+  color: var(--ink);
 }
 
 .inicio__org-cta {
@@ -234,5 +292,10 @@
   .inicio__how-steps {
     grid-template-columns: 1fr;
     gap: 24px;
+
+    // El conector horizontal no tiene sentido en una sola columna.
+    &::before {
+      display: none;
+    }
   }
 }
