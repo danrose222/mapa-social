@@ -1,4 +1,7 @@
 @import 'leaflet/dist/leaflet.css';
+// Un solo peso (bold) -- ver comentario en inicio.component.scss sobre por
+// qué no se mezclan pesos: consistencia en todo el rediseño.
+@import '@phosphor-icons/web/bold/style.css';
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {

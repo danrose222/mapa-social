@@ -18,12 +18,12 @@
 
       <div class="inicio__cta-row">
         <a routerLink="/mapa" [queryParams]="{ type: 'need' }" class="btn btn--cta-ayuda">
-          <app-icon name="hands" [size]="18" />
+          <i class="ph-bold ph-hand-waving" aria-hidden="true"></i>
           Necesito Ayuda
         </a>
 
         <a routerLink="/mapa" [queryParams]="{ type: 'help' }" class="btn btn--cta-donar">
-          <app-icon name="helpingHand" [size]="18" />
+          <i class="ph-bold ph-hand-heart" aria-hidden="true"></i>
           Quiero Ayudar / Donar
         </a>
       </div>
@@ -42,7 +42,7 @@
             [style.--reveal-delay.ms]="i * 110"
           >
             <span class="inicio__how-icon" [style.background]="step.iconBg" [style.color]="step.iconColor">
-              <app-icon [name]="step.icon" [size]="34" />
+              <i class="ph-bold {{ 'ph-' + step.icon }}" aria-hidden="true"></i>
             </span>
             <span class="inicio__how-number">{{ i + 1 }}</span>
             <p>{{ step.text }}</p>

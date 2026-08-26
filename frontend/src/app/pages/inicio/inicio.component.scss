@@ -112,6 +112,10 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
+
+    i {
+      font-size: 1.15rem;
+    }
     transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
   }
 
@@ -269,6 +273,10 @@
   height: 76px;
   border-radius: 50%;
   box-shadow: 0 0 0 6px #fff;
+
+  i {
+    font-size: 2rem;
+  }
 }
 
 .inicio__how-number {
