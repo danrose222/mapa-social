@@ -408,6 +408,22 @@
   line-height: 1;
 }
 
+.mapa__spinner {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--border);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: mapa-spin 0.7s linear infinite;
+}
+
+@keyframes mapa-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 760px) {
   .mapa__canvas-wrap {
     margin: 0 12px 90px;
