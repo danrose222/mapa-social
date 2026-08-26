@@ -9,6 +9,7 @@ import {
   LocalityAutocompleteComponent,
   LocalitySelection,
 } from '../locality-autocomplete/locality-autocomplete.component';
+import { ModalShellComponent } from '../modal-shell/modal-shell.component';
 
 // Formulario mínimo para el estado vacío de búsqueda del mapa ("no
 // encontraste lo que buscabas -> publicá tu necesidad"): a propósito solo
@@ -19,7 +20,7 @@ import {
 @Component({
   selector: 'app-quick-need-form',
   standalone: true,
-  imports: [ReactiveFormsModule, IconComponent, LocalityAutocompleteComponent],
+  imports: [ReactiveFormsModule, IconComponent, LocalityAutocompleteComponent, ModalShellComponent],
   templateUrl: './quick-need-form.component.html',
   styleUrl: './quick-need-form.component.scss',
 })

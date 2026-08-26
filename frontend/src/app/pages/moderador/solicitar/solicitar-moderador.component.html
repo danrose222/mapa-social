@@ -52,6 +52,9 @@
             formControlName="institutionName"
             placeholder="Ej: Municipalidad de Río Segundo"
           />
+          @if (form.controls.institutionName.invalid && form.controls.institutionName.touched) {
+            <span class="field__error">Contanos qué municipio u organismo representás.</span>
+          }
         </div>
 
         <div class="field">
@@ -62,6 +65,9 @@
             formControlName="position"
             placeholder="Ej: Secretario de Desarrollo Social"
           />
+          @if (form.controls.position.invalid && form.controls.position.touched) {
+            <span class="field__error">Contanos tu cargo o función.</span>
+          }
         </div>
 
         <div class="field">
@@ -80,6 +86,9 @@
         <div class="field">
           <label for="mod-phone">Teléfono institucional</label>
           <input id="mod-phone" type="text" formControlName="officialPhone" />
+          @if (form.controls.officialPhone.invalid && form.controls.officialPhone.touched) {
+            <span class="field__error">Ingresá un teléfono de contacto.</span>
+          }
         </div>
 
         <div class="field">
@@ -99,7 +108,7 @@
         <button
           type="submit"
           class="btn btn--block"
-          [disabled]="isSubmitting() || form.controls.acceptTerms.invalid"
+          [disabled]="isSubmitting() || form.invalid"
         >
           {{ isSubmitting() ? 'Enviando…' : 'Enviar solicitud' }}
         </button>

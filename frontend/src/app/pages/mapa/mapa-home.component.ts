@@ -9,6 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, debounceTime } from 'rxjs';
 import * as L from 'leaflet';
 
@@ -114,7 +115,12 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   private focusAfterSearchLoad = false;
 
   constructor() {
-    this.searchTermChanges.pipe(debounceTime(400)).subscribe(() => {
+    // Sin takeUntilDestroyed(), navegar fuera de /mapa dentro de la
+    // ventana de debounce (ej. el usuario tipeó y se fue antes de los
+    // 400ms) deja el timer pendiente vivo -- dispara geocode + searchNeeds
+    // igual, y termina llamando renderMarkers() sobre un markersLayer de
+    // un mapa Leaflet ya destruido en ngOnDestroy().
+    this.searchTermChanges.pipe(debounceTime(400), takeUntilDestroyed()).subscribe(() => {
       const term = this.searchTerm().trim();
       const requestId = ++this.searchGeocodeId;
 
@@ -232,13 +238,20 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
 
   // Estado vacío de búsqueda: solo tiene sentido cuando los recursos están
   // a la vista (con kindFilter 'necesidades' no se muestran recursos en
-  // absoluto, así que no hay "vacío" que señalar).
+  // absoluto, así que no hay "vacío" que señalar). Con 'todos', además,
+  // no alcanza con que no haya recursos -- si hay necesidades visibles el
+  // mapa no está vacío, así que el overlay de "no hay recursos" no debe
+  // taparlo (contradiría lo que se ve en pantalla).
   readonly showEmptyState = computed(() => {
     if (this.isLoading() || this.kindFilter() === 'necesidades') {
       return false;
     }
 
-    return this.filteredResources().length === 0;
+    if (this.filteredResources().length > 0) {
+      return false;
+    }
+
+    return this.kindFilter() !== 'todos' || this.filteredNeeds().length === 0;
   });
 
   readonly emptyStateMessage = computed(() => {
@@ -271,13 +284,15 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     return resource ? (this.categoryName(resource.categoryId) ?? '') : '';
   });
 
-  private filteredNeeds(): Need[] {
-    return this.applyFilters(this.allNeeds());
-  }
+  // computed(), no un método plano: visibleCount, showEmptyState y
+  // renderMarkers() leen esto varias veces en el mismo ciclo -- como
+  // método, cada lectura repetía el filtro completo (normalizeText sobre
+  // 6 campos más el lookup de categoría) desde cero; como computed(),
+  // Angular cachea el resultado y solo lo recalcula cuando de verdad
+  // cambia alguna de sus dependencias.
+  private readonly filteredNeeds = computed(() => this.applyFilters(this.allNeeds()));
 
-  private filteredResources(): Resource[] {
-    return this.applyFilters(this.allResources());
-  }
+  private readonly filteredResources = computed(() => this.applyFilters(this.allResources()));
 
   private applyFilters<
     T extends {
@@ -305,6 +320,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       // ayuda" -> nombre de la categoría, más horario y organización para
       // que "Alimentos" o el nombre de un comedor también encuentren algo
       // aunque esa palabra no esté en el título ni la descripción.
+      const categoryName = this.categoryName(item.categoryId);
       const matchesTerm =
         term === '' ||
         normalizeText(item.title).includes(term) ||
@@ -313,9 +329,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
         (item.locality ? normalizeText(item.locality).includes(term) : false) ||
         (item.schedule ? normalizeText(item.schedule).includes(term) : false) ||
         (item.organization?.name ? normalizeText(item.organization.name).includes(term) : false) ||
-        (this.categoryName(item.categoryId)
-          ? normalizeText(this.categoryName(item.categoryId)!).includes(term)
-          : false);
+        (categoryName ? normalizeText(categoryName).includes(term) : false);
 
       return matchesCategory && matchesTerm;
     });
@@ -637,6 +651,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     }
 
     this.territoryLoading.set(true);
+    const requestId = ++this.territoryRequestId;
 
     this.publicationsService
       .searchNeeds({
@@ -648,6 +663,9 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       })
       .subscribe({
         next: (result) => {
+          if (requestId !== this.territoryRequestId) {
+            return;
+          }
           this.allNeeds.set(result.items);
           this.territoryTotalPages.set(result.totalPages);
           this.territoryTotal.set(result.total);
@@ -662,6 +680,9 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
           }
         },
         error: () => {
+          if (requestId !== this.territoryRequestId) {
+            return;
+          }
           this.territoryLoading.set(false);
           this.needsDataLoaded = true;
           this.checkFullyLoaded();
@@ -677,6 +698,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     }
 
     this.territoryLoading.set(true);
+    const requestId = ++this.territoryRequestId;
 
     this.publicationsService
       .searchNeeds({
@@ -686,6 +708,9 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       })
       .subscribe({
         next: (result) => {
+          if (requestId !== this.territoryRequestId) {
+            return;
+          }
           this.allNeeds.set(result.items);
           this.territoryTotalPages.set(result.totalPages);
           this.territoryTotal.set(result.total);
@@ -700,6 +725,9 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
           }
         },
         error: () => {
+          if (requestId !== this.territoryRequestId) {
+            return;
+          }
           this.territoryLoading.set(false);
           this.needsDataLoaded = true;
           this.checkFullyLoaded();
@@ -727,8 +755,13 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   // perfil, y se mueve el mapa ahí con flyTo (paneo animado, a diferencia
   // del setView seco que usa la búsqueda por radio).
   private flyToLocality(locality: string): void {
+    const requestId = ++this.flyToRequestId;
+
     this.georefService.geocodeLocality(locality).subscribe({
       next: (point) => {
+        if (requestId !== this.flyToRequestId) {
+          return;
+        }
         if (point && this.map) {
           this.map.flyTo([point.lat, point.lng], 13);
         }
@@ -1112,7 +1145,7 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       } else if (isEmail) {
         contactHtml =
           `<a class="v2map-popup__contact-btn" ` +
-          `href="mailto:${raw}">✉️ Escribir — ${this.escapeHtml(raw)}</a>`;
+          `href="mailto:${this.escapeHtml(raw)}">✉️ Escribir — ${this.escapeHtml(raw)}</a>`;
       } else {
         contactHtml =
           `<p class="v2map-popup__row">${this.escapeHtml(raw)}</p>`;

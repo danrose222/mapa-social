@@ -223,6 +223,7 @@ export class ResourcesService {
   ) {
     const resource = await this.repository.findOne({
       where: { id: resourceId },
+      relations: ['organization'],
     });
     if (!resource) {
       throw new NotFoundException('Recurso inexistente');
@@ -231,6 +232,9 @@ export class ResourcesService {
       throw new NotFoundException(
         'Este recurso no pertenece a ninguna organización',
       );
+    }
+    if (!resource.organization?.verified) {
+      throw new NotFoundException('Recurso inexistente');
     }
 
     // Honeypot: un campo oculto para personas, visible para un bot que
@@ -279,6 +283,7 @@ export class ResourcesService {
   ) {
     const resource = await this.repository.findOne({
       where: { id: resourceId },
+      relations: ['organization'],
     });
     if (!resource) {
       throw new NotFoundException('Recurso inexistente');
@@ -287,6 +292,29 @@ export class ResourcesService {
       throw new NotFoundException(
         'Este recurso no pertenece a ninguna organización',
       );
+    }
+    if (!resource.organization?.verified) {
+      throw new NotFoundException('Recurso inexistente');
+    }
+
+    const requester = await this.userRepository.findOne({
+      where: { id: currentUserId },
+    });
+
+    if (requester?.organizationId === resource.organizationId) {
+      throw new ForbiddenException(
+        'No podés solicitar un recurso de tu propia organización',
+      );
+    }
+
+    // Idempotente: si ya le pidió este mismo recurso antes, no generamos
+    // un duplicado -- mismo criterio que SolicitudesService.create().
+    const existing = await this.resourceRequestRepository.findOne({
+      where: { userId: currentUserId, resourceId: resource.id },
+    });
+
+    if (existing) {
+      return { message: 'Solicitud enviada' };
     }
 
     await this.resourceRequestRepository.save(

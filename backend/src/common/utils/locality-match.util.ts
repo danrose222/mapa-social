@@ -22,12 +22,28 @@
 // actual, pero hay que resolverlo antes de escalar más allá de una sola
 // provincia.
 export function localitiesMatch(a: string, b: string): boolean {
-  const normalizedA = a.trim().toLowerCase();
-  const normalizedB = b.trim().toLowerCase();
+  const normalizedA = stripDiacritics(a.trim().toLowerCase());
+  const normalizedB = stripDiacritics(b.trim().toLowerCase());
 
   if (!normalizedA || !normalizedB) {
     return false;
   }
 
   return normalizedA.includes(normalizedB) || normalizedB.includes(normalizedA);
+}
+
+// Saca tildes/diéresis ("Córdoba" -> "cordoba") para que la falta de un
+// acento (tipeo, autocompletado de otra fuente, copy-paste) no haga que
+// dos nombres de la misma localidad dejen de matchear.
+function stripDiacritics(value: string): string {
+  return value.normalize('NFD').replace(/\p{M}/gu, '');
+}
+
+// El "traer todas las localidades/municipios de X y hacer .some() con
+// localitiesMatch()" se repetía igual en organizations.service.ts,
+// solicitudes.service.ts, users.service.ts, municipios.service.ts y
+// stats.service.ts -- cada uno con su propio fetch (por eso queda afuera
+// de acá), pero todos terminaban en este mismo chequeo.
+export function matchesAnyLocality(candidates: string[], target: string): boolean {
+  return candidates.some((candidate) => localitiesMatch(candidate, target));
 }

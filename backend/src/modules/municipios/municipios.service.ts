@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -12,7 +8,8 @@ import { Municipio } from './entities/municipio.entity';
 
 import { CreateMunicipioDto } from './dto/create-municipio.dto';
 import { UpdateMunicipioDto } from './dto/update-municipio.dto';
-import { localitiesMatch } from '../../common/utils/locality-match.util';
+import { matchesAnyLocality } from '../../common/utils/locality-match.util';
+import { ensureUnique, saveOrConflict } from '../../common/utils/save-or-conflict.util';
 
 @Injectable()
 export class MunicipiosService {
@@ -25,19 +22,18 @@ export class MunicipiosService {
     // Mismo chequeo que UsersService.create() para email: sin esto, una
     // ciudad repetida llega directo a la constraint UNIQUE y MySQL/TypeORM
     // la devuelve como 500 genérico en vez de un 409 legible.
-    const existing = await this.repository.findOne({
-      where: { ciudad: dto.ciudad },
-    });
-
-    if (existing) {
-      throw new ConflictException(
-        'Ya existe un municipio registrado para esa ciudad.',
-      );
-    }
+    await ensureUnique(
+      this.repository,
+      { ciudad: dto.ciudad },
+      'Ya existe un municipio registrado para esa ciudad.',
+    );
 
     const municipio = this.repository.create(dto);
 
-    return this.repository.save(municipio);
+    return saveOrConflict(
+      () => this.repository.save(municipio),
+      'Ya existe un municipio registrado para esa ciudad.',
+    );
   }
 
   findAll() {
@@ -63,21 +59,20 @@ export class MunicipiosService {
   async update(id: number, dto: UpdateMunicipioDto) {
     const municipio = await this.findOne(id);
 
-    if (dto.ciudad && dto.ciudad !== municipio.ciudad) {
-      const existing = await this.repository.findOne({
-        where: { ciudad: dto.ciudad },
-      });
-
-      if (existing) {
-        throw new ConflictException(
-          'Ya existe un municipio registrado para esa ciudad.',
-        );
-      }
+    if (dto.ciudad !== undefined && dto.ciudad !== municipio.ciudad) {
+      await ensureUnique(
+        this.repository,
+        { ciudad: dto.ciudad },
+        'Ya existe un municipio registrado para esa ciudad.',
+      );
     }
 
     Object.assign(municipio, dto);
 
-    return this.repository.save(municipio);
+    return saveOrConflict(
+      () => this.repository.save(municipio),
+      'Ya existe un municipio registrado para esa ciudad.',
+    );
   }
 
   // Regla de escala territorial ("Burocracia vs. Confianza" del
@@ -95,7 +90,10 @@ export class MunicipiosService {
 
     const municipios = await this.repository.find();
 
-    return municipios.some((m) => localitiesMatch(m.ciudad, normalized));
+    return matchesAnyLocality(
+      municipios.map((m) => m.ciudad),
+      normalized,
+    );
   }
 
   // Feedback en tiempo real del selector de localidad en "Registrar una

@@ -13,17 +13,24 @@ export class MailService {
     // En este entorno el SMTP es Mailhog (docker-compose): no requiere
     // usuario/contraseña ni TLS, solo host/puerto -- para un proveedor real
     // (SendGrid, SES, etc.) alcanza con cambiar estas variables de entorno,
-    // el código no cambia.
+    // el código no cambia. secure se deriva del puerto (465 = TLS implícito)
+    // salvo que MAIL_SECURE lo fuerce explícitamente.
+    const port = Number(this.configService.get<string>('MAIL_PORT') ?? 1025);
+    const secureOverride = this.configService.get<string>('MAIL_SECURE');
+    const secure =
+      secureOverride !== undefined ? secureOverride === 'true' : port === 465;
+
     this.transporter = nodemailer.createTransport({
       host: this.configService.get<string>('MAIL_HOST') ?? 'mailhog',
-      port: Number(this.configService.get<string>('MAIL_PORT') ?? 1025),
-      secure: false,
+      port,
+      secure,
     });
 
     this.from =
       this.configService.get<string>('MAIL_FROM') ??
       'Mapa Social <no-responder@mapasocial.local>';
-    this.appUrl = this.configService.get<string>('APP_URL') ?? 'http://localhost';
+    this.appUrl =
+      this.configService.get<string>('APP_URL') ?? 'http://localhost';
   }
 
   async sendVerificationEmail(
@@ -48,7 +55,10 @@ export class MailService {
     } catch (error) {
       // El registro no debe fallar porque el correo no salió -- la cuenta
       // ya quedó creada y hay un endpoint de reenvío para este caso.
-      this.logger.error(`No se pudo enviar el email de verificación a ${to}`, error as Error);
+      this.logger.error(
+        `No se pudo enviar el email de verificación a ${to}`,
+        error as Error,
+      );
     }
   }
 

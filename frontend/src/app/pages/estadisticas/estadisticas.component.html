@@ -8,7 +8,7 @@
   @if (isLoading()) {
     <p class="stats__status">Cargando…</p>
   } @else if (loadError()) {
-    <p class="stats__status stats__status--error">No se pudo conectar con el servidor.</p>
+    <p class="stats__status stats__status--error">{{ errorMessage() }}</p>
   } @else {
     @if (resolution(); as r) {
       <section class="stats__hero">

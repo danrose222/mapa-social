@@ -1,0 +1,15 @@
+<div class="modal-shell__backdrop" (click)="close()">
+  <div
+    class="modal-shell__box"
+    [style.max-width.px]="maxWidth"
+    (click)="$event.stopPropagation()"
+  >
+    @if (showCloseButton) {
+      <button type="button" class="modal-shell__close" aria-label="Cerrar" (click)="close()">
+        ✕
+      </button>
+    }
+
+    <ng-content></ng-content>
+  </div>
+</div>

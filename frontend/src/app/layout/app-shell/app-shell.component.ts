@@ -1,10 +1,10 @@
-import { Component, HostListener, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, effect, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
 import { OrganizationsService } from '../../core/services/organizations.service';
 import { IconComponent } from '../../shared/icons/icon.component';
-import { localitiesMatch } from '../../shared/utils/locality-match.util';
+import { inModeratorScope } from '../../shared/utils/locality-match.util';
 
 @Component({
   selector: 'app-shell',
@@ -17,6 +17,7 @@ export class AppShellComponent {
   private readonly authService = inject(AuthService);
   private readonly organizationsService = inject(OrganizationsService);
   private readonly router = inject(Router);
+  private readonly elementRef = inject(ElementRef<HTMLElement>);
 
   readonly currentUser = this.authService.currentUser;
   readonly isModerator = this.authService.isModerator;
@@ -46,27 +47,56 @@ export class AppShellComponent {
     // Sin este refresco propio, "Mi espacio" vs "Panel Institucional" podía
     // quedar mostrando el estado viejo hasta la próxima navegación.
     if (this.currentUser()) {
-      this.authService.refreshProfile().subscribe((profile) => {
-        if (!this.isModerator()) {
-          return;
-        }
+      this.authService.refreshProfile().subscribe();
+    }
 
-        const myLocalities = (profile?.localities ?? []).map((l) => l.locality);
-        if (myLocalities.length === 0) {
-          return;
-        }
+    // effect() en vez de correr esto una sola vez atado al refreshProfile()
+    // de arriba: como AppShellComponent es la raíz de toda la app (nunca se
+    // destruye entre navegaciones), un login o una promoción a moderador
+    // DENTRO de la misma sesión (sin recargar la página) nunca volvía a
+    // disparar este fetch -- el badge de pendientes quedaba en 0 para
+    // siempre aunque isModerator() ya reflejara el rol nuevo. Así, corre de
+    // nuevo cada vez que cambia el perfil (login, logout, promoción).
+    effect(() => {
+      if (!this.isModerator()) {
+        this.pendingOrgCount.set(0);
+        return;
+      }
 
-        this.organizationsService.getAll().subscribe({
-          next: (organizations) => {
-            const count = organizations.filter(
-              (org) =>
-                !org.verified && myLocalities.some((mine) => localitiesMatch(mine, org.ciudad)),
-            ).length;
-            this.pendingOrgCount.set(count);
-          },
-          error: () => {},
-        });
+      const myLocalities = (this.authService.profile()?.localities ?? []).map(
+        (l) => l.locality,
+      );
+      if (myLocalities.length === 0) {
+        this.pendingOrgCount.set(0);
+        return;
+      }
+
+      this.organizationsService.getAll().subscribe({
+        next: (organizations) => {
+          const count = inModeratorScope(organizations, myLocalities).filter(
+            (org) => !org.verified,
+          ).length;
+          this.pendingOrgCount.set(count);
+        },
+        error: () => {},
       });
+    });
+  }
+
+  // Sin esto, la única forma de cerrar el dropdown era Escape o un link
+  // adentro -- clickear el mapa o cualquier otra zona de la página lo
+  // dejaba abierto flotando sobre el contenido hasta que el usuario
+  // notara y lo cerrara a mano.
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.isAccountMenuOpen()) {
+      return;
+    }
+
+    const dropdown = this.elementRef.nativeElement.querySelector('.shell-header__dropdown');
+
+    if (dropdown && event.target instanceof Node && !dropdown.contains(event.target)) {
+      this.isAccountMenuOpen.set(false);
     }
   }
 
@@ -103,6 +133,12 @@ export class AppShellComponent {
   logout(): void {
     this.authService.logout();
     this.closeMenu();
+    // AppShellComponent nunca se destruye entre logout/login (es la raíz
+    // de toda la app) -- sin este reset, la siguiente cuenta que inicia
+    // sesión en la misma pestaña veía "ya te reenviamos el correo" aunque
+    // nunca hubiera pedido nada.
+    this.isResendingVerification.set(false);
+    this.verificationResent.set(false);
     this.router.navigateByUrl('/');
   }
 

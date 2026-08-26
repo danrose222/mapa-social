@@ -19,7 +19,12 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AddModeratorLocalityDto } from './dto/add-moderator-locality.dto';
 import { CreateModeratorRequestDto } from './dto/create-moderator-request.dto';
-import { localitiesMatch } from '../../common/utils/locality-match.util';
+import { matchesAnyLocality } from '../../common/utils/locality-match.util';
+import {
+  ensureUnique,
+  isDuplicateKeyError,
+  saveOrConflict,
+} from '../../common/utils/save-or-conflict.util';
 import { MailService } from '../mail/mail.service';
 
 interface AuthUser {
@@ -53,17 +58,11 @@ export class UsersService {
     // 'unique' de la columna y MySQL/TypeORM lo devuelve como un error sin
     // capturar (500 genérico) en vez de un 409 -- el frontend de registro
     // ya asume que existe este chequeo y espera un 409 puntualmente.
-    const existingUser = await this.userRepository.findOne({
-      where: {
-        email: dto.email,
-      },
-    });
-
-    if (existingUser) {
-      throw new ConflictException(
-        'Ya existe un usuario registrado con ese email.',
-      );
-    }
+    await ensureUnique(
+      this.userRepository,
+      { email: dto.email },
+      'Ya existe un usuario registrado con ese email.',
+    );
 
     const defaultRole = await this.roleRepository.findOne({
       where: {
@@ -93,9 +92,16 @@ export class UsersService {
       ),
     });
 
-    const saved = await this.userRepository.save(user);
+    const saved = await saveOrConflict(
+      () => this.userRepository.save(user),
+      'Ya existe un usuario registrado con ese email.',
+    );
 
-    await this.mailService.sendVerificationEmail(
+    // Sin await: MailService ya atrapa sus propios errores (el registro no
+    // debe fallar porque el correo no salió) -- esperarlo acá solo demora
+    // la respuesta HTTP el tiempo entero del round-trip SMTP sin ganar nada,
+    // porque el resultado nunca se usa.
+    void this.mailService.sendVerificationEmail(
       saved.email,
       saved.firstName,
       emailVerificationToken,
@@ -147,7 +153,8 @@ export class UsersService {
       ),
     });
 
-    await this.mailService.sendVerificationEmail(
+    // Sin await: ver el comentario equivalente en create().
+    void this.mailService.sendVerificationEmail(
       user.email,
       user.firstName,
       emailVerificationToken,
@@ -257,8 +264,9 @@ export class UsersService {
       where: { userId: currentUser.id },
     });
 
-    const inScope = callerLocalities.some((l) =>
-      localitiesMatch(l.locality, locality),
+    const inScope = matchesAnyLocality(
+      callerLocalities.map((l) => l.locality),
+      locality,
     );
 
     if (!inScope) {
@@ -349,7 +357,10 @@ export class UsersService {
   // no queda bloqueada. No hay revisión humana: confirmar el link enviado
   // a officialEmail (ver mail.service.ts) es la única prueba real de que
   // quien pide esto controla ese canal institucional.
-  async requestModerator(dto: CreateModeratorRequestDto, currentUser: AuthUser) {
+  async requestModerator(
+    dto: CreateModeratorRequestDto,
+    currentUser: AuthUser,
+  ) {
     if (currentUser.role === 'moderador') {
       throw new ForbiddenException('Ya sos moderador');
     }
@@ -359,10 +370,17 @@ export class UsersService {
     });
 
     if (existing) {
-      throw new ConflictException('Ya tenés una solicitud pendiente');
+      if (existing.verificationExpiresAt > new Date()) {
+        throw new ConflictException('Ya tenés una solicitud pendiente');
+      }
+      // Vencida y nunca confirmada -- no bloquea un pedido nuevo, se
+      // reemplaza (la restricción UNIQUE en user_id no deja convivir dos).
+      await this.moderatorRequestRepository.remove(existing);
     }
 
-    const user = await this.userRepository.findOne({ where: { id: currentUser.id } });
+    const user = await this.userRepository.findOne({
+      where: { id: currentUser.id },
+    });
 
     if (!user) {
       throw new NotFoundException('Usuario inexistente');
@@ -387,7 +405,8 @@ export class UsersService {
 
     const saved = await this.moderatorRequestRepository.save(request);
 
-    await this.mailService.sendModeratorVerificationEmail(
+    // Sin await: ver el comentario equivalente en create().
+    void this.mailService.sendModeratorVerificationEmail(
       saved.officialEmail,
       user.firstName,
       saved.institutionName,
@@ -412,7 +431,9 @@ export class UsersService {
     }
 
     if (request.verificationExpiresAt.getTime() < Date.now()) {
-      throw new ForbiddenException('El enlace venció -- volvé a pedir el aval municipal.');
+      throw new ForbiddenException(
+        'El enlace venció -- volvé a pedir el aval municipal.',
+      );
     }
 
     const moderatorRole = await this.roleRepository.findOne({
@@ -423,20 +444,32 @@ export class UsersService {
       throw new NotFoundException('Rol moderador inexistente');
     }
 
-    await this.userRepository.update(request.userId, { roleId: moderatorRole.id });
+    await this.userRepository.update(request.userId, {
+      roleId: moderatorRole.id,
+    });
 
     const existingLocality = await this.localityRepository.findOne({
       where: { userId: request.userId, locality: request.locality },
     });
 
     if (!existingLocality) {
-      await this.localityRepository.save(
-        this.localityRepository.create({
-          userId: request.userId,
-          locality: request.locality,
-          provincia: request.provincia,
-        }),
-      );
+      try {
+        await this.localityRepository.save(
+          this.localityRepository.create({
+            userId: request.userId,
+            locality: request.locality,
+            provincia: request.provincia,
+          }),
+        );
+      } catch (error) {
+        // Confirmar el mismo link dos veces casi en simultáneo (ej. un
+        // prefetch del cliente de correo) puede hacer que las dos lecturas
+        // de existingLocality den null -- la restricción UNIQUE evita la
+        // fila duplicada, y acá tratamos esa carrera como éxito, no error.
+        if (!isDuplicateKeyError(error)) {
+          throw error;
+        }
+      }
     }
 
     const locality = request.locality;

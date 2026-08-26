@@ -6,6 +6,7 @@ import { RouterLink } from '@angular/router';
 import { PublicationsService } from '../../../core/services/publications.service';
 import { Resource } from '../../../core/models/mapa-social.model';
 import { IconComponent } from '../../icons/icon.component';
+import { ModalShellComponent } from '../modal-shell/modal-shell.component';
 
 // Modal "Quiero Colaborar": para un no-logueado (o logueado, da igual) que
 // quiere ofrecerse a una organización sin exponer contacto personal de
@@ -15,7 +16,7 @@ import { IconComponent } from '../../icons/icon.component';
 @Component({
   selector: 'app-collaborate-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, IconComponent],
+  imports: [ReactiveFormsModule, RouterLink, IconComponent, ModalShellComponent],
   templateUrl: './collaborate-modal.component.html',
   styleUrl: './collaborate-modal.component.scss',
 })

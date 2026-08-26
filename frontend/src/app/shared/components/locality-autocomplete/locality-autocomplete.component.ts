@@ -1,9 +1,9 @@
-import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Subject, catchError, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
 import { GeorefLocality, GeorefService } from '../../../core/services/georef.service';
 import { normalizeText } from '../../utils/normalize-text.util';
+import { DebouncedSearch } from '../../utils/debounced-search.util';
 
 export interface LocalitySelection {
   locality: string;
@@ -39,15 +39,16 @@ export class LocalityAutocompleteComponent implements OnInit {
       this.queryText = this.initialValue;
     }
   }
-  readonly results = signal<GeorefLocality[]>([]);
-  readonly isSearching = signal(false);
-  readonly isOpen = signal(false);
 
-  // Qué término produjo los `results()` actuales -- onEnter no debe
-  // confirmar una coincidencia que en realidad quedó de una búsqueda
-  // anterior porque el usuario reescribió el campo y todavía no llegó
-  // la respuesta debounced de la búsqueda nueva.
-  private resultsForTerm = '';
+  private readonly search = new DebouncedSearch<string, GeorefLocality>({
+    debounceMs: 300,
+    isEqual: (a, b) => a === b,
+    search: (term) => this.georefService.searchLocalities(term),
+  });
+
+  readonly results = this.search.results;
+  readonly isSearching = this.search.isSearching;
+  readonly isOpen = this.search.isOpen;
 
   // Evita que onBlur dispare una segunda búsqueda (confirmTypedLocality)
   // después de una selección explícita ya confirmada por click o Enter
@@ -56,43 +57,20 @@ export class LocalityAutocompleteComponent implements OnInit {
   // camino feliz.
   private confirmed = false;
 
-  private readonly queryChanges = new Subject<string>();
-
-  constructor() {
-    this.queryChanges
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        switchMap((term) => {
-          this.isSearching.set(true);
-          // catchError ACÁ (adentro del switchMap), no en el .subscribe()
-          // de afuera: un error del lado de Georef en la fuente interna
-          // corta para siempre la suscripción externa completa -- sin
-          // esto, el primer error de red mataba el autocomplete para el
-          // resto de la vida de este componente, sin ninguna forma de
-          // recuperarse salvo recargar la página.
-          return this.georefService.searchLocalities(term).pipe(
-            map((localities) => ({ term, localities })),
-            catchError(() => {
-              this.isSearching.set(false);
-              return of({ term, localities: [] as GeorefLocality[] });
-            }),
-          );
-        }),
-      )
-      .subscribe({
-        next: ({ term, localities }) => {
-          this.isSearching.set(false);
-          this.resultsForTerm = term;
-          this.results.set(localities);
-          this.isOpen.set(localities.length > 0);
-        },
-      });
-  }
+  // confirmTypedLocality() dispara su propio subscribe() por fuera de
+  // DebouncedSearch (no es una búsqueda "mientras se tipea", es la
+  // confirmación puntual del blur) -- sin este contador, una respuesta
+  // vieja podía pisar la localidad correcta con una vieja.
+  private requestId = 0;
 
   onInput(): void {
     this.confirmed = false;
-    this.queryChanges.next(this.queryText);
+    this.requestId++;
+    // Trimeado acá (no solo al comparar) para que el último query
+    // recordado por DebouncedSearch y queryText.trim() nunca queden
+    // desalineados por un espacio final -- mismo criterio que
+    // address-autocomplete.component.ts.
+    this.search.search(this.queryText.trim());
   }
 
   // Sin esto, Enter en este input dispara el submit nativo del <form> que
@@ -103,15 +81,28 @@ export class LocalityAutocompleteComponent implements OnInit {
   onEnter(event: Event): void {
     event.preventDefault();
 
-    if (this.resultsForTerm !== this.queryText.trim()) {
+    if (!this.search.matchesLastQuery((last) => last === this.queryText.trim())) {
       return;
     }
 
     const [first] = this.results();
 
-    if (this.isOpen() && first) {
-      this.select(first);
+    if (!this.isOpen() || !first) {
+      return;
     }
+
+    // Mismo criterio que autoSelectExactMatch: si la primera sugerencia
+    // tiene un homónimo en otra provincia (ej. "La Falda" existe en
+    // Córdoba y en San Juan, sin que GeoRef las ordene por relevancia
+    // local), preferimos el de Córdoba en vez de lo que el orden de la
+    // API haya puesto primero -- sin tocar cuál es "la primera sugerencia"
+    // cuando no hay ambigüedad real.
+    const homonyms = this.results().filter(
+      (l) => normalizeText(l.nombre) === normalizeText(first.nombre),
+    );
+    const match = homonyms.find((l) => l.provincia.nombre === 'Córdoba') ?? first;
+
+    this.select(match);
   }
 
   select(locality: GeorefLocality): void {
@@ -149,8 +140,18 @@ export class LocalityAutocompleteComponent implements OnInit {
       return;
     }
 
+    const requestId = ++this.requestId;
+
     this.georefService.searchLocalities(typed).subscribe({
-      next: (localities) => this.autoSelectExactMatch(typed, localities),
+      next: (localities) => {
+        if (requestId !== this.requestId) {
+          // El usuario ya volvió a tipear (u otro blur disparó una
+          // confirmación más nueva) antes de que llegara esta respuesta --
+          // aplicarla ahora pisaría con algo viejo lo que se ve en pantalla.
+          return;
+        }
+        this.autoSelectExactMatch(typed, localities);
+      },
       error: () => {},
     });
   }
@@ -166,10 +167,17 @@ export class LocalityAutocompleteComponent implements OnInit {
     // Nombres de localidad se repiten entre provincias (ej: "La Falda"
     // existe en Córdoba y en San Juan, y GeoRef no las ordena por
     // relevancia local) -- esta app es de alcance provincial, así que
-    // ante una coincidencia exacta ambigua preferimos la de Córdoba en
-    // vez de la que el orden de la API ponga primero.
-    const match = exactMatches.find((l) => l.provincia.nombre === 'Córdoba') ?? exactMatches[0];
+    // ante una coincidencia exacta ambigua preferimos la de Córdoba. Si
+    // NINGUNA de varias coincidencias es de Córdoba, no adivinamos cuál
+    // -- mismo criterio que georef.service.ts::geocodeLocality ("más
+    // seguro no matchear que confirmar la provincia equivocada"). Con una
+    // sola coincidencia (sin ambigüedad real) se confirma igual, sea cual
+    // sea la provincia.
+    const cordobaMatch = exactMatches.find((l) => l.provincia.nombre === 'Córdoba');
+    const match = cordobaMatch ?? (exactMatches.length === 1 ? exactMatches[0] : undefined);
 
-    this.select(match);
+    if (match) {
+      this.select(match);
+    }
   }
 }
