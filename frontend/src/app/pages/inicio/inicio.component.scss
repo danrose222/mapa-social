@@ -75,32 +75,31 @@
     outline-color: #fff;
   }
 
-  // .btn--ghost global usa texto var(--ink) (oscuro) pensado para tarjetas
-  // claras -- sobre el fondo oscuro del hero queda ilegible, así que acá
-  // se pisa con una variante clara/translúcida. El overlay es NEGRO (no
-  // blanco): uno blanco sobre la esquina --brand-dark del gradiente
-  // aclara demasiado el naranja de fondo y el texto blanco queda en
-  // 3.9:1 (hover 3.4:1), por debajo de AA. Oscurecer en cambio sube el
-  // contraste sin importar en qué punto del gradiente caiga el botón.
-  .btn--ghost {
-    background: rgb(0 0 0 / 22%);
-    color: #fff;
-    border-color: rgb(255 255 255 / 35%);
-
-    &:hover:not(:disabled) {
-      background: rgb(0 0 0 / 32%);
-    }
-  }
-
-  // Naranja sólido para "Quiero Ayudar / Donar": --brand (#e65f32) da
-  // 3.47:1 con texto blanco, por debajo de AA. Este tono (un escalón más
-  // oscuro que --brand-dark) da 5.2:1 en reposo y 6:1 en hover, sin
-  // tocar el token --brand global usado en el resto de la app.
-  .btn--cta-donar {
+  // "Necesito Ayuda" y "Quiero Ayudar / Donar" tienen que sentirse igual de
+  // accesibles -- antes uno era outline (btn--ghost) y el otro relleno, lo
+  // que jerarquizaba uno sobre el otro sin querer. Ahora los dos son
+  // sólidos, con el mismo naranja/teal que ya usa el resto de la app para
+  // necesidad/recurso (mapa, chips, "cómo funciona").
+  //
+  // Naranja: --brand (#e65f32) da 3.47:1 con texto blanco, por debajo de
+  // AA. Este tono (un escalón más oscuro que --brand-dark) da 5.2:1 en
+  // reposo y 6:1 en hover, sin tocar el token --brand global.
+  .btn--cta-ayuda {
     background: #b94823;
 
     &:hover:not(:disabled) {
       background: #a94220;
+    }
+  }
+
+  // Teal: --help-color-text ya es la variante de --help-color pensada para
+  // texto/fondos sólidos (6.73:1 con blanco, ver styles.scss) -- se
+  // reutiliza acá tal cual, con un tono más oscuro propio para el hover.
+  .btn--cta-donar {
+    background: var(--help-color-text);
+
+    &:hover:not(:disabled) {
+      background: #1f566f;
     }
   }
 }
