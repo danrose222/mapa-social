@@ -32,7 +32,11 @@
   --surface-sunken: #d5e5ec;
 
   --ink: #183f52;
-  --ink-soft: #45616f;
+  // Un escalón más oscuro que el original (#45616f) para más margen de
+  // contraste en texto secundario chico (subtítulos, descripciones) --
+  // sigue dando 7:1+ sobre --surface/--bg, cómodo por encima del 4.5:1 de
+  // WCAG AA.
+  --ink-soft: #3c5561;
   --border: #aac4d0;
 
   // Oscurecido de #c0392b: como texto sobre su fondo "soft" (#f8dcd6, los
