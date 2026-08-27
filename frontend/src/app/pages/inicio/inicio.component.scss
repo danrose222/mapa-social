@@ -240,23 +240,92 @@
 
 // Segunda banda full-bleed del ritmo vertical (hero oscuro -> esta, clara,
 // wash de teal muy suave): mismo criterio que el hero, ancho real de borde
-// a borde con un contenido centrado adentro.
+// a borde con un contenido centrado adentro. Textura de puntos + dos blobs
+// grandes desenfocados repiten el lenguaje del hero para que no se sienta
+// una sección plana pegada después de una vistosa.
 .inicio__how {
+  position: relative;
+  overflow: hidden;
   width: 100%;
-  padding: 72px max(24px, env(safe-area-inset-right)) 72px max(24px, env(safe-area-inset-left));
+  padding: 90px max(24px, env(safe-area-inset-right)) 100px max(24px, env(safe-area-inset-left));
   background: linear-gradient(180deg, var(--surface), var(--help-color-soft) 140%);
   text-align: center;
 
-  h2 {
-    margin: 0 0 8px;
-    font-size: var(--text-xl);
-    text-wrap: balance;
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--texture-dots);
+    opacity: 0.7;
+    pointer-events: none;
   }
 }
 
+.inicio__how-blobs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.inicio__how-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.28;
+}
+
+.inicio__how-blob--a {
+  top: -90px;
+  right: -60px;
+  width: 340px;
+  height: 340px;
+  background: #f0a68a;
+}
+
+.inicio__how-blob--b {
+  bottom: -80px;
+  left: -70px;
+  width: 300px;
+  height: 300px;
+  background: #7fd8c4;
+}
+
 .inicio__how-inner {
+  position: relative;
+  z-index: 2;
   max-width: 960px;
   margin: 0 auto;
+}
+
+.inicio__how-head {
+  max-width: 640px;
+  margin: 0 auto 56px;
+}
+
+// #c24a29 (el coral del mockup) da 4.39:1 sobre --surface, apenas por
+// debajo del 4.5:1 de AA -- --need-color-text ya es la variante pensada
+// para texto y da 6.28:1 sin perder el tono coral.
+.inicio__how-kicker {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: var(--need-color-text);
+  font-weight: 700;
+  font-size: var(--text-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.inicio__how h2 {
+  margin: 0 0 14px;
+  font-size: var(--text-xl);
+  text-wrap: balance;
+}
+
+.inicio__how-head p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: var(--text-md);
+  line-height: 1.55;
 }
 
 .inicio__how-steps {
@@ -266,25 +335,22 @@
   gap: 28px;
   margin-top: 48px;
 
-  // El "hilo" que conecta los 3 pasos como un flujo: pasa por detrás de
-  // cada tarjeta (su propio fondo opaco lo tapa) y solo se ve en los huecos
-  // entre ellas -- alcanza para leerse como una línea continua sin tener
-  // que perforar las tarjetas. Alineado a la altura del CENTRO del círculo
-  // de ícono (padding-top de la tarjeta + la mitad de su alto).
+  // Conector coral -> teal: sugiere el flujo de ayuda circulando entre los
+  // 3 pasos. Pasa por detrás de las tarjetas (su fondo opaco lo tapa) y
+  // solo se ve en los huecos -- alineado a la altura del CENTRO del ícono
+  // (padding-top de la tarjeta + la mitad de su alto).
   &::before {
     content: '';
     position: absolute;
-    top: 74px;
+    z-index: 0;
+    top: 81px;
     left: calc(100% / 6);
     right: calc(100% / 6);
     height: 2px;
-    background: repeating-linear-gradient(
-      to right,
-      var(--border) 0,
-      var(--border) 8px,
-      transparent 8px,
-      transparent 16px
-    );
+    background: linear-gradient(90deg, #e0512c 0%, #e0512c 45%, #17857a 55%, #17857a 100%);
+    background-size: 200% 100%;
+    opacity: 0.35;
+    animation: inicio-how-connector-slide 4s linear infinite;
   }
 }
 
@@ -295,17 +361,18 @@
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  padding: 36px 24px 30px;
+  padding: 40px 30px 34px;
   border-radius: var(--radius-lg);
   background: #fff;
-  box-shadow: var(--shadow-1);
+  border: 1px solid rgb(24 63 82 / 6%);
+  box-shadow: 0 18px 40px -22px rgb(24 63 82 / 40%);
   text-align: center;
   // Estado "no revelado" para appScrollReveal: la tarjeta parte más abajo y
   // transparente, .is-revealed la lleva a su lugar. --reveal-delay lo pone
-  // el @for de cada tarjeta (0ms/110ms/220ms) para que aparezcan en fila.
+  // el @for de cada tarjeta (0ms/140ms/280ms) para que aparezcan en fila.
   opacity: 0;
-  transform: translateY(28px);
-  transition: opacity 600ms ease, transform 600ms ease, box-shadow 200ms ease;
+  transform: translateY(26px);
+  transition: opacity 600ms ease, transform 280ms ease, box-shadow 280ms ease;
   transition-delay: var(--reveal-delay, 0ms);
 
   &.is-revealed {
@@ -314,8 +381,8 @@
   }
 
   &:hover {
-    box-shadow: var(--shadow-2);
-    transform: translateY(-4px);
+    box-shadow: 0 30px 55px -22px rgb(24 63 82 / 50%);
+    transform: translateY(-10px);
   }
 
   &.is-revealed:hover {
@@ -324,47 +391,219 @@
     transition-delay: 0ms;
   }
 
+  h3 {
+    margin: 0;
+    color: var(--ink);
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+
   p {
     margin: 0;
-    max-width: 22ch;
+    max-width: 26ch;
     color: var(--ink-soft);
-    font-size: 0.92rem;
-    line-height: 1.5;
+    font-size: var(--text-sm);
+    line-height: 1.55;
   }
+}
+
+// Número gigante de fondo, puramente decorativo (aria-hidden en el html).
+.inicio__how-badge {
+  position: absolute;
+  top: 22px;
+  right: 24px;
+  color: rgb(24 63 82 / 6%);
+  font-size: 2.75rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .inicio__how-icon {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 76px;
-  height: 76px;
-  border-radius: 50%;
-  box-shadow: 0 0 0 6px #fff;
+  width: 82px;
+  height: 82px;
+  margin: 0 auto 24px;
+  border-radius: 22px;
+  transition: transform 280ms ease;
 
   i {
-    font-size: 2rem;
+    position: relative;
+    z-index: 2;
+    font-size: 2.1rem;
   }
 }
 
-.inicio__how-number {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 0.95rem;
-  color: var(--ink);
+.inicio__how-step:hover .inicio__how-icon {
+  transform: translateY(-2px);
+}
+
+// Anillo que late alrededor del ícono -- toma el color de acento del propio
+// ícono vía currentColor, así no hay que repetirlo.
+.inicio__how-ring {
+  position: absolute;
+  inset: -8px;
+  border-radius: 26px;
+  border: 2px solid currentColor;
+  opacity: 0.22;
+  animation: inicio-how-ring-pulse 2.8s ease-out infinite;
+}
+
+.inicio__how-step:nth-child(2) .inicio__how-ring {
+  animation-delay: 0.5s;
+}
+
+.inicio__how-step:nth-child(3) .inicio__how-ring {
+  animation-delay: 1s;
+}
+
+.inicio__how-icon--map {
+  background: linear-gradient(140deg, #dff6ef, #a7ead6);
+  color: #0f6e56;
+  box-shadow: 0 12px 24px -12px rgb(23 133 122 / 70%);
+
+  i {
+    // el pin sube y baja, como asentándose sobre el punto del mapa
+    animation: inicio-how-icon-bob 3.4s ease-in-out infinite;
+  }
+}
+
+.inicio__how-icon--need {
+  background: linear-gradient(140deg, #ffe6da, #ffc7ad);
+  color: #c24a29;
+  box-shadow: 0 12px 24px -12px rgb(224 81 44 / 70%);
+
+  i {
+    // la mano saluda de lado a lado -- "hacete ver"
+    animation: inicio-how-icon-wave 2.6s ease-in-out infinite;
+  }
+}
+
+.inicio__how-icon--give {
+  background: linear-gradient(140deg, #ffe9d6, #ffd0a8);
+  color: #b5541a;
+  box-shadow: 0 12px 24px -12px rgb(224 120 40 / 70%);
+
+  i {
+    // el corazón late
+    animation: inicio-how-icon-beat 2.2s ease-in-out infinite;
+  }
+}
+
+// Al pasar el mouse, el ícono reacciona con más energía -- especificidad
+// más alta que las reglas de arriba (3 clases contra 2) así gana sin
+// importar el orden en el archivo.
+.inicio__how-step:hover .inicio__how-icon i {
+  animation-duration: 1.1s;
+}
+
+@keyframes inicio-how-connector-slide {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes inicio-how-ring-pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.35;
+  }
+
+  70%, 100% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+}
+
+@keyframes inicio-how-icon-bob {
+  0%, 100% {
+    transform: translateY(-4px);
+  }
+
+  55% {
+    transform: translateY(3px);
+  }
+}
+
+@keyframes inicio-how-icon-wave {
+  0%, 100% {
+    transform: rotate(-8deg);
+  }
+
+  50% {
+    transform: rotate(8deg);
+  }
+}
+
+@keyframes inicio-how-icon-beat {
+  0%, 100% {
+    transform: scale(1);
+  }
+
+  15% {
+    transform: scale(1.18);
+  }
+
+  30% {
+    transform: scale(1);
+  }
+
+  45% {
+    transform: scale(1.12);
+  }
 }
 
 .inicio__org-cta {
-  max-width: 780px;
-  margin: 20px auto 0;
-  padding: 0 20px;
+  position: relative;
+  z-index: 2;
+  max-width: 1080px;
+  margin: 56px auto 0;
+  padding: 26px 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(120deg, #123f3b, #17857a);
+  box-shadow: 0 22px 44px -24px rgb(15 63 59 / 90%);
+
+  span {
+    color: #eafff9;
+    font-size: var(--text-md);
+    font-weight: 500;
+  }
 }
 
-@media (max-width: 560px) {
-  .inicio__cta-row {
-    flex-direction: column;
+.inicio__org-cta-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 14px 26px;
+  border-radius: var(--radius-pill);
+  background: #b94823;
+  color: #fff;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  transition: transform 200ms ease, box-shadow 200ms ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-brand-md);
   }
 
+  &:focus-visible {
+    outline-color: #fff;
+  }
+}
+
+// Va después de las reglas base de esta sección a propósito: misma
+// especificidad que .inicio__how-steps/.inicio__how h2/.inicio__org-cta de
+// arriba, así que el orden en el archivo decide -- puesto antes, el override
+// perdía contra la regla base aunque la media query matcheara.
+@media (max-width: 900px) {
   .inicio__how-steps {
     grid-template-columns: 1fr;
     gap: 24px;
@@ -373,5 +612,20 @@
     &::before {
       display: none;
     }
+  }
+
+  .inicio__how h2 {
+    font-size: var(--text-lg);
+  }
+
+  .inicio__org-cta {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+@media (max-width: 560px) {
+  .inicio__cta-row {
+    flex-direction: column;
   }
 }

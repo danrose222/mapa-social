@@ -40,20 +40,33 @@
   </section>
 
   <section class="inicio__how" aria-labelledby="inicio-how-heading">
+    <div class="inicio__how-blobs" aria-hidden="true">
+      <span class="inicio__how-blob inicio__how-blob--a"></span>
+      <span class="inicio__how-blob inicio__how-blob--b"></span>
+    </div>
+
     <div class="inicio__how-inner">
-      <h2 id="inicio-how-heading">¿Cómo funciona Mapa Social?</h2>
+      <div class="inicio__how-head">
+        <span class="inicio__how-kicker">Simple y directo</span>
+        <h2 id="inicio-how-heading">¿Cómo funciona Mapa Social?</h2>
+        <p>Tres pasos para que la ayuda encuentre a quien la necesita, sin salir de tu propio territorio.</p>
+      </div>
 
       <div class="inicio__how-steps">
-        @for (step of howSteps; track step.text; let i = $index) {
+        @for (step of howSteps; track step.title; let i = $index) {
           <div
             class="inicio__how-step"
             appScrollReveal
-            [style.--reveal-delay.ms]="i * 110"
+            [style.--reveal-delay.ms]="i * 140"
           >
-            <span class="inicio__how-icon" [style.background]="step.iconBg" [style.color]="step.iconColor">
-              <i class="ph-bold {{ 'ph-' + step.icon }}" aria-hidden="true"></i>
+            <span class="inicio__how-badge" aria-hidden="true">{{ step.number }}</span>
+
+            <span class="inicio__how-icon" [class]="'inicio__how-icon--' + step.modifier">
+              <span class="inicio__how-ring" aria-hidden="true"></span>
+              <i class="ph-duotone {{ 'ph-' + step.icon }}" aria-hidden="true"></i>
             </span>
-            <span class="inicio__how-number">{{ i + 1 }}</span>
+
+            <h3>{{ step.title }}</h3>
             <p>{{ step.text }}</p>
           </div>
         }
@@ -62,8 +75,10 @@
   </section>
 
   <section class="inicio__org-cta">
-    <a routerLink="/organizacion/crear" class="btn btn--block">
-      ¿Sos una Organización? Ofrecé tus recursos
+    <span>¿Sos una organización? Ofrecé tus recursos a la comunidad.</span>
+    <a routerLink="/organizacion/crear" class="inicio__org-cta-btn">
+      Crear organización
+      <i class="ph-bold ph-arrow-right" aria-hidden="true"></i>
     </a>
   </section>
 </div>
