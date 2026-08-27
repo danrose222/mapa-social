@@ -56,36 +56,39 @@
 
 // transform-box: fill-box porque el origen de rotación/escala de un <circle>
 // sin esto queda anclado al viewBox entero del svg, no al propio nodo.
+// Ciclo largo y desplazamiento chico a propósito -- floating apenas
+// perceptible, no un salto. Duración distinta por nodo (7.5s/8.5s/10s)
+// para que no se muevan todos sincronizados.
 .float {
-  animation: hero-connections-float 6s ease-in-out infinite;
+  animation: hero-connections-float 7.5s ease-in-out infinite;
   transform-box: fill-box;
   transform-origin: center;
 }
 
 .float.b {
-  animation-duration: 7.5s;
+  animation-duration: 8.5s;
   animation-delay: -2s;
 }
 
 .float.c {
-  animation-duration: 8.5s;
+  animation-duration: 10s;
   animation-delay: -4s;
 }
 
 .halo {
   transform-box: fill-box;
   transform-origin: center;
-  animation: hero-connections-pulse 2.8s ease-out infinite;
+  animation: hero-connections-pulse 3.2s ease-out infinite;
 }
 
 .halo.slow {
-  animation-duration: 3.6s;
+  animation-duration: 4s;
   animation-delay: -1.2s;
 }
 
 .flow {
   stroke-dasharray: 5 9;
-  animation: hero-connections-dash 2.4s linear infinite;
+  animation: hero-connections-dash 3.2s linear infinite;
 }
 
 @keyframes hero-connections-float {
@@ -94,7 +97,7 @@
   }
 
   50% {
-    transform: translateY(-9px);
+    transform: translateY(-6px);
   }
 }
 
