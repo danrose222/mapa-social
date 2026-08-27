@@ -1,39 +1,95 @@
 .solicitar-mod {
-  max-width: 560px;
+  max-width: 640px;
   margin: 0 auto;
-  padding: 20px 20px 60px;
-}
-
-.solicitar-mod__header {
-  padding: 12px 0 20px;
-
-  h1 {
-    margin: 10px 0 6px;
-    font-size: 1.6rem;
-  }
-
-  p {
-    color: var(--ink-soft);
-    font-size: 0.9rem;
-    line-height: 1.5;
-  }
+  padding: 28px 20px 64px;
 }
 
 .solicitar-mod__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
   color: var(--ink-soft);
   font-size: 0.85rem;
   font-weight: 600;
 }
 
+// Encabezado sobrio con franja lateral teal en vez de degradado -- misma
+// idea que el resto de los paneles, sin fondo de marca.
+.solicitar-mod__intro {
+  padding: 26px 28px;
+  margin-bottom: 20px;
+  border-left: 4px solid var(--help-color);
+  border-radius: var(--radius-md);
+
+  h1 {
+    margin: 0 0 10px;
+    font-size: var(--text-lg);
+  }
+
+  p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+}
+
 .solicitar-mod__card {
-  padding: 26px;
+  padding: 30px 30px 26px;
+  border-radius: var(--radius-md);
+}
+
+.solicitar-mod__sec-title {
+  margin: 6px 0 16px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--help-color-text);
+}
+
+.solicitar-mod__sec-title-opt,
+.solicitar-mod__opt {
+  color: var(--ink-soft);
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.sec + .sec {
+  margin-top: 26px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.solicitar-mod__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.solicitar-mod__hint {
+  margin: 6px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+}
+
+// Mismo foco teal que el resto de los formularios de la app. ::ng-deep
+// porque el campo de localidad lo renderiza app-locality-autocomplete, un
+// componente aparte.
+.solicitar-mod__card .field input:focus,
+.solicitar-mod__card .field textarea:focus,
+.solicitar-mod__card .field ::ng-deep input:focus {
+  border-color: #17857a;
+  box-shadow: 0 0 0 4px rgb(23 133 122 / 12%);
 }
 
 .solicitar-mod__terms {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  margin: 4px 0 18px;
+  margin: 22px 0 22px;
   color: var(--ink-soft);
   font-size: 0.82rem;
   line-height: 1.45;
@@ -41,6 +97,7 @@
   input[type='checkbox'] {
     flex: 0 0 auto;
     margin-top: 2px;
+    accent-color: var(--help-color);
   }
 }
 
@@ -65,6 +122,7 @@
   max-width: 400px;
   padding: 40px 32px;
   text-align: center;
+  border-radius: var(--radius-md);
 
   h1 {
     margin: 14px 0 8px;
@@ -86,8 +144,13 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--brand-soft);
-  color: var(--brand-dark);
-  font-size: 1.6rem;
-  font-weight: 800;
+  background: var(--help-color-soft);
+  color: var(--help-color-text);
+  font-size: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .solicitar-mod__row {
+    grid-template-columns: 1fr;
+  }
 }
