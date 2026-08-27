@@ -8,6 +8,15 @@ import { AuthService } from '../../../core/services/auth.service';
 import { OrganizationsService } from '../../../core/services/organizations.service';
 import { PublicationsService } from '../../../core/services/publications.service';
 import {
+  MESSAGE_STATUS_OPTIONS,
+  MessageStatus,
+  MessageStatusService,
+  collaborationRequestKey,
+  needKey,
+  resourceRequestKey,
+} from '../../../core/services/message-status.service';
+import { contactLinkFor } from '../../../shared/utils/contact-link.util';
+import {
   CollaborationRequest,
   Need,
   Organization,
@@ -27,6 +36,9 @@ export class MiOrganizacionComponent {
   private readonly authService = inject(AuthService);
   private readonly organizationsService = inject(OrganizationsService);
   private readonly publicationsService = inject(PublicationsService);
+  private readonly messageStatusService = inject(MessageStatusService);
+
+  readonly statusOptions = MESSAGE_STATUS_OPTIONS;
 
   readonly isLoading = signal(true);
   readonly loadError = signal(false);
@@ -138,5 +150,38 @@ export class MiOrganizacionComponent {
           );
         },
       });
+  }
+
+  // El estado de gestión (needKey/resourceRequestKey/collaborationRequestKey)
+  // vive en el navegador de quien lo usa -- ver MessageStatusService. Un
+  // <select> por fila, no botones separados por acción: son mutuamente
+  // excluyentes (un mensaje no está "tomado" y "rechazado" a la vez), así
+  // que un solo control alcanza y es más simple de leer de un vistazo.
+  needStatus(need: Need): MessageStatus {
+    return this.messageStatusService.statusOf(needKey(need.id));
+  }
+
+  setNeedStatus(need: Need, status: MessageStatus): void {
+    this.messageStatusService.setStatus(needKey(need.id), status);
+  }
+
+  resourceRequestStatus(req: ResourceRequest): MessageStatus {
+    return this.messageStatusService.statusOf(resourceRequestKey(req.id));
+  }
+
+  setResourceRequestStatus(req: ResourceRequest, status: MessageStatus): void {
+    this.messageStatusService.setStatus(resourceRequestKey(req.id), status);
+  }
+
+  collaborationStatus(req: CollaborationRequest): MessageStatus {
+    return this.messageStatusService.statusOf(collaborationRequestKey(req.id));
+  }
+
+  setCollaborationStatus(req: CollaborationRequest, status: MessageStatus): void {
+    this.messageStatusService.setStatus(collaborationRequestKey(req.id), status);
+  }
+
+  contactLink(raw: string | null | undefined): string | null {
+    return contactLinkFor(raw);
   }
 }

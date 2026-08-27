@@ -109,6 +109,22 @@
                 </div>
                 <p>{{ need.description }}</p>
                 <span class="mi-org__private-contact">📞 {{ need.contactInfo }}</span>
+
+                <div class="mi-org__msg-actions">
+                  @if (contactLink(need.contactInfo); as link) {
+                    <a [href]="link" class="mi-org__contact-btn">Contactar</a>
+                  }
+                  <select
+                    class="mi-org__status-select"
+                    [attr.data-status]="needStatus(need)"
+                    [value]="needStatus(need)"
+                    (change)="setNeedStatus(need, $any($event.target).value)"
+                  >
+                    @for (opt of statusOptions; track opt.value) {
+                      <option [value]="opt.value">{{ opt.label }}</option>
+                    }
+                  </select>
+                </div>
               </li>
             }
           </ul>
@@ -144,6 +160,22 @@
                     · 📞 {{ req.user?.phone }}
                   }
                 </span>
+
+                <div class="mi-org__msg-actions">
+                  @if (contactLink(req.user?.phone) ?? contactLink(req.user?.email); as link) {
+                    <a [href]="link" class="mi-org__contact-btn">Contactar</a>
+                  }
+                  <select
+                    class="mi-org__status-select"
+                    [attr.data-status]="resourceRequestStatus(req)"
+                    [value]="resourceRequestStatus(req)"
+                    (change)="setResourceRequestStatus(req, $any($event.target).value)"
+                  >
+                    @for (opt of statusOptions; track opt.value) {
+                      <option [value]="opt.value">{{ opt.label }}</option>
+                    }
+                  </select>
+                </div>
               </li>
             }
           </ul>
@@ -172,6 +204,22 @@
                   <p>{{ req.message }}</p>
                 }
                 <span class="mi-org__private-contact">✉️ {{ req.contactEmail }}</span>
+
+                <div class="mi-org__msg-actions">
+                  @if (contactLink(req.contactEmail); as link) {
+                    <a [href]="link" class="mi-org__contact-btn">Contactar</a>
+                  }
+                  <select
+                    class="mi-org__status-select"
+                    [attr.data-status]="collaborationStatus(req)"
+                    [value]="collaborationStatus(req)"
+                    (change)="setCollaborationStatus(req, $any($event.target).value)"
+                  >
+                    @for (opt of statusOptions; track opt.value) {
+                      <option [value]="opt.value">{{ opt.label }}</option>
+                    }
+                  </select>
+                </div>
               </li>
             }
           </ul>
