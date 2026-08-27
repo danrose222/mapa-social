@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { HeroMapPreviewComponent } from '../../shared/components/hero-map-preview/hero-map-preview.component';
+import { HeroConnectionsComponent } from '../../shared/components/hero-connections/hero-connections.component';
 import { ScrollRevealDirective } from '../../shared/directives/scroll-reveal.directive';
 
 @Component({
   selector: 'app-inicio',
   standalone: true,
-  imports: [RouterLink, HeroMapPreviewComponent, ScrollRevealDirective],
+  imports: [RouterLink, HeroConnectionsComponent, ScrollRevealDirective],
   templateUrl: './inicio.component.html',
   styleUrl: './inicio.component.scss',
 })

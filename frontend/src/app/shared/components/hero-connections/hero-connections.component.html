@@ -1,0 +1,99 @@
+<div class="netwrap">
+  <svg viewBox="0 0 520 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Red de necesidades y recursos conectados en la comunidad">
+    <defs>
+      <radialGradient id="glowNeed" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#ff7a4d" stop-opacity="0.9" />
+        <stop offset="100%" stop-color="#ff7a4d" stop-opacity="0" />
+      </radialGradient>
+      <radialGradient id="glowRes" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#35c9a8" stop-opacity="0.9" />
+        <stop offset="100%" stop-color="#35c9a8" stop-opacity="0" />
+      </radialGradient>
+    </defs>
+
+    <!-- contornos territoriales sutiles -->
+    <g fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1.5">
+      <path d="M60 250 Q160 150 260 210 T470 180" />
+      <path d="M40 340 Q170 300 280 350 T500 320" />
+      <ellipse cx="270" cy="250" rx="210" ry="170" />
+    </g>
+
+    <!-- conexiones -->
+    <g fill="none" stroke-linecap="round">
+      <path id="c1" d="M150 160 Q210 200 260 250" stroke="rgba(255,255,255,0.22)" stroke-width="2" />
+      <path id="c2" d="M150 160 Q120 230 120 300" stroke="rgba(255,255,255,0.20)" stroke-width="2" />
+      <path id="c3" d="M150 160 Q190 110 240 100" stroke="rgba(255,255,255,0.18)" stroke-width="2" />
+      <path id="c4" d="M370 130 Q330 190 260 250" stroke="rgba(255,255,255,0.22)" stroke-width="2" />
+      <path id="c5" d="M370 130 Q430 170 430 215" stroke="rgba(255,255,255,0.18)" stroke-width="2" />
+      <path id="c6" d="M370 130 Q410 240 400 300" stroke="rgba(255,255,255,0.20)" stroke-width="2" />
+      <path id="c7" d="M260 250 Q300 300 330 320" stroke="rgba(255,255,255,0.20)" stroke-width="2" />
+      <path id="c8" d="M260 250 Q200 340 180 400" stroke="rgba(255,255,255,0.18)" stroke-width="2" />
+
+      <use href="#c1" class="flow" stroke="#ffd9c4" stroke-width="2" />
+      <use href="#c4" class="flow" stroke="#a8f0dd" stroke-width="2" />
+      <use href="#c6" class="flow" stroke="#ffd9c4" stroke-width="2" />
+      <use href="#c7" class="flow" stroke="#a8f0dd" stroke-width="2" />
+    </g>
+
+    <!-- pulsos que viajan -- la ayuda circula en los dos sentidos -->
+    @if (!reduceMotion) {
+      <g>
+        <circle r="4" fill="#fff">
+          <animateMotion dur="3s" repeatCount="indefinite">
+            <mpath href="#c1" />
+          </animateMotion>
+        </circle>
+        <circle r="4" fill="#fff">
+          <animateMotion dur="3.6s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear">
+            <mpath href="#c4" />
+          </animateMotion>
+        </circle>
+        <circle r="3.5" fill="#fff">
+          <animateMotion dur="3.2s" repeatCount="indefinite">
+            <mpath href="#c7" />
+          </animateMotion>
+        </circle>
+        <circle r="3.5" fill="#fff">
+          <animateMotion dur="4s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear">
+            <mpath href="#c6" />
+          </animateMotion>
+        </circle>
+      </g>
+    }
+
+    <!-- nodos: coral = necesidad, teal = recurso -->
+    <!-- hub comunidad -->
+    <g class="float">
+      <circle cx="150" cy="160" r="46" fill="url(#glowRes)" />
+      <circle class="halo" cx="150" cy="160" r="26" fill="none" stroke="#35c9a8" stroke-width="2" />
+      <circle cx="150" cy="160" r="24" fill="#17857a" stroke="#7ff0d6" stroke-width="2.5" />
+      <path d="M150 150c-2.6-4-11-3.3-11 3 0 4 6 8 11 11 5-3 11-7 11-11 0-6.3-8.4-7-11-3z" fill="#eafff9" />
+    </g>
+    <!-- hub ONG -->
+    <g class="float b">
+      <circle cx="370" cy="130" r="44" fill="url(#glowRes)" />
+      <circle cx="370" cy="130" r="22" fill="#17857a" stroke="#7ff0d6" stroke-width="2.5" />
+      <path d="M362 140v-16l8-5 8 5v16z M366 140v-7h8v7" fill="none" stroke="#eafff9" stroke-width="2" stroke-linejoin="round" />
+    </g>
+    <!-- necesidad central -->
+    <g class="float c">
+      <circle cx="260" cy="250" r="48" fill="url(#glowNeed)" />
+      <circle class="halo slow" cx="260" cy="250" r="28" fill="none" stroke="#ff7a4d" stroke-width="2" />
+      <circle cx="260" cy="250" r="25" fill="#e0512c" stroke="#ffcbb3" stroke-width="2.5" />
+      <path d="M260 240c-2.5-3.8-10.5-3.1-10.5 2.9 0 3.8 5.7 7.6 10.5 10.5 4.8-2.9 10.5-6.7 10.5-10.5 0-6-8-6.7-10.5-2.9z" fill="#fff0e9" />
+    </g>
+
+    <!-- nodos menores -->
+    <g class="float b"><circle cx="120" cy="300" r="15" fill="#e0512c" stroke="#ffcbb3" stroke-width="2" /></g>
+    <g class="float"><circle cx="240" cy="100" r="13" fill="#17857a" stroke="#7ff0d6" stroke-width="2" /></g>
+    <g class="float c"><circle cx="430" cy="215" r="14" fill="#17857a" stroke="#7ff0d6" stroke-width="2" /></g>
+    <g class="float"><circle cx="400" cy="300" r="15" fill="#e0512c" stroke="#ffcbb3" stroke-width="2" /></g>
+    <g class="float b"><circle cx="330" cy="320" r="12" fill="#17857a" stroke="#7ff0d6" stroke-width="2" /></g>
+    <g class="float c"><circle cx="180" cy="400" r="14" fill="#e0512c" stroke="#ffcbb3" stroke-width="2" /></g>
+  </svg>
+
+  <div class="legend">
+    <span><i class="need" aria-hidden="true"></i> Necesidad</span>
+    <span><i class="res" aria-hidden="true"></i> Recurso</span>
+  </div>
+</div>
