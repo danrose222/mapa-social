@@ -19,6 +19,7 @@ import { ResourcesService } from '../resources/resources.service';
 interface AuthUser {
   id: number;
   role: string;
+  organizationType?: 'ong' | 'comunidad' | null;
 }
 const RESOLVED_STATUS = 'resolved';
 @Injectable()
@@ -135,23 +136,59 @@ export class NeedsService {
     );
   }
 
-  findAll() {
-    return this.repository.find({
+  // Modelo de visibilidad de necesidades: una necesidad expone que una
+  // persona real está pidiendo ayuda, así que a diferencia de los
+  // recursos (públicos para cualquiera) solo puede verla una cuenta de
+  // una organización YA avalada -- y únicamente las de su propia
+  // jurisdicción. null cubre tanto a un visitante anónimo como a un
+  // usuario común y a un moderador: ninguno de los tres tiene
+  // jurisdicción sobre necesidades acá (el moderador ya tiene su propio
+  // circuito separado para necesidades is-Private en
+  // findPrivateForViewer()). No confiar en organizationType tal cual
+  // viaja en el token -- se vuelve a resolver desde la base, igual que ya
+  // hace JwtStrategy con el mismo dato.
+  private async resolveOrgViewer(
+    currentUser?: AuthUser | null,
+  ): Promise<{ ciudad: string } | null> {
+    if (!currentUser?.organizationType) {
+      return null;
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { id: currentUser.id },
+      relations: ['organization'],
+    });
+
+    if (!user?.organization?.verified) {
+      return null;
+    }
+
+    return { ciudad: user.organization.ciudad };
+  }
+
+  async findAll(currentUser?: AuthUser | null) {
+    const viewer = await this.resolveOrgViewer(currentUser);
+
+    if (!viewer) {
+      return [];
+    }
+
+    const needs = await this.repository.find({
       relations: ['user', 'category', 'organization', 'resolvedBy'],
       // Regla de escala territorial: una organización Pendiente (en una
-      // ciudad con Municipio, sin avalar todavía) no debe aparecer en el
-      // mapa público -- el OR cubre tanto las necesidades sin
-      // organización (un ciudadano de a pie, siempre visibles) como las
-      // de una organización ya avalada. isPrivate: false en las dos ramas
-      // -- una necesidad privada nunca aparece acá, ni logueado ni no.
+      // ciudad con Municipio, sin avalar todavía) no debe aparecer acá --
+      // el OR cubre tanto las necesidades sin organización (un ciudadano
+      // de a pie) como las de una organización ya avalada. isPrivate:
+      // false en las dos ramas -- una necesidad privada nunca aparece
+      // acá, ni logueado ni no.
       where: [
         { organizationId: IsNull(), isPrivate: false },
         { organization: { verified: true }, isPrivate: false },
       ],
       // Sin esto, el user/resolvedBy completo (con email y phone reales)
-      // viaja en un endpoint público -- el contacto para publicaciones
-      // pasa por contactName/contactInfo (ver needs-contact.util.ts), no
-      // por los datos de la cuenta.
+      // viaja en la respuesta -- el contacto para publicaciones pasa por
+      // contactName/contactInfo (ver needs-contact.util.ts), no por los
+      // datos de la cuenta.
       select: {
         user: PUBLIC_USER_FIELDS,
         resolvedBy: PUBLIC_USER_FIELDS,
@@ -160,10 +197,20 @@ export class NeedsService {
         id: 'ASC',
       },
     });
+
+    return needs.filter(
+      (need) => !!need.locality && localitiesMatch(need.locality, viewer.ciudad),
+    );
   }
-  async search(dto: SearchNeedsDto) {
+  async search(dto: SearchNeedsDto, currentUser?: AuthUser | null) {
     const page = dto.page ?? 1;
     const limit = dto.limit ?? 20;
+
+    const viewer = await this.resolveOrgViewer(currentUser);
+
+    if (!viewer) {
+      return { items: [], total: 0, page, limit, totalPages: 1 };
+    }
 
     const qb = this.repository
       .createQueryBuilder('entity')
@@ -177,14 +224,25 @@ export class NeedsService {
       .andWhere('(entity.organizationId IS NULL OR organization.verified = true)')
       .andWhere('entity.isPrivate = false');
 
-    const [items, total] = await this.searchService
+    // localitiesMatch() es una comparación difusa en las dos direcciones
+    // (ver locality-match.util.ts) que no se puede expresar como un WHERE
+    // de SQL -- por eso se pagina en memoria, después de filtrar por
+    // jurisdicción, en vez de con skip/take en la consulta. Paginar antes
+    // del filtro (como hacía la versión vieja) daría páginas incompletas:
+    // de 20 filas traídas por SQL, solo alguna coincide con la
+    // jurisdicción real del visitante.
+    const matching = await this.searchService
       .applyFilters(qb, dto)
       .orderBy('entity.createdAt', 'DESC')
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getManyAndCount();
+      .getMany();
 
-    return { items, total, page, limit, totalPages: Math.ceil(total / limit) || 1 };
+    const items = matching.filter(
+      (need) => !!need.locality && localitiesMatch(need.locality, viewer.ciudad),
+    );
+    const total = items.length;
+    const paged = items.slice((page - 1) * limit, (page - 1) * limit + limit);
+
+    return { items: paged, total, page, limit, totalPages: Math.ceil(total / limit) || 1 };
   }
 
   // Localidades que tienen al menos una necesidad activa, con cuántas --
@@ -205,11 +263,13 @@ export class NeedsService {
 
     return rows.map((r) => ({ locality: r.locality, count: Number(r.count) }));
   }
-  // currentUser solo importa cuando la necesidad es privada: sin él (o sin
-  // ser el dueño/un moderador) se devuelve null, exactamente como si no
-  // existiera -- no confirma su existencia a quien no tiene por qué verla.
-  // La organización compatible la ve a través de findPrivateForViewer(),
-  // no de este método.
+  // Sin ser el dueño ni un moderador, se devuelve null exactamente como si
+  // no existiera -- no confirma su existencia a quien no tiene por qué
+  // verla. Una necesidad privada queda ahí (la organización compatible la
+  // ve a través de findPrivateForViewer(), no de este método); una
+  // pública sigue requiriendo el mismo viewer de organización avalada y
+  // misma jurisdicción que findAll()/search(), para que no alcance con
+  // adivinar un id y pedirlo directo para saltarse ese filtro.
   async findOne(id: number, currentUser?: AuthUser | null) {
     const need = await this.repository.findOne({
       where: { id },
@@ -224,13 +284,21 @@ export class NeedsService {
       return need;
     }
 
-    if (need.isPrivate) {
-      const isOwner = currentUser?.id === need.userId;
-      const isModerator = currentUser?.role === 'moderador';
+    const isOwner = currentUser?.id === need.userId;
+    const isModerator = currentUser?.role === 'moderador';
 
-      if (!isOwner && !isModerator) {
-        return null;
-      }
+    if (isOwner || isModerator) {
+      return need;
+    }
+
+    if (need.isPrivate) {
+      return null;
+    }
+
+    const viewer = await this.resolveOrgViewer(currentUser);
+
+    if (!viewer || !need.locality || !localitiesMatch(need.locality, viewer.ciudad)) {
+      return null;
     }
 
     return need;
