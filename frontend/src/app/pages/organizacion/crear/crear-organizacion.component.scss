@@ -1,55 +1,86 @@
 .crear-org {
-  max-width: 560px;
+  max-width: 640px;
   margin: 0 auto;
-  padding: 20px 20px 60px;
+  padding: 28px 20px 64px;
 }
 
 .crear-org__header {
-  padding: 12px 0 20px;
+  padding: 4px 0 24px;
 
   h1 {
-    margin: 10px 0 6px;
-    font-size: 1.6rem;
+    margin: 14px 0 6px;
+    font-size: var(--text-lg);
   }
 
   p {
     color: var(--ink-soft);
-    font-size: 0.9rem;
+    font-size: 0.92rem;
     line-height: 1.5;
   }
 }
 
 .crear-org__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--ink-soft);
   font-size: 0.85rem;
   font-weight: 600;
 }
 
 .crear-org__card {
-  padding: 26px;
+  padding: 28px;
+  border-radius: var(--radius-md);
 }
 
+.crear-org__card h2 {
+  margin: 0 0 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+// Resumen de qué pasa después del envío -- misma jerarquía que el resto de
+// secciones informativas del panel, no un cartel de marketing.
 .crear-org__explain {
   margin-bottom: 18px;
-  padding: 22px 24px;
+  padding: 24px 26px;
+  border-radius: var(--radius-md);
 
   h2 {
-    margin: 0 0 14px;
-    font-size: 1.05rem;
+    margin: 0 0 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--ink);
   }
 }
 
 .crear-org__explain-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 14px;
 }
 
 .crear-org__explain-item {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+
   strong {
-    display: block;
-    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
     font-size: 0.88rem;
+
+    i {
+      color: var(--help-color-text);
+      font-size: 1.15rem;
+    }
   }
 
   p {
@@ -66,12 +97,24 @@
   align-items: flex-start;
   gap: 12px;
   padding: 22px 24px;
+  border-radius: var(--radius-md);
 
   p {
     margin: 0;
     color: var(--ink-soft);
     font-size: 0.9rem;
   }
+}
+
+// Mismo foco teal que login/registro -- consistencia entre formularios de
+// toda la app. ::ng-deep porque el campo de localidad lo renderiza
+// app-locality-autocomplete, un componente aparte.
+.crear-org__card .field input:focus,
+.crear-org__card .field textarea:focus,
+.crear-org__card .field select:focus,
+.crear-org__card .field ::ng-deep input:focus {
+  border-color: #17857a;
+  box-shadow: 0 0 0 4px rgb(23 133 122 / 12%);
 }
 
 .crear-org__terms {
@@ -90,19 +133,33 @@
 }
 
 .crear-org__jurisdiction-hint {
-  margin: 8px 0 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
   font-size: 0.82rem;
   font-weight: 600;
   line-height: 1.4;
   color: var(--ink-soft);
+  background: var(--surface);
+
+  i {
+    flex: 0 0 auto;
+    margin-top: 1px;
+    font-size: 1.05rem;
+  }
 }
 
 .crear-org__jurisdiction-hint--city {
   color: var(--need-color-text);
+  background: var(--brand-soft);
 }
 
 .crear-org__jurisdiction-hint--self {
-  color: var(--verified);
+  color: var(--help-color-text);
+  background: var(--help-color-soft);
 }
 
 @media (max-width: 560px) {
@@ -132,6 +189,7 @@
   max-width: 400px;
   padding: 40px 32px;
   text-align: center;
+  border-radius: var(--radius-md);
 
   h1 {
     margin: 14px 0 8px;
@@ -153,8 +211,7 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--brand-soft);
-  color: var(--brand-dark);
-  font-size: 1.6rem;
-  font-weight: 800;
+  background: var(--help-color-soft);
+  color: var(--help-color-text);
+  font-size: 1.5rem;
 }
