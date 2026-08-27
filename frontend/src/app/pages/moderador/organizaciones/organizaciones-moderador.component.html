@@ -1,10 +1,14 @@
 <div class="mod-org">
   <header class="mod-org__header">
-    <a routerLink="/mapa" class="mod-org__back">← Volver al mapa</a>
+    <a routerLink="/mapa" class="mod-org__back">
+      <i class="ph-bold ph-arrow-left" aria-hidden="true"></i>
+      Volver al mapa
+    </a>
     <h1>Organizaciones</h1>
     <p>Solo se muestran las de las localidades que tenés asignadas.</p>
     <a routerLink="/moderador/mis-localidades" class="mod-org__loc-link">
-      Administrar mis localidades →
+      Administrar mis localidades
+      <i class="ph-bold ph-arrow-right" aria-hidden="true"></i>
     </a>
   </header>
 
@@ -29,7 +33,10 @@
           @for (org of pending(); track org.id) {
             <li class="card mod-org__item">
               <div>
-                <p class="mod-org__name">{{ org.name }}</p>
+                <p class="mod-org__name">
+                  {{ org.name }}
+                  <span class="mod-org__badge mod-org__badge--pending">Pendiente</span>
+                </p>
                 <p class="mod-org__meta">{{ org.type === 'ong' ? 'ONG' : 'Comunitaria' }} · {{ org.ciudad }}</p>
                 @if (org.description) {
                   <p class="mod-org__desc">{{ org.description }}</p>
@@ -72,7 +79,7 @@
               <div>
                 <p class="mod-org__name">
                   {{ org.name }}
-                  <span class="badge-verified">✓ Verificada</span>
+                  <span class="mod-org__badge mod-org__badge--verified">Avalada</span>
                 </p>
                 <p class="mod-org__meta">{{ org.type === 'ong' ? 'ONG' : 'Comunitaria' }} · {{ org.ciudad }}</p>
               </div>
