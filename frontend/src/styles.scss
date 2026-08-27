@@ -155,7 +155,13 @@ select:focus-visible,
   *,
   *::before,
   *::after {
+    // animation-duration por sí solo NO frena una animación con
+    // iteration-count: infinite (las del rediseño de landing/hero lo son)
+    // -- el navegador la sigue repitiendo, solo que casi instantánea, y
+    // eso es lo que se ve como "temblor". iteration-count: 1 la deja
+    // correr una vez (a 0.01ms, imperceptible) y ahí se queda quieta.
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }
