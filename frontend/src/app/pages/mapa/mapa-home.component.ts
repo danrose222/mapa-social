@@ -75,6 +75,17 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   readonly isAuthenticated = computed(() => this.authService.currentUser() !== null);
   readonly privacyNotice = signal<string | null>(null);
 
+  // Leyenda dinámica según rol: un usuario común nunca recibe necesidades
+  // del backend (ver NeedsService.resolveOrgViewer), así que mostrarle ese
+  // ítem sería anunciar un marcador que jamás va a aparecer. Comunidad/ONG
+  // sí las ve, filtradas a su jurisdicción. Un moderador tampoco recibe
+  // necesidades (no pertenece a una organización), pero sí le sirve poder
+  // distinguir en el mapa qué recursos publica una Comunidad y cuáles una
+  // ONG -- son las que avala -- así que "suma" esos dos ítems en vez del
+  // de Necesidad.
+  readonly showNeedLegend = computed(() => this.authService.belongsToOrganization());
+  readonly showActorLegend = computed(() => this.authService.isModerator());
+
   // Los dos CTA del hero de la Landing mandan acá con ?type=need o
   // ?type=help: en ambos casos hay que ver el mapa (recursos disponibles)
   // ANTES de pedir cuenta -- el login solo entra en juego recién si hace
@@ -405,10 +416,11 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   }
 
   // Necesidad = corazón. Recurso = mano en alto. El color siempre es el
-  // mismo por tipo (viene de --need-color / --help-color); no varía por
-  // categoría — eso ahora solo distingue a los chips de filtro.
-  private readonly NEED_PIN_COLOR = '#e65f32';
-  private readonly RESOURCE_PIN_COLOR = '#2f83a8';
+  // mismo por tipo, coral/teal del resto del rediseño (no --need-color /
+  // --help-color, que son otro par de tonos usado en botones); no varía
+  // por categoría — eso ahora solo distingue a los chips de filtro.
+  private readonly NEED_PIN_COLOR = '#e0512c';
+  private readonly RESOURCE_PIN_COLOR = '#17857a';
 
   private readonly NEED_PIN_INNER = `
     <path d="M15 21c-5.4-3.7-9.4-6.7-9.4-10.7a4.3 4.3 0 0 1 8-2.7 4.3 4.3 0 0 1 8 2.7c0 4-4 7-9.4 10.7Z"

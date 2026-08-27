@@ -379,12 +379,15 @@
   border-radius: 50%;
 }
 
+// Coral/teal del resto del rediseño, no --need-color/--help-color (ese es
+// otro par de tonos, usado en botones) -- un solo criterio de color para
+// necesidad/recurso en toda la app.
 .mapa__legend-swatch--need {
-  background: var(--need-color);
+  background: #e0512c;
 }
 
 .mapa__legend-swatch--resource {
-  background: var(--help-color);
+  background: #17857a;
 }
 
 .mapa__legend-swatch--location {

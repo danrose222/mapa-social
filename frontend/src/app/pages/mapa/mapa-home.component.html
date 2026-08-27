@@ -176,22 +176,26 @@
     <div class="mapa__count">{{ visibleCount() }} puntos visibles</div>
 
     <div class="mapa__legend">
-      <div class="mapa__legend-item">
-        <span class="mapa__legend-swatch mapa__legend-swatch--need"></span>
-        Necesidad
-      </div>
+      @if (showNeedLegend()) {
+        <div class="mapa__legend-item">
+          <span class="mapa__legend-swatch mapa__legend-swatch--need"></span>
+          Necesidad
+        </div>
+      }
       <div class="mapa__legend-item">
         <span class="mapa__legend-swatch mapa__legend-swatch--resource"></span>
         Recurso
       </div>
-      <div class="mapa__legend-item">
-        <span class="mapa__legend-swatch mapa__legend-swatch--actor">C</span>
-        Comunidad
-      </div>
-      <div class="mapa__legend-item">
-        <span class="mapa__legend-swatch mapa__legend-swatch--actor">O</span>
-        ONG
-      </div>
+      @if (showActorLegend()) {
+        <div class="mapa__legend-item">
+          <span class="mapa__legend-swatch mapa__legend-swatch--actor">C</span>
+          Comunidad
+        </div>
+        <div class="mapa__legend-item">
+          <span class="mapa__legend-swatch mapa__legend-swatch--actor">O</span>
+          ONG
+        </div>
+      }
       <div class="mapa__legend-item">
         <span class="mapa__legend-swatch mapa__legend-swatch--location"></span>
         Tu ubicación
