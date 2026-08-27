@@ -1,20 +1,21 @@
 :host {
   display: block;
   min-height: 100vh;
+  background: var(--bg);
 }
 
 .mi-org {
-  max-width: 520px;
+  max-width: 760px;
   margin: 0 auto;
-  padding: 20px 20px 60px;
+  padding: 28px 24px 64px;
 }
 
 .mi-org__header {
-  padding: 12px 0 24px;
+  padding: 4px 0 28px;
 
   h1 {
-    margin: 10px 0 0;
-    font-size: 1.6rem;
+    margin: 14px 0 0;
+    font-size: var(--text-lg);
   }
 }
 
@@ -27,6 +28,9 @@
 }
 
 .mi-org__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--ink-soft);
   font-size: 0.85rem;
   font-weight: 600;
@@ -34,11 +38,11 @@
 
 .mi-org__personal-links {
   display: flex;
-  gap: 14px;
+  gap: 16px;
 
   a {
     color: var(--ink-soft);
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     font-weight: 600;
 
     &:hover {
@@ -58,7 +62,7 @@
 }
 
 .mi-org__empty {
-  padding: 32px 26px;
+  padding: 36px 26px;
   text-align: center;
 
   p {
@@ -68,37 +72,71 @@
 }
 
 .mi-org__card {
-  padding: 24px;
-  margin-bottom: 18px;
+  padding: 26px 28px;
+  margin-bottom: 20px;
+  border-radius: var(--radius-md);
 
   h2 {
-    margin-bottom: 12px;
-    font-size: 1.05rem;
+    margin: 0 0 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
   }
+}
+
+// Franja de color a la izquierda -- se lee el estado sin tener que buscar
+// el badge, sin recurrir a un fondo de marca llamativo (nada de esto es
+// una página pública).
+.mi-org__validation {
+  border-left: 4px solid var(--brand);
+}
+
+.mi-org__validation--verified {
+  border-left-color: var(--help-color);
 }
 
 .mi-org__badge-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .mi-org__public-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--help-color-text);
   font-size: 0.82rem;
   font-weight: 600;
   text-decoration: underline;
 }
 
-.mi-org__pending {
+// Mismo par de badges que el resto de los paneles: teal para lo aprobado,
+// coral para lo que sigue pendiente.
+.mi-org__badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  color: var(--need-color-text);
-  font-size: 0.78rem;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.mi-org__badge--pending {
+  background: var(--brand-soft);
+  color: var(--need-color-text);
+}
+
+.mi-org__badge--verified {
+  background: var(--help-color-soft);
+  color: var(--help-color-text);
 }
 
 .mi-org__validation-date {
@@ -120,6 +158,14 @@
   font-weight: 600;
 }
 
+// Mismo foco teal que login/registro -- consistencia entre formularios de
+// toda la app, no solo las pantallas públicas.
+.mi-org .field input:focus,
+.mi-org .field textarea:focus {
+  border-color: #17857a;
+  box-shadow: 0 0 0 4px rgb(23 133 122 / 12%);
+}
+
 .mi-org__alert {
   margin: 0 0 14px;
   padding: 10px 14px;
@@ -134,19 +180,29 @@
   font-size: 0.88rem;
 }
 
+// Lista de recursos como filas prolijas, no una lista con viñetas -- mismo
+// lenguaje que el resto de listas del panel.
 .mi-org__resource-list {
-  margin: 0 0 16px;
-  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 0;
+  list-style: none;
   color: var(--ink);
-  font-size: 0.9rem;
+  font-size: 0.92rem;
 
   li {
-    margin-bottom: 4px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
   }
 }
 
 .mi-org__add-resource {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .mi-org__private-hint {
@@ -165,9 +221,14 @@
   list-style: none;
 
   li {
-    padding: 12px 14px;
+    padding: 14px 16px;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
+    transition: border-color 150ms ease;
+
+    &:hover {
+      border-color: var(--ink-soft);
+    }
 
     p {
       margin: 6px 0;
@@ -220,4 +281,10 @@
   color: var(--verified);
   font-size: 0.85rem;
   font-weight: 600;
+}
+
+@media (max-width: 560px) {
+  .mi-org__card {
+    padding: 20px;
+  }
 }
