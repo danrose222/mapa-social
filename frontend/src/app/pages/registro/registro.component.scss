@@ -24,6 +24,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   overflow: hidden;
   padding: 52px 46px;
   background: var(--gradient-warm);
@@ -36,22 +37,6 @@
   background-image: var(--texture-dots);
   opacity: 0.5;
   pointer-events: none;
-}
-
-.auth__brand-logo {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin-bottom: auto;
-  font-weight: 600;
-  font-size: 1.2rem;
-
-  i {
-    color: #ff7a4d;
-    font-size: 1.3rem;
-  }
 }
 
 .auth__brand-copy {
