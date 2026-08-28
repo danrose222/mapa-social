@@ -27,12 +27,23 @@
 
       <div class="field">
         <label for="login-password">Contraseña</label>
-        <input
-          id="login-password"
-          type="password"
-          formControlName="password"
-          autocomplete="current-password"
-        />
+        <div class="auth__password-wrap">
+          <input
+            id="login-password"
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="current-password"
+          />
+          <button
+            type="button"
+            class="auth__password-toggle"
+            (click)="toggleShowPassword()"
+            [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            [attr.aria-pressed]="showPassword()"
+          >
+            <app-icon [name]="showPassword() ? 'eyeOff' : 'eye'" [size]="18" />
+          </button>
+        </div>
       </div>
 
       <button type="submit" class="btn btn--block" [disabled]="isSubmitting()">

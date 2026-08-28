@@ -47,6 +47,39 @@
   line-height: 1.4;
 }
 
+.auth__password-wrap {
+  position: relative;
+
+  input {
+    // Deja lugar al botón sin que el texto tipeado le quede por debajo --
+    // mismo padding vertical del resto de los campos, solo se agranda el
+    // derecho.
+    padding-right: 42px;
+  }
+}
+
+.auth__password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-faint);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--ink-soft);
+    background: var(--surface-sunken);
+  }
+}
+
 .auth__switch {
   margin: 18px 0 0;
   color: var(--ink-soft);
