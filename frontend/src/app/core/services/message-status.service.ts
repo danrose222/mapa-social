@@ -5,13 +5,12 @@ import { Injectable, signal } from '@angular/core';
 // su propio panel -- puramente informativo para ella misma, no cambia
 // nada del lado de quien escribió. 'nuevo' es el default implícito, no
 // se guarda explícitamente hasta que alguien lo cambia.
-export type MessageStatus = 'nuevo' | 'contactado' | 'tomado' | 'derivado' | 'rechazado' | 'revision';
+export type MessageStatus = 'nuevo' | 'contactado' | 'tomado' | 'rechazado' | 'revision';
 
 export const MESSAGE_STATUS_OPTIONS: { value: MessageStatus; label: string }[] = [
   { value: 'nuevo', label: 'Sin gestionar' },
   { value: 'contactado', label: 'Contactado' },
   { value: 'tomado', label: 'Tomado' },
-  { value: 'derivado', label: 'Derivado' },
   { value: 'revision', label: 'Para revisar' },
   { value: 'rechazado', label: 'Rechazado' },
 ];
