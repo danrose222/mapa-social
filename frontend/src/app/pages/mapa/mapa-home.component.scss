@@ -527,9 +527,10 @@
   text-decoration: none;
 }
 
-// Las dos acciones del popup van juntas ahora (antes se mostraba una sola
-// según la puerta de entrada al mapa) -- el margen que separaba el botón
-// del resto del popup pasa al contenedor, no a cada botón.
+// Entrando por un CTA del hero (?type=need/?type=help) se ve un solo botón,
+// el de esa intención; entrando sin elegir (navbar, Quiénes Somos, etc.) se
+// ven las dos juntas -- el margen que separaba el botón del resto del popup
+// pasa al contenedor, no a cada botón, para que funcione en ambos casos.
 ::ng-deep .v2map-popup__actions {
   display: flex;
   flex-direction: column;

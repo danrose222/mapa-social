@@ -93,6 +93,9 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   // popup de un recurso, que ni siquiera pide cuenta).
   private readonly entryType = this.route.snapshot.queryParamMap.get('type');
   readonly needEntryMode = this.entryType === 'need';
+  // El otro CTA explícito del hero (?type=help, "Quiero Ayudar"): igual de
+  // intencional que needEntryMode, solo que para el lado donante.
+  readonly helpEntryMode = this.entryType === 'help';
 
   // Sin sesión arranca en 'recursos' (las necesidades no se ocultan del
   // todo, pero no son la vista por defecto sin login); llegar con
@@ -1176,24 +1179,32 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       }
     }
 
-    // Antes se mostraba UNA sola acción según por qué puerta entró al mapa
-    // (?type=need vs. el resto) -- obligaba a volver al Inicio y entrar de
-    // nuevo por la otra puerta para cambiar de intención. Ahora se
-    // muestran las dos juntas, siempre, para que alguien que iba a donar
-    // pueda igual pedir este recurso puntual (y viceverso) sin salir del
-    // mapa. Solo tiene sentido con una organización detrás -- el recurso
-    // de un individuo no tiene a quién pedirle ni con quién colaborar.
+    // Si entró por uno de los dos CTA del hero (?type=need / ?type=help)
+    // ya eligió intención en el Inicio -- se mantiene el botón único de
+    // siempre para esa intención. Si entró sin elegir (navbar "Mapa",
+    // "Quiénes Somos", o cualquier otra puerta sin ?type) antes solo veía
+    // "Quiero Colaborar" y tenía que volver al Inicio para pedir ayuda --
+    // ahí sí se muestran las dos acciones juntas. Solo tiene sentido con
+    // una organización detrás -- el recurso de un individuo no tiene a
+    // quién pedirle ni con quién colaborar.
+    const solicitarBtn =
+      `<button type="button" class="v2map-popup__collab-btn" ` +
+      `data-solicitar-resource-id="${resource.id}">🤝 Quiero este recurso</button>`;
+    const colaborarBtn =
+      `<button type="button" class="v2map-popup__collab-btn v2map-popup__collab-btn--secondary" ` +
+      `data-collab-resource-id="${resource.id}">❤️ Quiero Colaborar</button>`;
+    const actionButtonsHtml = this.needEntryMode
+      ? solicitarBtn
+      : this.helpEntryMode
+        ? colaborarBtn
+        : solicitarBtn + colaborarBtn;
     const actionHtml = resource.organizationId
-      ? `<div class="v2map-popup__actions">` +
-        `<button type="button" class="v2map-popup__collab-btn" ` +
-        `data-solicitar-resource-id="${resource.id}">🤝 Quiero este recurso</button>` +
-        `<button type="button" class="v2map-popup__collab-btn v2map-popup__collab-btn--secondary" ` +
-        `data-collab-resource-id="${resource.id}">❤️ Quiero Colaborar</button>` +
-        `</div>`
+      ? `<div class="v2map-popup__actions">${actionButtonsHtml}</div>`
       : '';
 
-    // El ENCUADRE del popup (no las acciones, ya combinadas arriba) sigue
-    // dependiendo de por qué puerta se entró al mapa. En modo donante, el
+    // El ENCUADRE del popup (independiente de qué acciones se armaron
+    // arriba) sigue dependiendo de por qué puerta se entró al mapa. En
+    // modo donante, el
     // popup se arma alrededor de la organización (nombre grande, el
     // recurso pasa a ser un dato secundario) y esconde el contacto
     // directo: mostrarlo ahí arruinaría el propósito del modal "Quiero
