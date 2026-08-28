@@ -1,0 +1,159 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.mis-pub {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px 20px 60px;
+}
+
+.mis-pub__header {
+  padding: 12px 0 20px;
+
+  h1 {
+    margin: 10px 0 6px;
+    font-size: 1.6rem;
+  }
+
+  p {
+    color: var(--ink-soft);
+    font-size: 0.88rem;
+  }
+}
+
+.mis-pub__back {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.mis-pub__status {
+  padding: 60px 20px;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.mis-pub__status--error {
+  color: var(--danger);
+}
+
+.mis-pub__tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.mis-pub__alert {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: #f8dcd6;
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+
+.mis-pub__empty {
+  padding: 32px 24px;
+  text-align: center;
+
+  p {
+    margin-bottom: 14px;
+    color: var(--ink-soft);
+  }
+}
+
+.mis-pub__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mis-pub__item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+}
+
+.mis-pub__title {
+  margin: 0 0 4px;
+  font-weight: 700;
+  font-size: 0.94rem;
+}
+
+.mis-pub__meta {
+  margin: 0 0 6px;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+.mis-pub__desc {
+  margin: 0;
+  max-width: 380px;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.mis-pub__resolved-by {
+  margin: 6px 0 0;
+  color: var(--help-color-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.mis-pub__status-tag {
+  font-weight: 700;
+}
+
+.mis-pub__status-tag--active,
+.mis-pub__status-tag--available {
+  color: var(--help-color-text);
+}
+
+.mis-pub__status-tag--resolved {
+  color: var(--need-color-text);
+}
+
+.mis-pub__flag {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.mis-pub__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 0 0 auto;
+  width: 168px;
+}
+
+.mis-pub__actions .btn {
+  width: 100%;
+  padding: 7px 10px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+}
+
+.mis-pub__delete {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+@media (max-width: 480px) {
+  .mis-pub__item {
+    flex-direction: column;
+  }
+
+  .mis-pub__actions {
+    width: 100%;
+    flex-direction: row;
+  }
+}

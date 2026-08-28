@@ -1,0 +1,170 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.inicio {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 48px 20px 72px;
+}
+
+.inicio__hero {
+  position: relative;
+  overflow: hidden;
+  margin: 0 0 44px;
+  padding: 64px 24px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--ink), var(--brand-dark));
+  text-align: center;
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    margin: 10px 0 16px;
+    color: #fff;
+    font-size: 2rem;
+    text-wrap: balance;
+  }
+
+  // Blanco sólido (no translúcido): el gradiente va de --ink a --brand-dark,
+  // y en la esquina --brand-dark un blanco al 85% de opacidad cae a 3.7:1,
+  // por debajo del 4.5:1 que pide WCAG AA para texto normal. Sólido da 4.56:1
+  // en el peor punto del gradiente.
+  p {
+    color: #fff;
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+}
+
+.inicio__eyebrow {
+  display: inline-block;
+  // Antes #f6dcc2 (durazno claro): contra la esquina --brand-dark del
+  // gradiente da solo 3.46:1, por debajo de AA para texto chico. Blanco
+  // sólido asegura 4.56:1 como mínimo en cualquier punto del gradiente.
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.inicio__cta-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  // El foco por defecto (outline var(--brand)) contra la esquina
+  // --brand-dark del gradiente da 1.31:1 -- casi invisible. Blanco
+  // asegura ≥4.5:1 contra cualquier punto del gradiente.
+  .btn:focus-visible {
+    outline-color: #fff;
+  }
+
+  // .btn--ghost global usa texto var(--ink) (oscuro) pensado para tarjetas
+  // claras -- sobre el fondo oscuro del hero queda ilegible, así que acá
+  // se pisa con una variante clara/translúcida. El overlay es NEGRO (no
+  // blanco): uno blanco sobre la esquina --brand-dark del gradiente
+  // aclara demasiado el naranja de fondo y el texto blanco queda en
+  // 3.9:1 (hover 3.4:1), por debajo de AA. Oscurecer en cambio sube el
+  // contraste sin importar en qué punto del gradiente caiga el botón.
+  .btn--ghost {
+    background: rgb(0 0 0 / 22%);
+    color: #fff;
+    border-color: rgb(255 255 255 / 35%);
+
+    &:hover:not(:disabled) {
+      background: rgb(0 0 0 / 32%);
+    }
+  }
+
+  // Naranja sólido para "Quiero Ayudar / Donar": --brand (#e65f32) da
+  // 3.47:1 con texto blanco, por debajo de AA. Este tono (un escalón más
+  // oscuro que --brand-dark) da 5.2:1 en reposo y 6:1 en hover, sin
+  // tocar el token --brand global usado en el resto de la app.
+  .btn--cta-donar {
+    background: #b94823;
+
+    &:hover:not(:disabled) {
+      background: #a94220;
+    }
+  }
+}
+
+.inicio__how {
+  margin: 0 0 32px;
+  padding: 28px 20px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  text-align: center;
+
+  h2 {
+    margin: 0 0 20px;
+    font-size: 1.2rem;
+  }
+}
+
+.inicio__how-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.inicio__how-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+
+  p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+}
+
+.inicio__how-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+
+.inicio__how-number {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+
+.inicio__org-cta {
+  margin-top: 20px;
+}
+
+@media (max-width: 560px) {
+  .inicio__cta-row {
+    flex-direction: column;
+  }
+
+  .inicio__how-steps {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}

@@ -1,0 +1,30 @@
+<div class="locality-ac">
+  <input
+    type="text"
+    [id]="id"
+    [(ngModel)]="queryText"
+    (input)="onInput()"
+    (focus)="onInput()"
+    (blur)="onBlur()"
+    (keydown.enter)="onEnter($event)"
+    placeholder="Escribí una localidad (ej: Río Segundo)"
+    autocomplete="off"
+  />
+
+  @if (isSearching()) {
+    <span class="locality-ac__status">Buscando…</span>
+  }
+
+  @if (isOpen()) {
+    <ul class="locality-ac__list">
+      @for (item of results(); track item.nombre + item.provincia.nombre) {
+        <li>
+          <button type="button" (click)="select(item)">
+            {{ item.nombre }}
+            <span class="locality-ac__province">{{ item.provincia.nombre }}</span>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</div>

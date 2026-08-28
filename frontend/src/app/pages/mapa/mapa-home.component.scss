@@ -1,0 +1,437 @@
+:host {
+  display: block;
+  height: calc(100vh - 64px);
+}
+
+.mapa {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.mapa__search {
+  padding: 12px 20px 0;
+
+  input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+    font-size: 0.92rem;
+
+    &:focus {
+      border-color: var(--brand);
+      outline: none;
+      box-shadow: 0 0 0 3px var(--brand-soft);
+    }
+  }
+}
+
+.mapa__territory {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px 0;
+}
+
+.mapa__territory-select {
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  &:focus {
+    border-color: var(--brand);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--brand-soft);
+  }
+}
+
+.mapa__pagination {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mapa__pagination-status {
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+.mapa__pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+.mapa__page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--surface-sunken);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.mapa__chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  overflow-x: auto;
+}
+
+.chip--tinted {
+  border-color: var(--chip-color, var(--border));
+
+  &.is-active {
+    background: var(--chip-color, var(--brand));
+    border-color: var(--chip-color, var(--brand));
+  }
+}
+
+// No se deshabilita con [disabled] real: al click igual tiene que disparar
+// setKindFilter() para mostrar el aviso de privacidad -- opacidad + cursor
+// alcanza como señal visual de "esto está restringido".
+.chip--locked {
+  gap: 4px;
+  opacity: 0.55;
+  cursor: not-allowed;
+
+  &.is-active {
+    background: var(--surface);
+    color: var(--ink-soft);
+  }
+}
+
+.chip--clear {
+  border-color: transparent;
+  background: transparent;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+
+  &:hover {
+    background: transparent;
+    color: var(--ink);
+  }
+}
+
+.mapa__chips-divider {
+  width: 1px;
+  height: 20px;
+  flex: 0 0 1px;
+  background: var(--border);
+}
+
+.mapa__privacy-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 20px 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  color: var(--ink);
+  font-size: 0.84rem;
+
+  span {
+    flex: 1;
+  }
+}
+
+.mapa__privacy-banner-login {
+  flex: 0 0 auto;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--brand);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--brand-dark);
+  }
+}
+
+.mapa__privacy-banner-close {
+  flex: 0 0 auto;
+  padding: 4px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--ink);
+  }
+}
+
+.mapa__canvas-wrap {
+  position: relative;
+  flex: 1;
+  margin: 0 20px 20px;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+
+.mapa__canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.mapa__status {
+  position: absolute;
+  z-index: 5;
+  top: 16px;
+  left: 16px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+  font-size: 0.85rem;
+}
+
+.mapa__status--error {
+  background: #f8dcd6;
+  color: var(--danger);
+}
+
+.mapa__search-area-btn {
+  position: absolute;
+  z-index: 6;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.84rem;
+  font-weight: 700;
+  box-shadow: var(--shadow-2);
+  cursor: pointer;
+
+  &:hover {
+    background: #1c2f47;
+  }
+}
+
+.mapa__empty-state {
+  position: absolute;
+  z-index: 6;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: min(90%, 420px);
+  padding: 16px 20px;
+  border-radius: var(--radius-lg);
+  background: rgb(255 255 255 / 96%);
+  box-shadow: var(--shadow-2);
+  text-align: center;
+
+  p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+  }
+
+  .btn {
+    font-size: 0.85rem;
+    padding: 10px 18px;
+    white-space: normal;
+    text-align: center;
+  }
+}
+
+.mapa__count {
+  position: absolute;
+  z-index: 5;
+  bottom: 16px;
+  left: 16px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 92%);
+  box-shadow: var(--shadow-1);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.mapa__publish-btn {
+  position: fixed;
+  z-index: 1200;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 30px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--brand);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  box-shadow: var(--shadow-2);
+  cursor: pointer;
+  transition: transform 150ms ease;
+
+  &:hover {
+    transform: translateX(-50%) translateY(-2px);
+  }
+}
+
+@media (max-width: 760px) {
+  .mapa__canvas-wrap {
+    margin: 0 12px 90px;
+  }
+}
+
+// El contenido del popup lo inyecta Leaflet directamente al DOM (fuera del
+// árbol de Angular), así que las reglas normales con encapsulación no le
+// llegan — necesita ::ng-deep.
+::ng-deep .v2map-popup {
+  min-width: 200px;
+  font-family: var(--font-body);
+
+  strong {
+    display: block;
+    margin-top: 4px;
+    color: var(--ink);
+    font-size: 0.92rem;
+  }
+}
+
+::ng-deep .v2map-popup__img {
+  display: block;
+  width: 100%;
+  height: 110px;
+  margin: -12px -12px 8px;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  object-fit: cover;
+}
+
+::ng-deep .v2map-popup__org {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+::ng-deep .v2map-popup__verified {
+  color: var(--verified);
+}
+
+::ng-deep .v2map-popup__org-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+  font-size: 0.98rem;
+}
+
+::ng-deep .v2map-popup__offers {
+  margin: 4px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+::ng-deep .v2map-popup__desc {
+  margin: 4px 0 6px;
+  color: var(--ink-soft);
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+::ng-deep .v2map-popup__row {
+  margin: 4px 0;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+::ng-deep .v2map-popup__no-contact {
+  margin: 8px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+::ng-deep .v2map-popup__contact-btn {
+  display: block;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  // --help-color (#2f83a8) con texto blanco da 4.26:1, por debajo de AA
+  // para este tamaño/peso -- --help-color-text ya es la variante pensada
+  // para texto (6.73:1) y comparte el mismo tono.
+  background: var(--help-color-text);
+  // !important necesario: este botón es un <a> dentro del popup de
+  // Leaflet, inyectado como HTML plano (no vía binding de Angular) --
+  // Leaflet le pone su propio color de link (.leaflet-container a), con
+  // más especificidad que una sola clase nuestra. Sin esto el texto queda
+  // en el azul de Leaflet (#0078a8), casi invisible sobre este fondo.
+  color: #fff !important;
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+
+// Mismo peso visual que .v2map-popup__contact-btn (mismo padding/tamaño de
+// fuente), con un color propio para distinguirla como una acción distinta.
+::ng-deep .v2map-popup__collab-btn {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: #b94823;
+  color: #fff;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+
+  &:hover {
+    background: #a94220;
+  }
+}

@@ -1,0 +1,241 @@
+@if (!need()) {
+  <p class="detalle__status">Cargando…</p>
+} @else {
+  <div class="detalle">
+    <div class="card detalle__card">
+      <h1>Información de la solicitud</h1>
+
+      @if (need()!.imageUrl) {
+        <img class="detalle__image" [src]="need()!.imageUrl" alt="Foto de la necesidad" />
+      }
+
+      @if (need()!.organization) {
+        <div class="detalle__org">
+          <div class="detalle__org-avatar">
+            <app-icon name="building" [size]="22" />
+          </div>
+          <div>
+            <p class="detalle__org-label">Gestionado por</p>
+            <p class="detalle__org-name">
+              {{ need()!.organization!.name }}
+              @if (need()!.organization!.verified) {
+                <span class="badge-verified">
+                  <app-icon name="check" [size]="12" />
+                  Verificada
+                </span>
+              }
+            </p>
+            @if (need()!.organization!.address) {
+              <p class="detalle__org-line">
+                <app-icon name="pin" [size]="13" />
+                {{ need()!.organization!.address }}
+              </p>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="detalle__need">
+        <span class="detalle__need-avatar">
+          <app-icon name="hands" [size]="18" />
+        </span>
+        <div>
+          <p class="detalle__need-title">{{ need()!.title }}</p>
+          @if (need()!.locality) {
+            <p class="detalle__need-locality">
+              <app-icon name="pin" [size]="12" />
+              {{ need()!.locality }}
+            </p>
+          }
+        </div>
+      </div>
+
+      <p class="detalle__desc">{{ need()!.description }}</p>
+
+      @if (need()!.status === 'resolved') {
+        <p class="detalle__resolved-note">
+          <app-icon name="check" [size]="13" />
+          Marcada como resuelta
+          @if (need()!.resolvedBy) {
+            por {{ need()!.resolvedBy!.firstName }} {{ need()!.resolvedBy!.lastName }}
+          }
+          @if (need()!.resolvedAt) {
+            el {{ need()!.resolvedAt | date: 'dd/MM/yyyy, HH:mm' }}
+          }
+        </p>
+      }
+
+      <!-- Caso 1: no está logueado -->
+      @if (!currentUser()) {
+        <div class="detalle__login-prompt">
+          <p>Iniciá sesión para ofrecerte a ayudar.</p>
+          <a routerLink="/entrar" class="btn">Iniciar sesión</a>
+        </div>
+      }
+
+      <!-- Caso 2: es el dueño de la necesidad -- gestiona quién se ofreció -->
+      @else if (isOwner()) {
+        <div class="detalle__owner-panel">
+          <h2>Quién se ofreció</h2>
+
+          @if (loadingSolicitudes()) {
+            <p class="detalle__status">Cargando…</p>
+          } @else if (solicitudes().length === 0) {
+            <p class="detalle__empty">Todavía nadie se ofreció a ayudar.</p>
+          } @else {
+            <ul class="detalle__solicitud-list">
+              @for (s of solicitudes(); track s.id) {
+                <li class="detalle__solicitud-item">
+                  <div>
+                    <p class="detalle__solicitud-name">
+                      {{ s.helper?.firstName }} {{ s.helper?.lastName }}
+                    </p>
+                    @if (s.message) {
+                      <p class="detalle__solicitud-message">"{{ s.message }}"</p>
+                    }
+                    <p class="detalle__solicitud-status detalle__solicitud-status--{{ s.status }}">
+                      {{ s.status === 'pending' ? 'Pendiente' : s.status === 'accepted' ? 'Aceptada' : 'Rechazada' }}
+                    </p>
+                  </div>
+
+                  @if (s.status === 'pending') {
+                    <div class="detalle__solicitud-actions">
+                      <button
+                        type="button"
+                        class="btn"
+                        [disabled]="processingSolicitudId() === s.id"
+                        (click)="respond(s, 'accepted')"
+                      >
+                        Aceptar
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn--ghost"
+                        [disabled]="processingSolicitudId() === s.id"
+                        (click)="respond(s, 'rejected')"
+                      >
+                        Rechazar
+                      </button>
+                    </div>
+                  }
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      }
+
+      <!-- Caso 3: contacto ya habilitado (organizacion, o mi solicitud fue aceptada) -->
+      @else if (hasDirectContact()) {
+        <div class="detalle__contact-panel">
+          <p class="detalle__contact-caption">Tu ofrecimiento fue aceptado — contactá directo:</p>
+
+          <div class="detalle__contact-actions">
+            @if (telHref()) {
+              <a [href]="telHref()!" class="btn">
+                <app-icon name="phone" [size]="15" />
+                Llamar
+              </a>
+            }
+            @if (mailHref()) {
+              <a [href]="mailHref()!" class="btn btn--ghost">
+                <app-icon name="mail" [size]="15" />
+                Enviar email
+              </a>
+            }
+            @if (!telHref() && !mailHref()) {
+              <p class="detalle__contact-raw">{{ need()!.contactInfo }}</p>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Caso 4: ya envié una solicitud, esperando respuesta o rechazada -->
+      @else if (loadingMySolicitud()) {
+        <p class="detalle__status">Cargando…</p>
+      } @else if (mySolicitud(); as sol) {
+        <div class="detalle__my-solicitud detalle__my-solicitud--{{ sol.status }}">
+          @if (sol.status === 'pending') {
+            <p>Ya te ofreciste a ayudar — esperando que {{ need()!.organization ? 'la organización' : 'la persona' }} responda.</p>
+          } @else if (sol.status === 'rejected') {
+            <p>Esta vez no fuiste seleccionado para ayudar con esta necesidad.</p>
+          }
+        </div>
+      }
+
+      <!-- Caso 5: todavia no me ofreci -->
+      @else {
+        <div class="detalle__offer-panel">
+          @if (solicitudError()) {
+            <p class="detalle__alert">{{ solicitudError() }}</p>
+          }
+
+          <label for="offer-message" class="detalle__offer-label">
+            Mensaje (opcional)
+          </label>
+          <textarea
+            id="offer-message"
+            class="detalle__offer-textarea"
+            [value]="messageText()"
+            (input)="messageText.set($any($event.target).value)"
+            placeholder="Contale cómo podés ayudar"
+          ></textarea>
+
+          <button
+            type="button"
+            class="btn btn--block detalle__confirm-btn"
+            [disabled]="isSubmittingSolicitud()"
+            (click)="ofrecerAyuda()"
+          >
+            <app-icon name="heart" [size]="16" [filled]="true" />
+            {{ isSubmittingSolicitud() ? 'Enviando…' : 'Ofrecerme a ayudar' }}
+          </button>
+        </div>
+      }
+    </div>
+
+    @if (matchesLoading()) {
+      <div class="card detalle__matches-card">
+        <p class="detalle__status">Buscando recursos cerca…</p>
+      </div>
+    } @else if (matches().length > 0) {
+      <div class="card detalle__matches-card">
+        <h2>Recursos que podrían ayudarte</h2>
+        <p class="detalle__matches-caption">
+          Misma categoría, cerca de esta necesidad.
+        </p>
+
+        <ul class="detalle__matches-list">
+          @for (resource of matches(); track resource.id) {
+            <li class="detalle__match-item">
+              <div>
+                <p class="detalle__match-title">{{ resource.title }}</p>
+                @if (resource.organization) {
+                  <p class="detalle__match-org">
+                    🏢 {{ resource.organization.name }}
+                    @if (resource.organization.verified) {
+                      <span class="badge-verified">✓</span>
+                    }
+                  </p>
+                }
+                @if (resource.schedule) {
+                  <p class="detalle__match-meta">🕒 {{ resource.schedule }}</p>
+                }
+              </div>
+
+              @if (resource.contactInfo) {
+                <span class="detalle__match-has-contact">Con contacto</span>
+              }
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    <p class="detalle__footer-links">
+      <a routerLink="/publicar/quiero-ayudar">Atrás</a>
+      <span aria-hidden="true">·</span>
+      <a routerLink="/publicar/quiero-ayudar">Otras solicitudes</a>
+    </p>
+  </div>
+}

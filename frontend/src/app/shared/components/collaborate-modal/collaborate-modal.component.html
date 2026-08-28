@@ -1,0 +1,86 @@
+<app-modal-shell [showCloseButton]="!success()" (closed)="close()">
+  @if (success()) {
+    <div class="collab-success">
+      <app-icon name="check" [size]="28" />
+      <h2>¡Gracias por tu interés!</h2>
+      <p>Tu mensaje fue enviado a {{ resource.organization?.name }}.</p>
+      <p class="collab-success__followup">
+        Si querés que puedan responderte y hacer seguimiento, podés
+        <a routerLink="/registro">crear una cuenta</a> (no es obligatorio).
+      </p>
+      <button type="button" class="btn btn--block" (click)="close()">Cerrar</button>
+    </div>
+  } @else {
+    <div class="collab-org">
+      <app-icon name="hands" [size]="22" />
+      <div>
+        <strong>{{ resource.organization?.name }}</strong>
+        @if (resource.organization?.verified) {
+          <span class="badge-verified">✓ Verificada</span>
+        }
+        <p class="collab-org__meta">
+          {{ organizationTypeLabel }}
+          @if (resource.organization?.ciudad) {
+            · {{ resource.organization?.ciudad }}
+          }
+        </p>
+        @if (resource.organization?.address) {
+          <p class="collab-org__meta">{{ resource.organization?.address }}</p>
+        }
+      </div>
+    </div>
+
+    <h2>Quiero colaborar</h2>
+    <p class="collab-subtitle">
+      Tu mensaje llega directo a esta organización, sin necesidad de crear una cuenta. No
+      compartimos tu contacto con nadie más ni el de las personas que pidieron ayuda.
+    </p>
+
+    @if (errorMessage()) {
+      <p class="collab-alert">{{ errorMessage() }}</p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field">
+        <label for="collab-name">Tu nombre *</label>
+        <input id="collab-name" type="text" formControlName="contactName" autocomplete="name" />
+      </div>
+
+      <div class="field">
+        <label for="collab-email">Tu email *</label>
+        <input
+          id="collab-email"
+          type="email"
+          formControlName="contactEmail"
+          autocomplete="email"
+        />
+      </div>
+
+      <div class="field">
+        <label for="collab-message">Mensaje (opcional)</label>
+        <textarea
+          id="collab-message"
+          formControlName="message"
+          rows="3"
+          maxlength="1000"
+          placeholder="Contales cómo te gustaría colaborar."
+        ></textarea>
+      </div>
+
+      <div class="collab-honeypot" aria-hidden="true">
+        <label for="collab-website">Sitio web</label>
+        <input
+          id="collab-website"
+          type="text"
+          formControlName="website"
+          tabindex="-1"
+          autocomplete="off"
+        />
+      </div>
+
+      <button type="submit" class="btn btn--block" [disabled]="isSubmitting()">
+        {{ isSubmitting() ? 'Enviando…' : 'Enviar mensaje' }}
+      </button>
+    </form>
+  }
+</app-modal-shell>

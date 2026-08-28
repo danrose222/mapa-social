@@ -1,0 +1,115 @@
+@if (submitted()) {
+  <div class="confirm">
+    <div class="card confirm__card">
+      <span class="confirm__icon" aria-hidden="true">✓</span>
+      <h1>¡Tu necesidad ya está publicada!</h1>
+      <p>Ya aparece en el mapa para que la comunidad pueda ayudarte.</p>
+      <button type="button" class="btn" (click)="volverAlMapa()">Ver el mapa</button>
+    </div>
+  </div>
+} @else {
+  <div class="necesito">
+    <header class="necesito__header">
+      <a routerLink="/publicar" class="necesito__back">← Volver</a>
+      <h1>Necesito ayuda</h1>
+      <p>Contanos qué necesitás. La comunidad lo va a ver en el mapa.</p>
+    </header>
+
+    <div class="card necesito__card">
+      @if (errorMessage()) {
+        <p class="necesito__alert">{{ errorMessage() }}</p>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="field">
+          <label for="need-title">¿Qué necesitás?</label>
+          <input
+            id="need-title"
+            type="text"
+            formControlName="title"
+            placeholder="Ej: Alimentos no perecederos"
+            (keydown.enter)="$event.preventDefault()"
+          />
+        </div>
+
+        <div class="field">
+          <label for="need-category">Categoría</label>
+          <select id="need-category" formControlName="categoryId">
+            <option [ngValue]="null" disabled>Elegí una categoría</option>
+            @for (category of categories(); track category.id) {
+              <option [ngValue]="category.id">{{ category.name }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="need-description">Contanos más</label>
+          <textarea
+            id="need-description"
+            formControlName="description"
+            placeholder="Describí tu situación con el detalle que te parezca necesario"
+          ></textarea>
+        </div>
+
+        <div class="field">
+          <label>Ubicación</label>
+          <app-location-picker
+            (locationSelected)="onLocationSelected($event)"
+            hint="El mapa se ubica solo con tu localidad y dirección. Tocalo si querés precisar el punto exacto."
+          />
+        </div>
+
+        <div class="necesito__row">
+          <div class="field">
+            <label for="need-locality">Barrio / localidad (opcional)</label>
+            <app-locality-autocomplete
+              id="need-locality"
+              (localitySelected)="onLocalitySelected($event)"
+            />
+          </div>
+
+          <div class="field">
+            <label for="need-address">Referencia de dirección (opcional)</label>
+            <app-address-autocomplete
+              id="need-address"
+              [locality]="confirmedLocality()"
+              (textChange)="onAddressTextChanged($event)"
+              (addressSelected)="onAddressSelected($event)"
+            />
+          </div>
+        </div>
+
+        <div class="necesito__row">
+          <div class="field">
+            <label for="need-contact-name">Nombre de contacto (opcional)</label>
+            <input
+              id="need-contact-name"
+              type="text"
+              formControlName="contactName"
+              (keydown.enter)="$event.preventDefault()"
+            />
+          </div>
+
+          <div class="field">
+            <label for="need-contact-info">Teléfono o email (opcional)</label>
+            <input
+              id="need-contact-info"
+              type="text"
+              formControlName="contactInfo"
+              (keydown.enter)="$event.preventDefault()"
+            />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Foto (opcional)</label>
+          <app-image-upload-field (urlChange)="imageUrl.set($event)" />
+        </div>
+
+        <button type="submit" class="btn btn--block" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'Publicando…' : 'Publicar necesidad' }}
+        </button>
+      </form>
+    </div>
+  </div>
+}

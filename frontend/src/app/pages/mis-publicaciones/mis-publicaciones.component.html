@@ -1,0 +1,184 @@
+<div class="mis-pub">
+  <header class="mis-pub__header">
+    <a routerLink="/mapa" class="mis-pub__back">← Volver al mapa</a>
+    <h1>{{ belongsToOrganization() ? 'Mis publicaciones' : 'Mi Actividad' }}</h1>
+    @if (belongsToOrganization()) {
+      <p>Necesidades y recursos que publicaste, con su estado actual.</p>
+    } @else {
+      <p>Tus necesidades publicadas y las solicitudes que le mandaste a organizaciones.</p>
+    }
+  </header>
+
+  @if (isLoading()) {
+    <p class="mis-pub__status">Cargando…</p>
+  } @else if (loadError()) {
+    <p class="mis-pub__status mis-pub__status--error">No se pudo conectar con el servidor.</p>
+  } @else if (showEmptyState()) {
+    <div class="card mis-pub__empty">
+      <p>
+        Aún no has realizado solicitudes ni publicado necesidades. Explorá el mapa para pedir
+        ayuda o contactar organizaciones.
+      </p>
+      <a routerLink="/mapa" class="btn">Ir al Mapa</a>
+    </div>
+  } @else {
+    <div class="mis-pub__tabs">
+      @if (!belongsToOrganization()) {
+        <button
+          type="button"
+          class="chip"
+          [class.is-active]="tab() === 'solicitudes'"
+          (click)="setTab('solicitudes')">
+          Solicitudes a organizaciones ({{ resourceRequests().length }})
+        </button>
+      }
+      <button
+        type="button"
+        class="chip"
+        [class.is-active]="tab() === 'needs'"
+        (click)="setTab('needs')">
+        Mis necesidades ({{ needs().length }})
+      </button>
+      @if (belongsToOrganization()) {
+        <button
+          type="button"
+          class="chip"
+          [class.is-active]="tab() === 'resources'"
+          (click)="setTab('resources')">
+          Mis recursos ({{ resources().length }})
+        </button>
+      }
+    </div>
+
+    @if (actionError()) {
+      <p class="mis-pub__alert">{{ actionError() }}</p>
+    }
+
+    @if (tab() === 'solicitudes') {
+      @if (resourceRequests().length === 0) {
+        <div class="card mis-pub__empty">
+          <p>Todavía no le mandaste ninguna solicitud a una organización.</p>
+          <a routerLink="/mapa" class="btn">Ir al Mapa</a>
+        </div>
+      } @else {
+        <ul class="mis-pub__list">
+          @for (req of resourceRequests(); track req.id) {
+            <li class="card mis-pub__item">
+              <div>
+                <p class="mis-pub__title">{{ req.organization?.name }}</p>
+                <p class="mis-pub__meta">
+                  {{ req.resource?.title }} ·
+                  {{ req.createdAt | date: 'dd/MM/yyyy' }}
+                </p>
+                @if (req.detailText) {
+                  <p class="mis-pub__desc">{{ req.detailText }}</p>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    } @else if (tab() === 'needs') {
+      @if (needs().length === 0) {
+        <div class="card mis-pub__empty">
+          <p>Todavía no publicaste ninguna necesidad.</p>
+          <a routerLink="/publicar/necesito-ayuda" class="btn">Publicar una necesidad</a>
+        </div>
+      } @else {
+        <ul class="mis-pub__list">
+          @for (need of needs(); track need.id) {
+            <li class="card mis-pub__item">
+              <div>
+                <p class="mis-pub__title">{{ need.title }}</p>
+                <p class="mis-pub__meta">
+                  {{ categoryName(need.categoryId) }} ·
+                  <span class="mis-pub__status-tag mis-pub__status-tag--{{ need.status }}">
+                    {{ need.status === 'active' ? 'activa' : 'resuelta' }}
+                  </span>
+                  @if (need.requiresSolicitud) {
+                    · <span class="mis-pub__flag">Contacto oculto (requiere Solicitud)</span>
+                  }
+                </p>
+                <p class="mis-pub__desc">{{ need.description }}</p>
+                @if (need.status === 'resolved' && need.resolvedBy) {
+                  <p class="mis-pub__resolved-by">
+                    ✓ Resuelta por {{ need.resolvedBy.firstName }} {{ need.resolvedBy.lastName }}
+                    @if (need.resolvedAt) { el {{ need.resolvedAt | date: 'dd/MM/yyyy, HH:mm' }} }
+                  </p>
+                }
+              </div>
+
+              <div class="mis-pub__actions">
+                @if (need.status === 'active') {
+                  <button
+                    type="button"
+                    class="btn btn--ghost"
+                    [disabled]="processingId() === need.id"
+                    (click)="resolveNeed(need)">
+                    Marcar resuelta
+                  </button>
+                }
+                <button
+                  type="button"
+                  class="btn btn--ghost mis-pub__delete"
+                  [disabled]="processingId() === need.id"
+                  (click)="deleteNeed(need)">
+                  Eliminar
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    } @else {
+      @if (resources().length === 0) {
+        <div class="card mis-pub__empty">
+          <p>Todavía no publicaste ningún recurso.</p>
+          <a routerLink="/publicar/ofrecer-recurso" class="btn">Ofrecer un recurso</a>
+        </div>
+      } @else {
+        <ul class="mis-pub__list">
+          @for (resource of resources(); track resource.id) {
+            <li class="card mis-pub__item">
+              <div>
+                <p class="mis-pub__title">{{ resource.title }}</p>
+                <p class="mis-pub__meta">
+                  {{ categoryName(resource.categoryId) }} ·
+                  <span class="mis-pub__status-tag mis-pub__status-tag--{{ resource.status }}">
+                    {{ resource.status === 'available' ? 'disponible' : 'resuelto' }}
+                  </span>
+                </p>
+                <p class="mis-pub__desc">{{ resource.description }}</p>
+                @if (resource.status === 'resolved' && resource.resolvedBy) {
+                  <p class="mis-pub__resolved-by">
+                    ✓ Resuelto por {{ resource.resolvedBy.firstName }} {{ resource.resolvedBy.lastName }}
+                    @if (resource.resolvedAt) { el {{ resource.resolvedAt | date: 'dd/MM/yyyy, HH:mm' }} }
+                  </p>
+                }
+              </div>
+
+              <div class="mis-pub__actions">
+                @if (resource.status === 'available') {
+                  <button
+                    type="button"
+                    class="btn btn--ghost"
+                    [disabled]="processingId() === resource.id"
+                    (click)="resolveResource(resource)">
+                    Marcar resuelto
+                  </button>
+                }
+                <button
+                  type="button"
+                  class="btn btn--ghost mis-pub__delete"
+                  [disabled]="processingId() === resource.id"
+                  (click)="deleteResource(resource)">
+                  Eliminar
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    }
+  }
+</div>

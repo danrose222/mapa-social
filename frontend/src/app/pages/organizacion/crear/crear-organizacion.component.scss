@@ -1,0 +1,160 @@
+.crear-org {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 20px 20px 60px;
+}
+
+.crear-org__header {
+  padding: 12px 0 20px;
+
+  h1 {
+    margin: 10px 0 6px;
+    font-size: 1.6rem;
+  }
+
+  p {
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+}
+
+.crear-org__back {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.crear-org__card {
+  padding: 26px;
+}
+
+.crear-org__explain {
+  margin-bottom: 18px;
+  padding: 22px 24px;
+
+  h2 {
+    margin: 0 0 14px;
+    font-size: 1.05rem;
+  }
+}
+
+.crear-org__explain-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.crear-org__explain-item {
+  strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.88rem;
+  }
+
+  p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.84rem;
+    line-height: 1.5;
+  }
+}
+
+.crear-org__login-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 22px 24px;
+
+  p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+  }
+}
+
+.crear-org__terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 4px 0 18px;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  line-height: 1.45;
+
+  input[type='checkbox'] {
+    flex: 0 0 auto;
+    margin-top: 2px;
+  }
+}
+
+.crear-org__jurisdiction-hint {
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
+.crear-org__jurisdiction-hint--city {
+  color: var(--need-color-text);
+}
+
+.crear-org__jurisdiction-hint--self {
+  color: var(--verified);
+}
+
+@media (max-width: 560px) {
+  .crear-org__explain-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.crear-org__alert {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: #f8dcd6;
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+
+.confirm {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.confirm__card {
+  max-width: 400px;
+  padding: 40px 32px;
+  text-align: center;
+
+  h1 {
+    margin: 14px 0 8px;
+    font-size: 1.4rem;
+  }
+
+  p {
+    margin-bottom: 22px;
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+}
+
+.confirm__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+  font-size: 1.6rem;
+  font-weight: 800;
+}

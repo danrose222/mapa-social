@@ -1,0 +1,126 @@
+<header class="shell-header">
+  <a routerLink="/" class="shell-header__brand" (click)="closeMenu()">
+    <app-icon name="heart" [size]="20" [filled]="true" />
+    Mapa Social
+  </a>
+
+  <nav class="shell-header__nav" [class.shell-header__nav--open]="isMenuOpen()">
+    <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">
+      Inicio
+    </a>
+
+    <a routerLink="/mapa" routerLinkActive="is-active" (click)="closeMenu()">
+      Mapa
+    </a>
+
+    <a routerLink="/quienes-somos" routerLinkActive="is-active" (click)="closeMenu()">
+      Quiénes somos
+    </a>
+
+    @if (currentUser()) {
+      <div class="shell-header__dropdown">
+        <button
+          type="button"
+          class="shell-header__dropdown-trigger"
+          (click)="toggleAccountMenu()"
+          [attr.aria-expanded]="isAccountMenuOpen()"
+        >
+          {{ currentUser()?.firstName }}
+          @if (isModerator() && pendingOrgCount() > 0) {
+            <span class="shell-header__badge">{{ pendingOrgCount() }}</span>
+          }
+          <span class="shell-header__chevron">⌄</span>
+        </button>
+
+        @if (isAccountMenuOpen()) {
+          <div class="shell-header__dropdown-menu">
+            @if (!belongsToOrganization()) {
+              <a routerLink="/mis-publicaciones" routerLinkActive="is-active" (click)="closeMenu()">
+                Mis necesidades
+              </a>
+
+              <a routerLink="/mis-solicitudes" routerLinkActive="is-active" (click)="closeMenu()">
+                Mis solicitudes
+              </a>
+            }
+
+            @if (belongsToOrganization() || isModerator()) {
+              <a routerLink="/organizacion/mi-organizacion" routerLinkActive="is-active" (click)="closeMenu()">
+                Panel Institucional
+              </a>
+            }
+
+            @if (!isModerator()) {
+              <a routerLink="/moderador/solicitar" routerLinkActive="is-active" (click)="closeMenu()">
+                Quiero ser moderador municipal
+              </a>
+            }
+
+            @if (isModerator()) {
+              <div class="shell-header__dropdown-divider"></div>
+              <span class="shell-header__dropdown-label">Moderación</span>
+
+              <a routerLink="/moderador/organizaciones" routerLinkActive="is-active" (click)="closeMenu()">
+                Organizaciones
+                @if (pendingOrgCount() > 0) {
+                  <span class="shell-header__badge">{{ pendingOrgCount() }}</span>
+                }
+              </a>
+
+              <a routerLink="/moderador/mis-localidades" routerLinkActive="is-active" (click)="closeMenu()">
+                Mis localidades
+              </a>
+
+              <a routerLink="/moderador/usuarios" routerLinkActive="is-active" (click)="closeMenu()">
+                Usuarios
+              </a>
+
+              <a routerLink="/estadisticas" routerLinkActive="is-active" (click)="closeMenu()">
+                Estadísticas
+              </a>
+            }
+
+            <div class="shell-header__dropdown-divider"></div>
+
+            <button type="button" class="shell-header__dropdown-logout" (click)="logout()">
+              Cerrar sesión
+            </button>
+          </div>
+        }
+      </div>
+    } @else {
+      <a routerLink="/entrar" class="shell-header__cta" (click)="closeMenu()">
+        Entrar
+      </a>
+    }
+  </nav>
+
+  <button
+    type="button"
+    class="shell-header__hamburger"
+    (click)="toggleMenu()"
+    [attr.aria-expanded]="isMenuOpen()"
+    aria-label="Abrir menú"
+  >
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+</header>
+
+@if (currentUser() && !emailVerified()) {
+  <div class="shell-verify-banner">
+    @if (verificationResent()) {
+      <span>Te reenviamos el correo. Revisá tu casilla.</span>
+    } @else {
+      <span>Confirmá tu email para poder publicar o enviar solicitudes.</span>
+      <button type="button" (click)="resendVerification()" [disabled]="isResendingVerification()">
+        {{ isResendingVerification() ? 'Enviando…' : 'Reenviar correo' }}
+      </button>
+    }
+  </div>
+}
+
+<main class="shell-main">
+  <router-outlet />
+</main>

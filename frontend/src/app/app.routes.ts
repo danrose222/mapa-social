@@ -1,16 +1,188 @@
 import { Routes } from '@angular/router';
-import { MainLayoutComponent } from './core/layout/main-layout/main-layout.component';
-import { LoginComponent } from './features/login/login.component';
-import { MapaComponent } from './features/mapa/mapa.component';
+
+import { authGuard } from './core/guards/auth.guard';
+import { moderatorGuard } from './core/guards/moderator.guard';
+import { AppShellComponent } from './layout/app-shell/app-shell.component';
 
 export const routes: Routes = [
   {
     path: '',
-    component: MainLayoutComponent,
+    component: AppShellComponent,
     children: [
-      { path: '', redirectTo: 'mapa', pathMatch: 'full' },
-      { path: 'mapa', component: MapaComponent },
-      { path: 'login', component: LoginComponent }
-    ]
-  }
+      {
+        path: '',
+        loadComponent: () =>
+          import('./pages/inicio/inicio.component').then((m) => m.InicioComponent),
+      },
+      {
+        path: 'mapa',
+        loadComponent: () =>
+          import('./pages/mapa/mapa-home.component').then((m) => m.MapaHomeComponent),
+      },
+      {
+        path: 'verificar-email',
+        loadComponent: () =>
+          import('./pages/verificar-email/verificar-email.component').then(
+            (m) => m.VerificarEmailComponent,
+          ),
+      },
+      {
+        path: 'verificar-moderador',
+        loadComponent: () =>
+          import('./pages/verificar-moderador/verificar-moderador.component').then(
+            (m) => m.VerificarModeradorComponent,
+          ),
+      },
+      {
+        path: 'publicar',
+        loadComponent: () =>
+          import('./pages/publicar/publicar-choice.component').then(
+            (m) => m.PublicarChoiceComponent,
+          ),
+      },
+      {
+        path: 'publicar/necesito-ayuda',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./pages/necesito-ayuda/necesito-ayuda.component').then(
+            (m) => m.NecesitoAyudaComponent,
+          ),
+      },
+      {
+        path: 'publicar/quiero-ayudar',
+        loadComponent: () =>
+          import('./pages/quiero-ayudar/quiero-ayudar.component').then(
+            (m) => m.QuieroAyudarComponent,
+          ),
+      },
+      {
+        path: 'publicar/quiero-ayudar/:id',
+        loadComponent: () =>
+          import('./pages/detalle-solicitud/detalle-solicitud.component').then(
+            (m) => m.DetalleSolicitudComponent,
+          ),
+      },
+      {
+        path: 'estadisticas',
+        canActivate: [moderatorGuard],
+        loadComponent: () =>
+          import('./pages/estadisticas/estadisticas.component').then(
+            (m) => m.EstadisticasComponent,
+          ),
+      },
+      {
+        path: 'quienes-somos',
+        loadComponent: () =>
+          import('./pages/quienes-somos/quienes-somos.component').then(
+            (m) => m.QuienesSomosComponent,
+          ),
+      },
+      {
+        path: 'publicar/ofrecer-recurso',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./pages/ofrecer-recurso/ofrecer-recurso.component').then(
+            (m) => m.OfrecerRecursoComponent,
+          ),
+      },
+      {
+        path: 'mis-solicitudes',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./pages/mis-solicitudes/mis-solicitudes.component').then(
+            (m) => m.MisSolicitudesComponent,
+          ),
+      },
+      {
+        path: 'mis-publicaciones',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./pages/mis-publicaciones/mis-publicaciones.component').then(
+            (m) => m.MisPublicacionesComponent,
+          ),
+      },
+      {
+        path: 'organizacion/mi-organizacion',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./pages/organizacion/mi-organizacion/mi-organizacion.component').then(
+            (m) => m.MiOrganizacionComponent,
+          ),
+      },
+      {
+        // Pública a propósito (sin authGuard): explica el proceso de aval
+        // antes de pedir cuenta -- el propio componente gatea el
+        // formulario (no la explicación) detrás de estar logueado, porque
+        // POST /organizations sí exige JwtAuthGuard.
+        path: 'organizacion/crear',
+        loadComponent: () =>
+          import('./pages/organizacion/crear/crear-organizacion.component').then(
+            (m) => m.CrearOrganizacionComponent,
+          ),
+      },
+      {
+        // Alias en inglés pedido por la tarjeta -- se mantiene la ruta
+        // real en español, consistente con el resto del nav.
+        path: 'register-organization',
+        redirectTo: 'organizacion/crear',
+      },
+      {
+        // Va DESPUÉS de mi-organizacion y crear -- Angular matchea rutas en
+        // el orden del array, no por especificidad, así que si ':id'
+        // estuviera antes capturaría '/organizacion/mi-organizacion' como
+        // si "mi-organizacion" fuera un id.
+        path: 'organizacion/:id',
+        loadComponent: () =>
+          import('./pages/organizacion/perfil/organizacion-perfil.component').then(
+            (m) => m.OrganizacionPerfilComponent,
+          ),
+      },
+      {
+        path: 'moderador/organizaciones',
+        canActivate: [moderatorGuard],
+        loadComponent: () =>
+          import('./pages/moderador/organizaciones/organizaciones-moderador.component').then(
+            (m) => m.OrganizacionesModeradorComponent,
+          ),
+      },
+      {
+        path: 'moderador/mis-localidades',
+        canActivate: [moderatorGuard],
+        loadComponent: () =>
+          import('./pages/moderador/mis-localidades/mis-localidades.component').then(
+            (m) => m.MisLocalidadesComponent,
+          ),
+      },
+      {
+        path: 'moderador/usuarios',
+        canActivate: [moderatorGuard],
+        loadComponent: () =>
+          import('./pages/moderador/usuarios/usuarios-moderador.component').then(
+            (m) => m.UsuariosModeradorComponent,
+          ),
+      },
+      {
+        path: 'moderador/solicitar',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./pages/moderador/solicitar/solicitar-moderador.component').then(
+            (m) => m.SolicitarModeradorComponent,
+          ),
+      },
+      {
+        path: 'entrar',
+        loadComponent: () =>
+          import('./pages/login/login.component').then((m) => m.LoginComponent),
+      },
+      {
+        path: 'registro',
+        loadComponent: () =>
+          import('./pages/registro/registro.component').then((m) => m.RegistroComponent),
+      },
+      {
+        path: '**',
+        redirectTo: '',
+      },
+    ],
+  },
 ];

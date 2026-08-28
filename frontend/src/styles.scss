@@ -1,13 +1,243 @@
 @import 'leaflet/dist/leaflet.css';
-@import '@angular/material/prebuilt-themes/indigo-pink.css';
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
-html, body {
-  height: 100%;
-  margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
-  background: #f5f7fb;
+:root {
+  // Paleta tomada del front original (v1), mismos valores exactos:
+  // --color-primary/secondary/accent/background/surface/text/border.
+  // Se mantienen los NOMBRES de variable de v2 para no tener que tocar
+  // ningún otro archivo — solo cambian los valores.
+  --brand: #e65f32;
+  --brand-dark: #c94e26;
+  --brand-soft: #fbe2d8;
+
+  --need-color: #e65f32;
+  --need-color-soft: #fbe2d8;
+  --help-color: #2f83a8;
+  --help-color-soft: #d7e8f0;
+
+  // --need-color/--help-color solo son seguros como FONDO de botón sólido
+  // (con texto blanco encima) o como acento decorativo -- como texto sobre
+  // blanco o sobre su propio "-soft" dan 3.47:1 / 2.81:1 y 4.26:1 / 3.38:1
+  // respectivamente, por debajo del 4.5:1 de WCAG AA. Estas dos son las
+  // variantes oscurecidas, pensadas específicamente para texto (badges de
+  // estado, links) -- no tocan --need-color/--help-color porque esos siguen
+  // usándose tal cual en botones y acentos en todo el resto de la app.
+  --need-color-text: #963e20;
+  --help-color-text: #23627e;
+
+  --verified: #1c6e93;
+
+  --bg: #dfeaf0;
+  --surface: #edf4f7;
+  --surface-sunken: #d5e5ec;
+
+  --ink: #183f52;
+  --ink-soft: #45616f;
+  --border: #aac4d0;
+
+  // Oscurecido de #c0392b: como texto sobre su fondo "soft" (#f8dcd6, los
+  // banners de error y tags de estado "rechazado" en toda la app) daba
+  // 4.2:1, por debajo de AA. --danger no se usa nunca como fondo (solo como
+  // texto/ícono), así que oscurecer el token entero es seguro acá -- a
+  // diferencia de need-color/help-color no hace falta una variante aparte.
+  --danger: #a33025;
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 26px;
+  --radius-pill: 999px;
+
+  --shadow-1: 0 2px 8px rgb(24 63 82 / 10%);
+  --shadow-2: 0 10px 30px rgb(24 63 82 / 18%);
+
+  --font-display: 'Nunito', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
 }
 
+* {
+  box-sizing: border-box;
+}
+
+html,
 body {
-  min-height: 100vh;
+  min-height: 100%;
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+body.no-scroll {
+  overflow: hidden;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: var(--font-body);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// --- Piezas compartidas entre pantallas ------------------------------
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 22px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  // Texto blanco sobre --brand (#e65f32) da 3.47:1, por debajo del 4.5:1
+  // de WCAG AA -- este es el botón sólido por default de toda la app.
+  // #b94823 (un escalón más oscuro que --brand-dark) da 5.2:1 en reposo;
+  // el hover baja un escalón más para no quedar más claro que el reposo.
+  background: #b94823;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+
+  &:hover:not(:disabled) {
+    background: #a94220;
+    box-shadow: var(--shadow-1);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn--ghost {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--border);
+
+  &:hover:not(:disabled) {
+    background: var(--surface-sunken);
+  }
+}
+
+.btn--block {
+  width: 100%;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+  min-width: 0;
+
+  label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+  }
+
+  input,
+  textarea,
+  select {
+    padding: 13px 15px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+
+    &:focus {
+      border-color: var(--brand);
+      outline: none;
+      box-shadow: 0 0 0 3px var(--brand-soft);
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 90px;
+  }
+
+  .field__error {
+    color: var(--danger);
+    font-size: 0.8rem;
+  }
+}
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+
+  &.is-active {
+    // Mismo problema que .btn: texto blanco sobre --brand da 3.47:1.
+    border-color: #b94823;
+    background: #b94823;
+    color: #fff;
+  }
+}
+
+.badge-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--verified);
+  font-size: 0.78rem;
+  font-weight: 700;
 }

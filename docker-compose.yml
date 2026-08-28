@@ -16,7 +16,7 @@ services:
     restart: unless-stopped
 
   backend:
-    build: 
+    build:
       context: ./backend
     container_name: mapa_social_backend
     ports:
@@ -27,8 +27,29 @@ services:
       - DB_USER=${DB_USER:-mapa_user}
       - DB_PASS=${DB_PASS:-mapa_password}
       - DB_NAME=mapa_social
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES=${JWT_EXPIRES:-7d}
+      - MAIL_HOST=mailhog
+      - MAIL_PORT=1025
+      - MAIL_FROM=Mapa Social <no-responder@mapasocial.local>
+      - APP_URL=http://localhost
+    volumes:
+      - backend_uploads:/app/uploads
     depends_on:
       - db
+      - mailhog
+    restart: unless-stopped
+
+  # Servidor SMTP falso para desarrollo/demo: el backend le manda los
+  # correos de verdad (nodemailer), y se ven en la bandeja web sin
+  # necesidad de credenciales de un proveedor real. Cambiar a un proveedor
+  # real el día de mañana es solo tocar las variables MAIL_* de arriba.
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mapa_social_mailhog
+    ports:
+      - "8025:8025"
+      - "1025:1025"
     restart: unless-stopped
 
   frontend:
@@ -43,3 +64,4 @@ services:
 
 volumes:
   db_data:
+  backend_uploads:

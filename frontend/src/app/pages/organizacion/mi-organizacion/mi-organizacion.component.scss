@@ -1,0 +1,281 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.mi-org {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 20px 20px 60px;
+}
+
+.mi-org__header {
+  padding: 12px 0 24px;
+
+  h1 {
+    margin: 10px 0 0;
+    font-size: 1.6rem;
+  }
+}
+
+.mi-org__header-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mi-org__back {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.mi-org__personal-links {
+  display: flex;
+  gap: 14px;
+
+  a {
+    color: var(--ink-soft);
+    font-size: 0.8rem;
+    font-weight: 600;
+
+    &:hover {
+      color: var(--ink);
+    }
+  }
+}
+
+.mi-org__status {
+  padding: 60px 20px;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.mi-org__status--error {
+  color: var(--danger);
+}
+
+.mi-org__empty {
+  padding: 32px 26px;
+  text-align: center;
+
+  p {
+    margin-bottom: 16px;
+    color: var(--ink-soft);
+  }
+}
+
+.mi-org__card {
+  padding: 24px;
+  margin-bottom: 18px;
+
+  h2 {
+    margin-bottom: 12px;
+    font-size: 1.05rem;
+  }
+}
+
+.mi-org__badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.mi-org__public-link {
+  color: var(--help-color-text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.mi-org__pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--need-color-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.mi-org__validation-date {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+.mi-org__validation-note {
+  margin: 4px 0 0;
+  color: var(--need-color-text);
+  font-size: 0.82rem;
+}
+
+.mi-org__saved {
+  margin: 0 0 14px;
+  color: var(--need-color-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.mi-org__alert {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: #f8dcd6;
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+
+.mi-org__empty-resources {
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+}
+
+.mi-org__resource-list {
+  margin: 0 0 16px;
+  padding-left: 18px;
+  color: var(--ink);
+  font-size: 0.9rem;
+
+  li {
+    margin-bottom: 4px;
+  }
+}
+
+.mi-org__add-resource {
+  display: inline-block;
+}
+
+.mi-org__private-hint {
+  margin: 0 0 14px;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.mi-org__private-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
+    p {
+      margin: 6px 0;
+      color: var(--ink);
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+  }
+}
+
+.mi-org__private-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mi-org__private-category {
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.mi-org__private-urgency {
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+
+  &[data-urgency='alta'] {
+    background: #f8dcd6;
+    color: var(--danger);
+  }
+
+  &[data-urgency='media'] {
+    background: var(--need-color-soft);
+    color: var(--need-color-text);
+  }
+
+  &[data-urgency='baja'] {
+    background: var(--surface-sunken);
+    color: var(--ink-soft);
+  }
+}
+
+.mi-org__private-contact {
+  color: var(--verified);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.mi-org__msg-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.mi-org__contact-btn {
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--help-color-soft);
+  color: var(--help-color-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+// El color acompaña el estado elegido -- así se puede escanear la bandeja
+// de un vistazo sin leer cada select. Mismos tonos que --need-color/
+// --verified/--danger ya usados en el resto de la app, no paleta nueva.
+.mi-org__status-select {
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: inherit;
+
+  &[data-status='contactado'] {
+    background: var(--help-color-soft);
+    color: var(--help-color-text);
+    border-color: transparent;
+  }
+
+  &[data-status='tomado'] {
+    background: #dff1ea;
+    color: var(--verified);
+    border-color: transparent;
+  }
+
+  &[data-status='revision'] {
+    background: #fbe9c8;
+    color: #8a5a00;
+    border-color: transparent;
+  }
+
+  &[data-status='rechazado'] {
+    background: #f8dcd6;
+    color: var(--danger);
+    border-color: transparent;
+  }
+}

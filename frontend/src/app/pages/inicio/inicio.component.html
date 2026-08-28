@@ -1,0 +1,77 @@
+<div class="inicio">
+  <section class="inicio__hero">
+    <app-hero-network />
+
+    <div class="hero-content">
+      <span class="inicio__eyebrow">
+        Plataforma colaborativa territorial
+      </span>
+
+      <h1>
+        Conectamos necesidades comunitarias con recursos disponibles
+      </h1>
+
+      <p>
+        Explorá el mapa, publicá una necesidad o compartí un recurso que pueda
+        ayudar a alguien de tu comunidad.
+      </p>
+
+      <div class="inicio__cta-row">
+        <a routerLink="/mapa" [queryParams]="{ type: 'need' }" class="btn btn--ghost">
+          <app-icon name="hands" [size]="18" />
+          Necesito Ayuda
+        </a>
+
+        <a routerLink="/mapa" [queryParams]="{ type: 'help' }" class="btn btn--cta-donar">
+          <app-icon name="helpingHand" [size]="18" />
+          Quiero Ayudar / Donar
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="inicio__how" aria-labelledby="inicio-how-heading">
+    <h2 id="inicio-how-heading">¿Cómo funciona Mapa Social?</h2>
+
+    <div class="inicio__how-steps">
+      <div class="inicio__how-step">
+        <span
+          class="inicio__how-icon"
+          style="background: var(--brand-soft); color: var(--brand-dark)"
+        >
+          <app-icon name="pin" [size]="22" />
+        </span>
+        <span class="inicio__how-number">1</span>
+        <p>Buscá ayuda cerca tuyo</p>
+      </div>
+
+      <div class="inicio__how-step">
+        <span
+          class="inicio__how-icon"
+          style="background: var(--need-color-soft); color: var(--need-color)"
+        >
+          <app-icon name="hands" [size]="22" />
+        </span>
+        <span class="inicio__how-number">2</span>
+        <p>Publicá tu necesidad si no la encontrás</p>
+      </div>
+
+      <div class="inicio__how-step">
+        <span
+          class="inicio__how-icon"
+          style="background: var(--help-color-soft); color: var(--help-color)"
+        >
+          <app-icon name="helpingHand" [size]="22" />
+        </span>
+        <span class="inicio__how-number">3</span>
+        <p>Doná o recibí apoyo directamente</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="inicio__org-cta">
+    <a routerLink="/organizacion/crear" class="btn btn--block">
+      ¿Sos una Organización? Ofrecé tus recursos
+    </a>
+  </section>
+</div>

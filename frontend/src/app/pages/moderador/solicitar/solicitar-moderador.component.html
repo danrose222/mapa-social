@@ -1,0 +1,118 @@
+@if (submitted()) {
+  <div class="confirm">
+    <div class="card confirm__card">
+      <span class="confirm__icon" aria-hidden="true">✓</span>
+      <h1>Revisá tu casilla institucional</h1>
+      <p>
+        Te enviamos un enlace de confirmación al email institucional que declaraste. Al
+        confirmarlo tu cuenta pasa a moderador de inmediato -- mientras tanto seguís usando tu
+        cuenta como cualquier vecino, no se bloquea nada.
+      </p>
+      <a routerLink="/mapa" class="btn">Volver al mapa</a>
+    </div>
+  </div>
+} @else if (isModerator()) {
+  <div class="solicitar-mod">
+    <div class="card solicitar-mod__card">
+      <p>Ya sos moderador -- no hace falta que pidas nada.</p>
+      <a routerLink="/mapa" class="btn btn--ghost">Volver al mapa</a>
+    </div>
+  </div>
+} @else {
+  <div class="solicitar-mod">
+    <header class="solicitar-mod__header">
+      <a routerLink="/mapa" class="solicitar-mod__back">← Volver</a>
+      <h1>Quiero ser moderador municipal</h1>
+      <p>
+        Para avalar organizaciones y comunidades de tu localidad. Te vamos a pedir un email
+        institucional -- confirmarlo ahí es la prueba de que representás a ese organismo, y tu
+        cuenta pasa a moderador apenas lo hacés, sin esperar a que nadie te apruebe.
+      </p>
+    </header>
+
+    <div class="card solicitar-mod__card">
+      @if (errorMessage()) {
+        <p class="solicitar-mod__alert">{{ errorMessage() }}</p>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="field">
+          <label>Localidad que querés administrar</label>
+          <app-locality-autocomplete (localitySelected)="onLocalitySelected($event)" />
+          @if (form.controls.locality.invalid && form.controls.locality.touched) {
+            <span class="field__error">Elegí una localidad de la lista.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="mod-institution">Municipio u organismo que representás</label>
+          <input
+            id="mod-institution"
+            type="text"
+            formControlName="institutionName"
+            placeholder="Ej: Municipalidad de Río Segundo"
+          />
+          @if (form.controls.institutionName.invalid && form.controls.institutionName.touched) {
+            <span class="field__error">Contanos qué municipio u organismo representás.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="mod-position">Cargo o función</label>
+          <input
+            id="mod-position"
+            type="text"
+            formControlName="position"
+            placeholder="Ej: Secretario de Desarrollo Social"
+          />
+          @if (form.controls.position.invalid && form.controls.position.touched) {
+            <span class="field__error">Contanos tu cargo o función.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="mod-email">Email institucional</label>
+          <input
+            id="mod-email"
+            type="email"
+            formControlName="officialEmail"
+            placeholder="No hace falta que sea el mismo de tu cuenta"
+          />
+          @if (form.controls.officialEmail.invalid && form.controls.officialEmail.touched) {
+            <span class="field__error">Ingresá un email válido.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="mod-phone">Teléfono institucional</label>
+          <input id="mod-phone" type="text" formControlName="officialPhone" />
+          @if (form.controls.officialPhone.invalid && form.controls.officialPhone.touched) {
+            <span class="field__error">Ingresá un teléfono de contacto.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="mod-justification">Contanos más (opcional)</label>
+          <textarea
+            id="mod-justification"
+            formControlName="justification"
+            placeholder="Qué esperás poder hacer con el aval municipal"
+          ></textarea>
+        </div>
+
+        <label class="solicitar-mod__terms">
+          <input type="checkbox" formControlName="acceptTerms" />
+          Confirmo que los datos son reales y que represento a esta institución.
+        </label>
+
+        <button
+          type="submit"
+          class="btn btn--block"
+          [disabled]="isSubmitting() || form.invalid"
+        >
+          {{ isSubmitting() ? 'Enviando…' : 'Enviar solicitud' }}
+        </button>
+      </form>
+    </div>
+  </div>
+}

@@ -1,0 +1,156 @@
+@if (submitted()) {
+  <div class="confirm">
+    <div class="card confirm__card">
+      <span class="confirm__icon" aria-hidden="true">✓</span>
+      @if (submittedVerified()) {
+        <h1>¡Organización creada y activa!</h1>
+        <p>
+          {{ submittedCiudad() }} se autogestiona (no tiene un Municipio registrado en la
+          plataforma), así que ya podés publicar recursos en su nombre.
+        </p>
+      } @else {
+        <h1>Solicitud enviada al Municipio de {{ submittedCiudad() }}</h1>
+        <p>
+          Un moderador de esa localidad va a revisar tu organización antes de que puedas publicar
+          recursos en su nombre. Podés ver el estado de tu solicitud en cualquier momento desde tu
+          Panel Institucional.
+        </p>
+      }
+      <button type="button" class="btn" (click)="irAlPanel()">Ir a mi Panel Institucional</button>
+    </div>
+  </div>
+} @else {
+  <div class="crear-org">
+    <header class="crear-org__header">
+      <a routerLink="/mapa" class="crear-org__back">← Volver</a>
+      <h1>Registrar una organización</h1>
+      <p>
+        Un espacio propio para gestionar los recursos que tu comunidad, ONG o municipio pone a
+        disposición.
+      </p>
+    </header>
+
+    <div class="card crear-org__explain">
+      <h2>¿Cómo funciona el aval?</h2>
+      <div class="crear-org__explain-row">
+        <div class="crear-org__explain-item">
+          <strong>🏛️ Ciudad con Municipio registrado</strong>
+          <p>
+            Un moderador de tu localidad revisa y avala tu organización antes de que puedas
+            publicar. Es el circuito regulado, pensado para ciudades con esa estructura de
+            gobierno.
+          </p>
+        </div>
+        <div class="crear-org__explain-item">
+          <strong>🤝 Pueblo sin esa estructura</strong>
+          <p>
+            Se autogestiona: tu organización queda activa apenas la creás, sin esperar un aval.
+            Es la confianza vecinal directa, para localidades sin ese aparato formal.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    @if (!currentUser()) {
+      <div class="card crear-org__login-prompt">
+        <p>Necesitás una cuenta para registrar tu organización.</p>
+        <a
+          routerLink="/entrar"
+          [queryParams]="{ volver: 'organizacion/crear' }"
+          class="btn"
+        >
+          Iniciar sesión
+        </a>
+        <a routerLink="/registro" class="btn btn--ghost">Crear una cuenta</a>
+      </div>
+    } @else {
+      <div class="card crear-org__card">
+        @if (errorMessage()) {
+          <p class="crear-org__alert">{{ errorMessage() }}</p>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <div class="field">
+            <label for="org-name">Nombre de la organización</label>
+            <input id="org-name" type="text" formControlName="name" placeholder="Ej: Comedor Los Pinos" />
+            @if (form.controls.name.invalid && form.controls.name.touched) {
+              <span class="field__error">Ingresá el nombre de la organización.</span>
+            }
+          </div>
+
+          <div class="field">
+            <label for="org-type">Tipo</label>
+            <select id="org-type" formControlName="type">
+              <option value="comunidad">Organización comunitaria</option>
+              <option value="ong">ONG</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Localidad (jurisdicción)</label>
+            <app-locality-autocomplete (localitySelected)="onLocalitySelected($event)" />
+            @if (form.controls.ciudad.invalid && form.controls.ciudad.touched) {
+              <span class="field__error">Elegí una localidad de la lista.</span>
+            }
+            @if (jurisdictionCheck() === 'checking') {
+              <p class="crear-org__jurisdiction-hint">Verificando jurisdicción…</p>
+            } @else if (jurisdictionCheck() === 'city') {
+              <p class="crear-org__jurisdiction-hint crear-org__jurisdiction-hint--city">
+                🏛️ Esta localidad requiere aprobación municipal. Un moderador revisará tu
+                organización antes de activar tu perfil.
+              </p>
+            } @else if (jurisdictionCheck() === 'self-managed') {
+              <p class="crear-org__jurisdiction-hint crear-org__jurisdiction-hint--self">
+                🤝 Modo autogestión vecinal. Tu organización se activará inmediatamente al
+                registrarte.
+              </p>
+            }
+          </div>
+
+          <div class="field">
+            <label for="org-description">Descripción (opcional)</label>
+            <textarea
+              id="org-description"
+              formControlName="description"
+              placeholder="A quién asiste, qué actividades realiza"
+            ></textarea>
+          </div>
+
+          <div class="field">
+            <label for="org-address">Dirección (opcional)</label>
+            <input id="org-address" type="text" formControlName="address" />
+          </div>
+
+          <div class="field">
+            <label for="org-contact">Contacto (opcional)</label>
+            <input id="org-contact" type="text" formControlName="contactInfo" placeholder="Teléfono o email" />
+          </div>
+
+          <div class="field">
+            <label for="org-website">Sitio web o red social (opcional)</label>
+            <input
+              id="org-website"
+              type="text"
+              formControlName="website"
+              placeholder="Como aval de la organización"
+            />
+          </div>
+
+          <label class="crear-org__terms">
+            <input type="checkbox" formControlName="acceptTerms" />
+            Confirmo que los datos son reales y acepto representar a esta organización ante la
+            plataforma y su comunidad.
+          </label>
+
+          <button
+            type="submit"
+            class="btn btn--block"
+            [disabled]="isSubmitting() || form.invalid"
+          >
+            {{ isSubmitting() ? 'Creando…' : 'Crear organización' }}
+          </button>
+        </form>
+      </div>
+    }
+  </div>
+}

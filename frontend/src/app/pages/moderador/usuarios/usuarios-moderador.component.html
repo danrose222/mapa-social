@@ -1,0 +1,117 @@
+<div class="mod-users">
+  <header class="mod-users__header">
+    <a routerLink="/mapa" class="mod-users__back">← Volver al mapa</a>
+    <h1>Usuarios</h1>
+    <p>
+      Convertí una cuenta en moderador y otorgale localidades de las tuyas
+      propias -- sin eso, no va a poder avalar organizaciones en ningún lado.
+    </p>
+    <a routerLink="/moderador/mis-localidades" class="mod-users__loc-link">
+      Administrar mis localidades →
+    </a>
+  </header>
+
+  @if (isLoading()) {
+    <p class="mod-users__status">Cargando…</p>
+  } @else if (loadError()) {
+    <p class="mod-users__status mod-users__status--error">
+      No se pudo conectar con el servidor.
+    </p>
+  } @else {
+    @if (actionError()) {
+      <p class="mod-users__alert">{{ actionError() }}</p>
+    }
+
+    <section class="mod-users__section">
+      <h2>Usuarios</h2>
+
+    <div class="mod-users__search">
+      <input
+        type="search"
+        placeholder="Buscar por nombre o email…"
+        [value]="searchTerm()"
+        (input)="onSearchChange($any($event.target).value)"
+      />
+    </div>
+
+    @if (users().length === 0) {
+      <p class="mod-users__empty">No hay usuarios que coincidan con la búsqueda.</p>
+    } @else {
+      <ul class="mod-users__list">
+        @for (user of users(); track user.id) {
+          <li class="card mod-users__item">
+            <div class="mod-users__info">
+              <p class="mod-users__name">
+                {{ user.firstName }} {{ user.lastName }}
+                @if (user.role.name === 'moderador') {
+                  <span class="badge-moderador">Moderador</span>
+                }
+              </p>
+              <p class="mod-users__meta">{{ user.email }}</p>
+              @if (user.organization) {
+                <p class="mod-users__meta">Organización: {{ user.organization.name }}</p>
+              }
+            </div>
+
+            @if (user.role.name !== 'moderador') {
+              <button
+                type="button"
+                class="btn btn--ghost"
+                [disabled]="processingId() === user.id"
+                (click)="promote(user)"
+              >
+                Convertir en moderador
+              </button>
+            } @else {
+              <div class="mod-users__localities">
+                @if ((user.localities ?? []).length === 0) {
+                  <p class="mod-users__no-loc">Sin localidades asignadas todavía.</p>
+                } @else {
+                  <div class="mod-users__chips">
+                    @for (loc of user.localities; track loc.id) {
+                      <span class="chip mod-users__chip">
+                        {{ loc.locality }}
+                        <button
+                          type="button"
+                          class="mod-users__chip-remove"
+                          [disabled]="processingId() === user.id"
+                          [attr.aria-label]="'Quitar ' + loc.locality"
+                          (click)="revokeLocality(user, loc.id, loc.locality)"
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    }
+                  </div>
+                }
+
+                @if (myLocalities().length > 0) {
+                  <div class="mod-users__grant">
+                    <select
+                      [value]="localityChoiceFor(user.id)"
+                      (change)="onLocalityChoice(user.id, $any($event.target).value)"
+                    >
+                      <option value="">Elegí una de tus localidades…</option>
+                      @for (loc of myLocalities(); track loc.id) {
+                        <option [value]="loc.locality">{{ loc.locality }}</option>
+                      }
+                    </select>
+                    <button
+                      type="button"
+                      class="btn btn--ghost"
+                      [disabled]="processingId() === user.id || !localityChoiceFor(user.id)"
+                      (click)="grantLocality(user)"
+                    >
+                      Otorgar
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </li>
+        }
+      </ul>
+    }
+    </section>
+  }
+</div>

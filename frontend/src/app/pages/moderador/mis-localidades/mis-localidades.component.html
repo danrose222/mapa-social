@@ -1,0 +1,40 @@
+<div class="mis-loc">
+  <header class="mis-loc__header">
+    <a routerLink="/mapa" class="mis-loc__back">← Volver al mapa</a>
+    <h1>Mis localidades</h1>
+    <p>
+      Solo podés avalar o moderar organizaciones y publicaciones de las
+      localidades que tengas asignadas acá abajo.
+    </p>
+  </header>
+
+  <div class="card mis-loc__card">
+    <h2>Localidades asignadas</h2>
+
+    @if (localities().length === 0) {
+      <p class="mis-loc__empty">
+        Todavía no tenés ninguna localidad asignada — no vas a poder avalar
+        ninguna organización ni moderar publicaciones hasta que otro
+        moderador con esa localidad te la otorgue.
+      </p>
+    } @else {
+      <ul class="mis-loc__list">
+        @for (item of localities(); track item.id) {
+          <li>
+            <span>
+              {{ item.locality }}
+              @if (item.provincia) {
+                <span class="mis-loc__province">, {{ item.provincia }}</span>
+              }
+            </span>
+          </li>
+        }
+      </ul>
+    }
+
+    <p class="mis-loc__note">
+      Para sumar una localidad nueva, pedile a un moderador que ya la tenga
+      asignada que te la otorgue.
+    </p>
+  </div>
+</div>

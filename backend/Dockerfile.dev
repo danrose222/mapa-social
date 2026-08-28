@@ -1,0 +1,19 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Instala bash (opcional, pero muy útil para entrar al contenedor)
+RUN apk add --no-cache bash
+
+# Copiamos únicamente los package para aprovechar la cache
+COPY package*.json ./
+
+# Instalamos TODAS las dependencias (incluyendo devDependencies)
+RUN npm install
+
+# Copiamos el resto del proyecto
+COPY . .
+
+EXPOSE 3000
+
+CMD ["npm", "run", "start:dev"]

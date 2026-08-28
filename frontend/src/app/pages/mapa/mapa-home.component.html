@@ -1,0 +1,205 @@
+<div class="mapa">
+  <div class="mapa__search">
+    <input
+      type="search"
+      placeholder="Buscar por nombre, barrio o tipo de ayuda…"
+      [value]="searchTerm()"
+      (input)="onSearchChange($any($event.target).value)"
+    />
+  </div>
+
+  <div class="mapa__territory">
+    <select
+      class="mapa__territory-select"
+      [value]="territoryFilter() ?? ''"
+      (change)="setTerritoryFilter($any($event.target).value)"
+    >
+      <option value="">Todo el mapa</option>
+      @for (t of territories(); track t.locality) {
+        <option [value]="t.locality">{{ t.locality }} ({{ t.count }})</option>
+      }
+    </select>
+
+    @if (territoryFilter() || searchMode() === 'radius') {
+      <div class="mapa__pagination">
+        @if (territoryLoading()) {
+          <span class="mapa__pagination-status">Cargando…</span>
+        } @else if (searchMode() === 'radius') {
+          <span class="mapa__pagination-status">
+            {{ territoryTotal() }} necesidad{{ territoryTotal() === 1 ? '' : 'es' }} a menos de 100km
+            @if (radiusOrigin() === 'geolocation') { (cerca tuyo) }
+            @if (radiusOrigin() === 'ciudad') { (cerca de tu ciudad) }
+          </span>
+        } @else {
+          <span class="mapa__pagination-status">
+            {{ territoryTotal() }} necesidad{{ territoryTotal() === 1 ? '' : 'es' }} en {{ territoryFilter() }}
+          </span>
+        }
+
+        @if (territoryTotalPages() > 1) {
+          <div class="mapa__pagination-controls">
+            <button
+              type="button"
+              class="mapa__page-btn"
+              [disabled]="territoryPage() === 1"
+              (click)="goToTerritoryPage(territoryPage() - 1)"
+            >
+              ‹
+            </button>
+            <span>Página {{ territoryPage() }} de {{ territoryTotalPages() }}</span>
+            <button
+              type="button"
+              class="mapa__page-btn"
+              [disabled]="territoryPage() === territoryTotalPages()"
+              (click)="goToTerritoryPage(territoryPage() + 1)"
+            >
+              ›
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="mapa__chips">
+    <button
+      type="button"
+      class="chip chip--tinted"
+      [style.--chip-color]="'var(--brand)'"
+      [class.is-active]="kindFilter() === 'todos'"
+      [class.chip--locked]="isKindLocked('todos')"
+      (click)="setKindFilter('todos')"
+    >
+      @if (isKindLocked('todos')) {
+        <app-icon name="lock" [size]="13" />
+      }
+      Todos
+    </button>
+
+    <button
+      type="button"
+      class="chip chip--tinted"
+      [style.--chip-color]="'var(--need-color)'"
+      [class.is-active]="kindFilter() === 'necesidades'"
+      [class.chip--locked]="isKindLocked('necesidades')"
+      (click)="setKindFilter('necesidades')"
+    >
+      @if (isKindLocked('necesidades')) {
+        <app-icon name="lock" [size]="13" />
+      }
+      Necesidades
+    </button>
+
+    <button
+      type="button"
+      class="chip chip--tinted"
+      [style.--chip-color]="'var(--help-color)'"
+      [class.is-active]="kindFilter() === 'recursos'"
+      (click)="setKindFilter('recursos')"
+    >
+      Recursos
+    </button>
+
+    <span class="mapa__chips-divider" aria-hidden="true"></span>
+
+    @for (category of visibleCategories(); track category.id) {
+      <button
+        type="button"
+        class="chip chip--tinted"
+        [style.--chip-color]="categoryColor(category.id)"
+        [class.is-active]="isCategoryActive(category.id)"
+        (click)="toggleCategoryFilter(category.id)"
+      >
+        {{ category.name }}
+      </button>
+    }
+
+    @if (categoryFilter().size > 0) {
+      <button type="button" class="chip chip--clear" (click)="clearCategoryFilters()">
+        Limpiar categorías ✕
+      </button>
+    }
+  </div>
+
+  @if (privacyNotice()) {
+    <div class="mapa__privacy-banner" role="alert">
+      <app-icon name="lock" [size]="16" />
+      <span>{{ privacyNotice() }}</span>
+      <button type="button" class="mapa__privacy-banner-login" (click)="goToLogin()">
+        Iniciar sesión
+      </button>
+      <button
+        type="button"
+        class="mapa__privacy-banner-close"
+        aria-label="Cerrar aviso"
+        (click)="dismissPrivacyNotice()"
+      >
+        ✕
+      </button>
+    </div>
+  }
+
+  <div class="mapa__canvas-wrap">
+    @if (isLoading()) {
+      <div class="mapa__status" aria-live="polite">Cargando el mapa…</div>
+    }
+
+    @if (loadError()) {
+      <div class="mapa__status mapa__status--error">
+        No se pudo conectar con el servidor.
+      </div>
+    }
+
+    <div #mapContainer class="mapa__canvas"></div>
+
+    @if (showSearchAreaButton()) {
+      <button type="button" class="mapa__search-area-btn" (click)="searchThisArea()">
+        <app-icon name="pin" [size]="15" />
+        Buscar en esta zona
+      </button>
+    }
+
+    @if (showEmptyState()) {
+      <div class="mapa__empty-state">
+        <p>{{ emptyStateMessage() }}</p>
+        @if (needEntryMode) {
+          <button type="button" class="btn" (click)="openQuickNeedForm()">
+            ¿No encontraste lo que buscabas? Publicá tu necesidad
+          </button>
+        }
+      </div>
+    }
+
+    <div class="mapa__count">{{ visibleCount() }} puntos visibles</div>
+  </div>
+
+  @if (needEntryMode) {
+    <button type="button" class="mapa__publish-btn" (click)="openQuickNeedForm()">
+      <app-icon name="heart" [size]="16" [filled]="true" />
+      Publicar mi necesidad
+    </button>
+  }
+</div>
+
+@if (showQuickNeedForm()) {
+  <app-quick-need-form
+    [categories]="visibleCategories()"
+    [defaultCategoryId]="quickNeedCategoryId()"
+    [defaultLocality]="quickNeedLocality()"
+    [latitude]="quickNeedLat()"
+    [longitude]="quickNeedLng()"
+    (closed)="closeQuickNeedForm()"
+  />
+}
+
+@if (collaborateResource(); as resource) {
+  <app-collaborate-modal [resource]="resource" (closed)="closeCollaborateModal()" />
+}
+
+@if (resourceRequestTarget(); as resource) {
+  <app-resource-request-modal
+    [resource]="resource"
+    [categoryName]="resourceRequestCategoryName()"
+    (closed)="closeResourceRequestModal()"
+  />
+}
