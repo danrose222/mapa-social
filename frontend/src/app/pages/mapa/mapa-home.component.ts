@@ -901,9 +901,9 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
     this.showQuickNeedForm.set(false);
   }
 
-  // "Solicitar este recurso" desde el popup (modo ?type=need): a
-  // diferencia de "Quiero Colaborar", esto sí exige cuenta -- pedís que
-  // una organización te contacte, así que necesitamos poder identificarte.
+  // "Quiero este recurso" desde el popup: a diferencia de "Quiero
+  // Colaborar", esto sí exige cuenta -- pedís que una organización te
+  // contacte, así que necesitamos poder identificarte.
   // Con sesión abre el modal "express" (ResourceRequestModalComponent):
   // contacto y jurisdicción se heredan del perfil, no se vuelven a pedir
   // como en el formulario genérico de necesidad privada (ese sigue
@@ -1144,29 +1144,31 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
       }
     }
 
-    // Botón contextual según por qué puerta entró al mapa (?type=need vs.
-    // el resto): "pedir" y "dar" son intenciones distintas, así que solo
-    // se muestra UNA de las dos, nunca ambas -- mismo estilo visual para
-    // las dos (v2map-popup__collab-btn), esto es solo texto/acción.
-    // Solo tiene sentido con una organización detrás -- el recurso de un
-    // individuo no tiene a quién pedirle ni con quién colaborar.
+    // Antes se mostraba UNA sola acción según por qué puerta entró al mapa
+    // (?type=need vs. el resto) -- obligaba a volver al Inicio y entrar de
+    // nuevo por la otra puerta para cambiar de intención. Ahora se
+    // muestran las dos juntas, siempre, para que alguien que iba a donar
+    // pueda igual pedir este recurso puntual (y viceverso) sin salir del
+    // mapa. Solo tiene sentido con una organización detrás -- el recurso
+    // de un individuo no tiene a quién pedirle ni con quién colaborar.
     const actionHtml = resource.organizationId
-      ? this.needEntryMode
-        ? `<button type="button" class="v2map-popup__collab-btn" ` +
-          `data-solicitar-resource-id="${resource.id}">🤝 Solicitar este recurso</button>`
-        : `<button type="button" class="v2map-popup__collab-btn" ` +
-          `data-collab-resource-id="${resource.id}">❤️ Quiero Colaborar</button>`
+      ? `<div class="v2map-popup__actions">` +
+        `<button type="button" class="v2map-popup__collab-btn" ` +
+        `data-solicitar-resource-id="${resource.id}">🤝 Quiero este recurso</button>` +
+        `<button type="button" class="v2map-popup__collab-btn v2map-popup__collab-btn--secondary" ` +
+        `data-collab-resource-id="${resource.id}">❤️ Quiero Colaborar</button>` +
+        `</div>`
       : '';
 
-    // Quien entra a "colaborar" (donante) no está buscando ESTE recurso
-    // puntual -- está buscando A QUIÉN dárselo. El popup se reencuadra
-    // alrededor de la organización (nombre grande, el recurso pasa a ser
-    // un dato secundario) y esconde el contacto directo: mostrar el
-    // teléfono acá arruinaría el propósito del modal "Quiero Colaborar"
-    // (contacto anónimo sin exponer datos privados) que se armó
-    // específicamente para este flujo. Con "Solicitar este recurso" (modo
-    // ?type=need) el recurso puntual SÍ es lo que la persona busca, así
-    // que ahí se mantiene el encuadre y el contacto directo de siempre.
+    // El ENCUADRE del popup (no las acciones, ya combinadas arriba) sigue
+    // dependiendo de por qué puerta se entró al mapa. En modo donante, el
+    // popup se arma alrededor de la organización (nombre grande, el
+    // recurso pasa a ser un dato secundario) y esconde el contacto
+    // directo: mostrarlo ahí arruinaría el propósito del modal "Quiero
+    // Colaborar" (contacto anónimo sin exponer datos privados) que se
+    // armó específicamente para ese flujo. En modo "necesito ayuda" el
+    // recurso puntual SÍ es lo que la persona busca, así que se mantiene
+    // el encuadre centrado en el recurso y el contacto directo de siempre.
     const isDonorMode = !this.needEntryMode;
 
     const bodyHtml =

@@ -414,12 +414,25 @@
   text-decoration: none;
 }
 
+// Las dos acciones del popup van juntas ahora (antes se mostraba una sola
+// según la puerta de entrada al mapa) -- el margen que separaba el botón
+// del resto del popup pasa al contenedor, no a cada botón.
+::ng-deep .v2map-popup__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
 // Mismo peso visual que .v2map-popup__contact-btn (mismo padding/tamaño de
 // fuente), con un color propio para distinguirla como una acción distinta.
+// "Quiero este recurso" (pedir) va en coral, mismo tono que "Necesito
+// Ayuda" en el resto del sitio; "Quiero Colaborar" (dar) es la variante
+// --secondary, en teal, como "Quiero Ayudar/Donar" -- mismo criterio de
+// color que ya usa el resto de la app para estas dos intenciones.
 ::ng-deep .v2map-popup__collab-btn {
   display: block;
   width: 100%;
-  margin-top: 8px;
   padding: 8px 12px;
   border: 0;
   border-radius: var(--radius-sm);
@@ -433,5 +446,13 @@
 
   &:hover {
     background: #a94220;
+  }
+}
+
+::ng-deep .v2map-popup__collab-btn--secondary {
+  background: #23627e;
+
+  &:hover {
+    background: #1f566f;
   }
 }
