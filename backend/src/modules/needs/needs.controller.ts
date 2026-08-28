@@ -33,6 +33,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 interface AuthUser {
   id: number;
   role: string;
+  organizationType?: 'ong' | 'comunidad' | null;
 }
 
 @ApiTags('Needs')
@@ -79,11 +80,11 @@ export class NeedsController {
   @ApiBearerAuth()
   @ApiOperation({
     summary:
-      'Listar todas las necesidades (público; el contacto es visible si la publicación pertenece a una organización, o para el dueño/moderador)',
+      'Listar necesidades visibles para el usuario actual (solo una cuenta de una organización avalada, filtradas por su jurisdicción; vacío para cualquier otro caso -- ver NeedsService.resolveOrgViewer)',
   })
   @ApiResponse({ status: 200, description: 'Listado de necesidades' })
   async findAll(@CurrentUser() user: AuthUser | null) {
-    const needs = await this.service.findAll();
+    const needs = await this.service.findAll(user);
     const acceptedNeedIds = user
       ? await this.solicitudesService.findAcceptedNeedIds(user.id)
       : new Set<number>();
@@ -93,13 +94,16 @@ export class NeedsController {
   @Get('search')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Buscar necesidades activas con filtros, paginado (público)' })
+  @ApiOperation({
+    summary:
+      'Buscar necesidades activas con filtros, paginado (mismo filtro de jurisdicción que GET /needs)',
+  })
   @ApiResponse({ status: 200, description: 'Resultados de la búsqueda, paginados' })
   async search(
     @Query() dto: SearchNeedsDto,
     @CurrentUser() user: AuthUser | null,
   ) {
-    const { items, total, page, limit, totalPages } = await this.service.search(dto);
+    const { items, total, page, limit, totalPages } = await this.service.search(dto, user);
     const acceptedNeedIds = user
       ? await this.solicitudesService.findAcceptedNeedIds(user.id)
       : new Set<number>();
