@@ -110,6 +110,18 @@ export class MapaHomeComponent implements AfterViewInit, OnDestroy {
   // este mismo problema (una respuesta lenta no debe pisar algo más nuevo).
   private searchGeocodeId = 0;
 
+  // loadRadiusPage()/loadLocalityPage() comparten este contador: los dos
+  // escriben el mismo estado (allNeeds, territoryTotal*), así que una
+  // respuesta vieja de cualquiera de las dos (ej. tocar "Buscar en esta
+  // zona" y enseguida paginar) no debe pisar el resultado de un pedido
+  // más nuevo, sea del mismo método o del otro.
+  private territoryRequestId = 0;
+
+  // flyToLocality() geocodifica de forma independiente -- no toca el
+  // estado de arriba, así que tiene su propio contador en vez de
+  // compartir territoryRequestId.
+  private flyToRequestId = 0;
+
   // Indica que, después de cargar los resultados de una búsqueda por texto,
   // el mapa debe ajustarse para mostrarlos automáticamente.
   private focusAfterSearchLoad = false;
