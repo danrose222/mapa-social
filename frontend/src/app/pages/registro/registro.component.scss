@@ -4,28 +4,138 @@
   justify-content: center;
   min-height: 100vh;
   padding: 24px;
+  background: var(--bg);
 }
 
 .auth__card {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
   width: 100%;
-  max-width: 440px;
-  padding: 32px;
+  max-width: 1080px;
+  min-height: 620px;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 40px 90px -40px rgb(24 63 82 / 50%);
+}
+
+// Panel de marca -- mismo degradado del hero del Inicio y de Quiénes somos.
+.auth__brand {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  padding: 52px 46px;
+  background: var(--gradient-warm);
+  color: #fff;
+}
+
+.auth__brand-texture {
+  position: absolute;
+  inset: 0;
+  background-image: var(--texture-dots);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.auth__brand-copy {
+  position: relative;
+  z-index: 2;
+
+  h2 {
+    max-width: 300px;
+    margin: 0 0 16px;
+    font-size: var(--text-lg);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+
+  p {
+    max-width: 340px;
+    margin: 0;
+    color: #dfeae8;
+    font-size: 0.97rem;
+    line-height: 1.6;
+  }
+}
+
+// Mini red decorativa -- mismo lenguaje visual que el hero conectado y el
+// diagrama del modelo, en formato chico.
+.auth__brand-decor {
+  position: absolute;
+  right: -40px;
+  bottom: -30px;
+  z-index: 1;
+  width: 280px;
+  height: 280px;
+  opacity: 0.9;
+}
+
+.auth__brand-decor-flow {
+  animation: auth-decor-dash 2s linear infinite;
+}
+
+.auth__brand-decor-node {
+  animation: auth-decor-bob 5s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.auth__brand-decor-node--b {
+  animation-duration: 6s;
+  animation-delay: -2s;
+}
+
+.auth__brand-decor-node--c {
+  animation-duration: 5.4s;
+  animation-delay: -1s;
+}
+
+@keyframes auth-decor-dash {
+  to {
+    stroke-dashoffset: -30;
+  }
+}
+
+@keyframes auth-decor-bob {
+  0%, 100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+// Formulario (derecha)
+.auth__form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 52px 50px;
 }
 
 .auth__back {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 18px;
+  gap: 7px;
+  margin-bottom: 22px;
   color: var(--ink-soft);
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   font-weight: 600;
 }
 
+.auth__form h1 {
+  margin: 0 0 8px;
+  font-size: var(--text-lg);
+  letter-spacing: -0.01em;
+}
+
 .auth__lead {
-  margin: 6px 0 22px;
+  margin: 0 0 28px;
   color: var(--ink-soft);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 .auth__row {
@@ -43,8 +153,20 @@
   font-size: 0.85rem;
 }
 
+// Foco teal propio de las pantallas de auth -- el resto del sitio usa foco
+// coral (ver .field en styles.scss), acá se pisa a propósito para calzar
+// con el panel de marca de al lado. El segundo selector (::ng-deep) hace
+// falta porque el input de localidad lo renderiza app-locality-autocomplete,
+// un componente aparte -- sin eso la regla no cruza el límite de
+// encapsulación y ese campo se queda con el foco coral global.
+.auth__form .field input:focus,
+.auth__form .field ::ng-deep input:focus {
+  border-color: #17857a;
+  box-shadow: 0 0 0 4px rgb(23 133 122 / 12%);
+}
+
 .auth__switch {
-  margin: 18px 0 0;
+  margin: 20px 0 0;
   color: var(--ink-soft);
   font-size: 0.86rem;
   text-align: center;
@@ -59,6 +181,32 @@
     color: var(--need-color-text);
     font-weight: 700;
     text-decoration: underline;
+  }
+}
+
+@media (max-width: 860px) {
+  .auth {
+    // El flex centrado + min-height:100vh del desktop deja franjas enormes
+    // de fondo vacío arriba/abajo cuando la tarjeta se achica a una sola
+    // columna -- acá alcanza con que fluya desde arriba.
+    display: block;
+    min-height: auto;
+    padding: 0;
+  }
+
+  .auth__card {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .auth__brand {
+    display: none;
+  }
+
+  .auth__form {
+    padding: 40px 24px;
   }
 }
 

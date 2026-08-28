@@ -1,6 +1,9 @@
 <div class="mis-pub">
   <header class="mis-pub__header">
-    <a routerLink="/mapa" class="mis-pub__back">← Volver al mapa</a>
+    <a routerLink="/mapa" class="mis-pub__back">
+      <i class="ph-bold ph-arrow-left" aria-hidden="true"></i>
+      Volver al mapa
+    </a>
     <h1>{{ belongsToOrganization() ? 'Mis publicaciones' : 'Mi Actividad' }}</h1>
     @if (belongsToOrganization()) {
       <p>Necesidades y recursos que publicaste, con su estado actual.</p>
@@ -91,12 +94,12 @@
               <div>
                 <p class="mis-pub__title">{{ need.title }}</p>
                 <p class="mis-pub__meta">
-                  {{ categoryName(need.categoryId) }} ·
-                  <span class="mis-pub__status-tag mis-pub__status-tag--{{ need.status }}">
-                    {{ need.status === 'active' ? 'activa' : 'resuelta' }}
+                  {{ categoryName(need.categoryId) }}
+                  <span class="mis-pub__badge mis-pub__badge--{{ need.status }}">
+                    {{ need.status === 'active' ? 'Activa' : 'Resuelta' }}
                   </span>
                   @if (need.requiresSolicitud) {
-                    · <span class="mis-pub__flag">Contacto oculto (requiere Solicitud)</span>
+                    <span class="mis-pub__flag">Contacto oculto (requiere Solicitud)</span>
                   }
                 </p>
                 <p class="mis-pub__desc">{{ need.description }}</p>
@@ -143,9 +146,9 @@
               <div>
                 <p class="mis-pub__title">{{ resource.title }}</p>
                 <p class="mis-pub__meta">
-                  {{ categoryName(resource.categoryId) }} ·
-                  <span class="mis-pub__status-tag mis-pub__status-tag--{{ resource.status }}">
-                    {{ resource.status === 'available' ? 'disponible' : 'resuelto' }}
+                  {{ categoryName(resource.categoryId) }}
+                  <span class="mis-pub__badge mis-pub__badge--{{ resource.status }}">
+                    {{ resource.status === 'available' ? 'Disponible' : 'Resuelto' }}
                   </span>
                 </p>
                 <p class="mis-pub__desc">{{ resource.description }}</p>

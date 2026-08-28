@@ -23,7 +23,10 @@
     @if (territoryFilter() || searchMode() === 'radius') {
       <div class="mapa__pagination">
         @if (territoryLoading()) {
-          <span class="mapa__pagination-status">Cargando…</span>
+          <span class="mapa__pagination-status">
+            <span class="mapa__spinner" aria-hidden="true"></span>
+            Cargando…
+          </span>
         } @else if (searchMode() === 'radius') {
           <span class="mapa__pagination-status">
             {{ territoryTotal() }} necesidad{{ territoryTotal() === 1 ? '' : 'es' }} a menos de 100km
@@ -171,6 +174,33 @@
     }
 
     <div class="mapa__count">{{ visibleCount() }} puntos visibles</div>
+
+    <div class="mapa__legend">
+      @if (showNeedLegend()) {
+        <div class="mapa__legend-item">
+          <span class="mapa__legend-swatch mapa__legend-swatch--need"></span>
+          Necesidad
+        </div>
+      }
+      <div class="mapa__legend-item">
+        <span class="mapa__legend-swatch mapa__legend-swatch--resource"></span>
+        Recurso
+      </div>
+      @if (showActorLegend()) {
+        <div class="mapa__legend-item">
+          <span class="mapa__legend-swatch mapa__legend-swatch--actor">C</span>
+          Comunidad
+        </div>
+        <div class="mapa__legend-item">
+          <span class="mapa__legend-swatch mapa__legend-swatch--actor">O</span>
+          ONG
+        </div>
+      }
+      <div class="mapa__legend-item">
+        <span class="mapa__legend-swatch mapa__legend-swatch--location"></span>
+        Tu ubicación
+      </div>
+    </div>
   </div>
 
   @if (needEntryMode) {

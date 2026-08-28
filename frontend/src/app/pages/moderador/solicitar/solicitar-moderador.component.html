@@ -1,7 +1,9 @@
 @if (submitted()) {
   <div class="confirm">
     <div class="card confirm__card">
-      <span class="confirm__icon" aria-hidden="true">✓</span>
+      <span class="confirm__icon" aria-hidden="true">
+        <i class="ph-bold ph-check"></i>
+      </span>
       <h1>Revisá tu casilla institucional</h1>
       <p>
         Te enviamos un enlace de confirmación al email institucional que declaraste. Al
@@ -20,8 +22,12 @@
   </div>
 } @else {
   <div class="solicitar-mod">
-    <header class="solicitar-mod__header">
-      <a routerLink="/mapa" class="solicitar-mod__back">← Volver</a>
+    <a routerLink="/mapa" class="solicitar-mod__back">
+      <i class="ph-bold ph-arrow-left" aria-hidden="true"></i>
+      Volver
+    </a>
+
+    <header class="card solicitar-mod__intro">
       <h1>Quiero ser moderador municipal</h1>
       <p>
         Para avalar organizaciones y comunidades de tu localidad. Te vamos a pedir un email
@@ -36,68 +42,86 @@
       }
 
       <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-        <div class="field">
-          <label>Localidad que querés administrar</label>
-          <app-locality-autocomplete (localitySelected)="onLocalitySelected($event)" />
-          @if (form.controls.locality.invalid && form.controls.locality.touched) {
-            <span class="field__error">Elegí una localidad de la lista.</span>
-          }
+        <div class="sec">
+          <div class="solicitar-mod__sec-title">Jurisdicción</div>
+
+          <div class="field">
+            <label>Localidad que querés administrar</label>
+            <app-locality-autocomplete (localitySelected)="onLocalitySelected($event)" />
+            @if (form.controls.locality.invalid && form.controls.locality.touched) {
+              <span class="field__error">Elegí una localidad de la lista.</span>
+            }
+            <p class="solicitar-mod__hint">Vas a poder avalar organizaciones dentro de esta localidad.</p>
+          </div>
         </div>
 
-        <div class="field">
-          <label for="mod-institution">Municipio u organismo que representás</label>
-          <input
-            id="mod-institution"
-            type="text"
-            formControlName="institutionName"
-            placeholder="Ej: Municipalidad de Río Segundo"
-          />
-          @if (form.controls.institutionName.invalid && form.controls.institutionName.touched) {
-            <span class="field__error">Contanos qué municipio u organismo representás.</span>
-          }
+        <div class="sec">
+          <div class="solicitar-mod__sec-title">Tu representación</div>
+
+          <div class="field">
+            <label for="mod-institution">Municipio u organismo que representás</label>
+            <input
+              id="mod-institution"
+              type="text"
+              formControlName="institutionName"
+              placeholder="Ej: Municipalidad de Río Segundo"
+            />
+            @if (form.controls.institutionName.invalid && form.controls.institutionName.touched) {
+              <span class="field__error">Contanos qué municipio u organismo representás.</span>
+            }
+          </div>
+
+          <div class="solicitar-mod__row">
+            <div class="field">
+              <label for="mod-position">Cargo o función</label>
+              <input
+                id="mod-position"
+                type="text"
+                formControlName="position"
+                placeholder="Ej: Secretario de Desarrollo Social"
+              />
+              @if (form.controls.position.invalid && form.controls.position.touched) {
+                <span class="field__error">Contanos tu cargo o función.</span>
+              }
+            </div>
+
+            <div class="field">
+              <label for="mod-phone">Teléfono institucional</label>
+              <input id="mod-phone" type="text" formControlName="officialPhone" />
+              @if (form.controls.officialPhone.invalid && form.controls.officialPhone.touched) {
+                <span class="field__error">Ingresá un teléfono de contacto.</span>
+              }
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="mod-email">Email institucional</label>
+            <input
+              id="mod-email"
+              type="email"
+              formControlName="officialEmail"
+              placeholder="No hace falta que sea el mismo de tu cuenta"
+            />
+            @if (form.controls.officialEmail.invalid && form.controls.officialEmail.touched) {
+              <span class="field__error">Ingresá un email válido.</span>
+            }
+            <p class="solicitar-mod__hint">Te llegará un correo de confirmación a esta dirección.</p>
+          </div>
         </div>
 
-        <div class="field">
-          <label for="mod-position">Cargo o función</label>
-          <input
-            id="mod-position"
-            type="text"
-            formControlName="position"
-            placeholder="Ej: Secretario de Desarrollo Social"
-          />
-          @if (form.controls.position.invalid && form.controls.position.touched) {
-            <span class="field__error">Contanos tu cargo o función.</span>
-          }
-        </div>
+        <div class="sec">
+          <div class="solicitar-mod__sec-title">
+            Contexto <span class="solicitar-mod__sec-title-opt">(opcional)</span>
+          </div>
 
-        <div class="field">
-          <label for="mod-email">Email institucional</label>
-          <input
-            id="mod-email"
-            type="email"
-            formControlName="officialEmail"
-            placeholder="No hace falta que sea el mismo de tu cuenta"
-          />
-          @if (form.controls.officialEmail.invalid && form.controls.officialEmail.touched) {
-            <span class="field__error">Ingresá un email válido.</span>
-          }
-        </div>
-
-        <div class="field">
-          <label for="mod-phone">Teléfono institucional</label>
-          <input id="mod-phone" type="text" formControlName="officialPhone" />
-          @if (form.controls.officialPhone.invalid && form.controls.officialPhone.touched) {
-            <span class="field__error">Ingresá un teléfono de contacto.</span>
-          }
-        </div>
-
-        <div class="field">
-          <label for="mod-justification">Contanos más (opcional)</label>
-          <textarea
-            id="mod-justification"
-            formControlName="justification"
-            placeholder="Qué esperás poder hacer con el aval municipal"
-          ></textarea>
+          <div class="field">
+            <label for="mod-justification">Contanos más <span class="solicitar-mod__opt">(opcional)</span></label>
+            <textarea
+              id="mod-justification"
+              formControlName="justification"
+              placeholder="Qué esperás poder hacer con el aval municipal"
+            ></textarea>
+          </div>
         </div>
 
         <label class="solicitar-mod__terms">

@@ -1,7 +1,9 @@
 @if (submitted()) {
   <div class="confirm">
     <div class="card confirm__card">
-      <span class="confirm__icon" aria-hidden="true">✓</span>
+      <span class="confirm__icon" aria-hidden="true">
+        <i class="ph-bold ph-check"></i>
+      </span>
       @if (submittedVerified()) {
         <h1>¡Organización creada y activa!</h1>
         <p>
@@ -22,7 +24,10 @@
 } @else {
   <div class="crear-org">
     <header class="crear-org__header">
-      <a routerLink="/mapa" class="crear-org__back">← Volver</a>
+      <a routerLink="/mapa" class="crear-org__back">
+      <i class="ph-bold ph-arrow-left" aria-hidden="true"></i>
+      Volver
+    </a>
       <h1>Registrar una organización</h1>
       <p>
         Un espacio propio para gestionar los recursos que tu comunidad, ONG o municipio pone a
@@ -34,7 +39,10 @@
       <h2>¿Cómo funciona el aval?</h2>
       <div class="crear-org__explain-row">
         <div class="crear-org__explain-item">
-          <strong>🏛️ Ciudad con Municipio registrado</strong>
+          <strong>
+            <i class="ph-duotone ph-bank" aria-hidden="true"></i>
+            Ciudad con Municipio registrado
+          </strong>
           <p>
             Un moderador de tu localidad revisa y avala tu organización antes de que puedas
             publicar. Es el circuito regulado, pensado para ciudades con esa estructura de
@@ -42,7 +50,10 @@
           </p>
         </div>
         <div class="crear-org__explain-item">
-          <strong>🤝 Pueblo sin esa estructura</strong>
+          <strong>
+            <i class="ph-duotone ph-handshake" aria-hidden="true"></i>
+            Pueblo sin esa estructura
+          </strong>
           <p>
             Se autogestiona: tu organización queda activa apenas la creás, sin esperar un aval.
             Es la confianza vecinal directa, para localidades sin ese aparato formal.
@@ -96,12 +107,14 @@
               <p class="crear-org__jurisdiction-hint">Verificando jurisdicción…</p>
             } @else if (jurisdictionCheck() === 'city') {
               <p class="crear-org__jurisdiction-hint crear-org__jurisdiction-hint--city">
-                🏛️ Esta localidad requiere aprobación municipal. Un moderador revisará tu
+                <i class="ph-duotone ph-bank" aria-hidden="true"></i>
+                Esta localidad requiere aprobación municipal. Un moderador revisará tu
                 organización antes de activar tu perfil.
               </p>
             } @else if (jurisdictionCheck() === 'self-managed') {
               <p class="crear-org__jurisdiction-hint crear-org__jurisdiction-hint--self">
-                🤝 Modo autogestión vecinal. Tu organización se activará inmediatamente al
+                <i class="ph-duotone ph-handshake" aria-hidden="true"></i>
+                Modo autogestión vecinal. Tu organización se activará inmediatamente al
                 registrarte.
               </p>
             }

@@ -4,7 +4,6 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
-import { IconComponent } from '../../shared/icons/icon.component';
 import {
   LocalityAutocompleteComponent,
   LocalitySelection,
@@ -13,7 +12,7 @@ import {
 @Component({
   selector: 'app-registro',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, IconComponent, LocalityAutocompleteComponent],
+  imports: [ReactiveFormsModule, RouterLink, LocalityAutocompleteComponent],
   templateUrl: './registro.component.html',
   styleUrl: './registro.component.scss',
 })

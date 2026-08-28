@@ -1,29 +1,33 @@
 :host {
   display: block;
   min-height: 100vh;
+  background: var(--bg);
 }
 
 .mis-pub {
-  max-width: 640px;
+  max-width: 880px;
   margin: 0 auto;
-  padding: 20px 20px 60px;
+  padding: 28px 24px 64px;
 }
 
 .mis-pub__header {
-  padding: 12px 0 20px;
+  padding: 4px 0 24px;
 
   h1 {
-    margin: 10px 0 6px;
-    font-size: 1.6rem;
+    margin: 12px 0 6px;
+    font-size: var(--text-lg);
   }
 
   p {
     color: var(--ink-soft);
-    font-size: 0.88rem;
+    font-size: 0.92rem;
   }
 }
 
 .mis-pub__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--ink-soft);
   font-size: 0.85rem;
   font-weight: 600;
@@ -41,8 +45,9 @@
 
 .mis-pub__tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .mis-pub__alert {
@@ -55,7 +60,7 @@
 }
 
 .mis-pub__empty {
-  padding: 32px 24px;
+  padding: 40px 24px;
   text-align: center;
 
   p {
@@ -73,71 +78,99 @@
   list-style: none;
 }
 
+// Fila tipo tabla: buen alto, separador sutil en vez de tarjetas apiladas
+// con mucho espacio muerto entre sí -- son muchos ítems de trabajo, no
+// piezas de contenido para destacar una por una.
 .mis-pub__item {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  padding: 16px 18px;
+  gap: 20px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  transition: border-color 150ms ease;
+
+  &:hover {
+    border-color: var(--ink-soft);
+  }
 }
 
 .mis-pub__title {
-  margin: 0 0 4px;
+  margin: 0 0 6px;
   font-weight: 700;
-  font-size: 0.94rem;
+  font-size: 0.98rem;
 }
 
 .mis-pub__meta {
-  margin: 0 0 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
   color: var(--ink-soft);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
 }
 
 .mis-pub__desc {
   margin: 0;
-  max-width: 380px;
+  max-width: 420px;
   color: var(--ink-soft);
-  font-size: 0.85rem;
-  line-height: 1.5;
+  font-size: 0.88rem;
+  line-height: 1.55;
 }
 
 .mis-pub__resolved-by {
-  margin: 6px 0 0;
+  margin: 8px 0 0;
   color: var(--help-color-text);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 600;
 }
 
-.mis-pub__status-tag {
+// Badges de estado -- teal para lo resuelto/positivo, coral para lo que
+// sigue abierto/pendiente de atención. Mismo criterio que el resto del
+// sitio para estos dos tokens de texto (ya pensados para AA).
+.mis-pub__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
-.mis-pub__status-tag--active,
-.mis-pub__status-tag--available {
-  color: var(--help-color-text);
-}
-
-.mis-pub__status-tag--resolved {
+.mis-pub__badge--active,
+.mis-pub__badge--available {
+  background: var(--brand-soft);
   color: var(--need-color-text);
+}
+
+.mis-pub__badge--resolved {
+  background: var(--help-color-soft);
+  color: var(--help-color-text);
 }
 
 .mis-pub__flag {
   color: var(--danger);
   font-weight: 700;
+  font-size: 0.78rem;
 }
 
 .mis-pub__actions {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   flex: 0 0 auto;
   width: 168px;
 }
 
 .mis-pub__actions .btn {
   width: 100%;
-  padding: 7px 10px;
-  font-size: 0.76rem;
+  padding: 8px 10px;
+  font-size: 0.78rem;
   font-weight: 600;
   border-radius: var(--radius-sm);
 }
@@ -147,7 +180,7 @@
   border-color: var(--danger);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 560px) {
   .mis-pub__item {
     flex-direction: column;
   }

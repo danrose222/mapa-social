@@ -1,4 +1,12 @@
 @import 'leaflet/dist/leaflet.css';
+// bold se usa todavía en "cómo funciona" (falta migrarlo a duotone).
+// duotone es el estilo principal del rediseño (íconos grandes con cuerpo,
+// dos tonos), fill queda para acentos puntuales chicos (botones, badges) y
+// regular para UI secundaria -- ver el criterio completo donde se usan.
+@import '@phosphor-icons/web/bold/style.css';
+@import '@phosphor-icons/web/duotone/style.css';
+@import '@phosphor-icons/web/fill/style.css';
+@import '@phosphor-icons/web/regular/style.css';
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
@@ -32,7 +40,11 @@
   --surface-sunken: #d5e5ec;
 
   --ink: #183f52;
-  --ink-soft: #45616f;
+  // Un escalón más oscuro que el original (#45616f) para más margen de
+  // contraste en texto secundario chico (subtítulos, descripciones) --
+  // sigue dando 7:1+ sobre --surface/--bg, cómodo por encima del 4.5:1 de
+  // WCAG AA.
+  --ink-soft: #3c5561;
   --border: #aac4d0;
 
   // Oscurecido de #c0392b: como texto sobre su fondo "soft" (#f8dcd6, los
@@ -49,6 +61,42 @@
 
   --shadow-1: 0 2px 8px rgb(24 63 82 / 10%);
   --shadow-2: 0 10px 30px rgb(24 63 82 / 18%);
+
+  // Sombras CON color de marca (no gris puro) -- para elementos que viven
+  // sobre fondos cálidos o que necesitan sentirse "levantados" con más
+  // presencia que --shadow-1/2 (que son neutras, pensadas para superficies
+  // sobre --bg). Mismo criterio de opacidad/blur, tinte distinto.
+  --shadow-brand-sm: 0 4px 14px rgb(230 95 50 / 16%);
+  --shadow-brand-md: 0 14px 34px rgb(230 95 50 / 22%);
+  --shadow-help-md: 0 14px 34px rgb(47 131 168 / 22%);
+
+  // Degradados reutilizables -- los 3 puntos de la paleta que ya existían
+  // (ink, brand-dark, help-color-text) combinados, no colores nuevos.
+  --gradient-warm: linear-gradient(135deg, var(--ink), var(--brand-dark));
+  --gradient-sunset: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 55%, var(--help-color-text) 130%);
+  --gradient-teal: linear-gradient(135deg, var(--help-color-text), var(--ink));
+
+  // Textura de puntos muy sutil (8% de opacidad) para romper superficies
+  // planas sin competir con el contenido -- SVG inline, tileable. Se aplica
+  // como background-image en las secciones que la necesiten, nunca sola.
+  --texture-dots: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Ccircle cx='2' cy='2' r='1.4' fill='%23183f52' fill-opacity='0.08'/%3E%3C/svg%3E");
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 26px;
+  --radius-xl: 32px;
+  --radius-pill: 999px;
+
+  // Escala tipográfica con más rango entre extremos (antes el h1 más grande
+  // del sitio llegaba a 2rem parejo) -- clamp() para que la letra grande
+  // real solo aparezca donde hay ancho de sobra.
+  --text-xs: 0.78rem;
+  --text-sm: 0.92rem;
+  --text-md: 1.1rem;
+  --text-lg: clamp(1.3rem, 1.1rem + 0.9vw, 1.6rem);
+  --text-xl: clamp(1.6rem, 1.2rem + 1.4vw, 2.1rem);
+  --text-2xl: clamp(2.1rem, 1.5rem + 2.2vw, 2.9rem);
+  --text-3xl: clamp(2.6rem, 1.6rem + 3.6vw, 4.75rem);
 
   --font-display: 'Nunito', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
@@ -107,7 +155,13 @@ select:focus-visible,
   *,
   *::before,
   *::after {
+    // animation-duration por sí solo NO frena una animación con
+    // iteration-count: infinite (las del rediseño de landing/hero lo son)
+    // -- el navegador la sigue repitiendo, solo que casi instantánea, y
+    // eso es lo que se ve como "temblor". iteration-count: 1 la deja
+    // correr una vez (a 0.01ms, imperceptible) y ahí se queda quieta.
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }

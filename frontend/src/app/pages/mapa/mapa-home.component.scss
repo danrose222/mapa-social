@@ -314,6 +314,119 @@
   }
 }
 
+// El HTML del ícono lo arma buildPinIcon() como string para el divIcon de
+// Leaflet -- lo inyecta Leaflet directamente al DOM, fuera del árbol de
+// Angular, así que (mismo motivo que .v2map-popup* más abajo) necesita
+// ::ng-deep. mapa-pin--need/resource no aportan estilo propio (el color va
+// inline en el SVG) -- quedan como gancho de clase por tipo, tal cual se
+// pide, y por si a futuro hace falta un hover/selector CSS.
+::ng-deep .mapa-pin__body {
+  position: relative;
+  display: block;
+  width: 30px;
+  height: 40px;
+}
+
+// Badge de actor (Comunidad/ONG): mismo color del pin que lo lleva, así no
+// suma un tercer tono a la paleta naranja/teal -- ver comentario en
+// buildPinIcon(). No hay badge para cuentas individuales (el caso default).
+::ng-deep .mapa-pin__badge {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border: 2px solid var(--ink-soft);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.mapa__legend {
+  position: absolute;
+  z-index: 5;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 92%);
+  box-shadow: var(--shadow-1);
+  font-size: 0.72rem;
+  color: var(--ink);
+}
+
+.mapa__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.mapa__legend-swatch {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+// Coral/teal del resto del rediseño, no --need-color/--help-color (ese es
+// otro par de tonos, usado en botones) -- un solo criterio de color para
+// necesidad/recurso en toda la app.
+.mapa__legend-swatch--need {
+  background: #e0512c;
+}
+
+.mapa__legend-swatch--resource {
+  background: #17857a;
+}
+
+.mapa__legend-swatch--location {
+  background: #2563eb;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+
+.mapa__legend-swatch--actor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--ink-soft);
+  background: #fff;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 7px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.mapa__spinner {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--border);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: mapa-spin 0.7s linear infinite;
+}
+
+@keyframes mapa-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 760px) {
   .mapa__canvas-wrap {
     margin: 0 12px 90px;

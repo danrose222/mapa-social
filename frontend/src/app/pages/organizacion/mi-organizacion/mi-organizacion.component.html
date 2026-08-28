@@ -1,7 +1,10 @@
 <div class="mi-org">
   <header class="mi-org__header">
     <div class="mi-org__header-top">
-      <a routerLink="/mapa" class="mi-org__back">← Volver al mapa</a>
+      <a routerLink="/mapa" class="mi-org__back">
+        <i class="ph-bold ph-arrow-left" aria-hidden="true"></i>
+        Volver al mapa
+      </a>
 
       <div class="mi-org__personal-links">
         <a routerLink="/mis-publicaciones">Mis publicaciones</a>
@@ -21,17 +24,21 @@
       <a routerLink="/organizacion/crear" class="btn">Registrar una organización</a>
     </div>
   } @else {
-    <div class="card mi-org__card mi-org__validation">
+    <div
+      class="card mi-org__card mi-org__validation"
+      [class.mi-org__validation--verified]="organization()!.verified"
+    >
       <h2>Estado de validación</h2>
       <div class="mi-org__badge-row">
         @if (organization()!.verified) {
-          <span class="badge-verified">✓ Verificada</span>
+          <span class="mi-org__badge mi-org__badge--verified">Verificada</span>
         } @else {
-          <span class="mi-org__pending">Pendiente de aprobación</span>
+          <span class="mi-org__badge mi-org__badge--pending">Pendiente de aprobación</span>
         }
 
         <a [routerLink]="['/organizacion', organization()!.id]" class="mi-org__public-link">
-          Ver perfil público →
+          Ver perfil público
+          <i class="ph-bold ph-arrow-right" aria-hidden="true"></i>
         </a>
       </div>
 
@@ -193,7 +200,8 @@
       }
 
       <a routerLink="/publicar/ofrecer-recurso" class="btn btn--ghost mi-org__add-resource">
-        + Publicar un recurso
+        <i class="ph-bold ph-plus" aria-hidden="true"></i>
+        Publicar un recurso
       </a>
     </div>
   }

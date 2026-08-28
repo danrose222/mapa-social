@@ -1,0 +1,126 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.netwrap {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  margin-inline: auto;
+  aspect-ratio: 1 / 0.94;
+  border-radius: 28px;
+  background: radial-gradient(120% 120% at 30% 20%, rgb(255 255 255 / 10%), rgb(255 255 255 / 3%));
+  border: 1px solid rgb(255 255 255 / 14%);
+  box-shadow: 0 30px 70px -30px rgb(0 0 0 / 60%), inset 0 1px 0 rgb(255 255 255 / 15%);
+  backdrop-filter: blur(3px);
+
+  svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+}
+
+.legend {
+  position: absolute;
+  left: 22px;
+  bottom: 18px;
+  display: flex;
+  gap: 18px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #eaf2f0;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .need {
+    background: #ff7a4d;
+  }
+
+  .res {
+    background: #35c9a8;
+  }
+}
+
+// transform-box: fill-box porque el origen de rotación/escala de un <circle>
+// sin esto queda anclado al viewBox entero del svg, no al propio nodo.
+// Ciclo largo y desplazamiento chico a propósito -- floating apenas
+// perceptible, no un salto. Duración distinta por nodo (7.5s/8.5s/10s)
+// para que no se muevan todos sincronizados.
+.float {
+  animation: hero-connections-float 7.5s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.float.b {
+  animation-duration: 8.5s;
+  animation-delay: -2s;
+}
+
+.float.c {
+  animation-duration: 10s;
+  animation-delay: -4s;
+}
+
+.halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hero-connections-pulse 3.2s ease-out infinite;
+}
+
+.halo.slow {
+  animation-duration: 4s;
+  animation-delay: -1.2s;
+}
+
+.flow {
+  stroke-dasharray: 5 9;
+  animation: hero-connections-dash 3.2s linear infinite;
+}
+
+@keyframes hero-connections-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes hero-connections-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.55;
+  }
+
+  80%, 100% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+
+@keyframes hero-connections-dash {
+  to {
+    stroke-dashoffset: -56;
+  }
+}
+
+@media (max-width: 900px) {
+  .netwrap {
+    margin-top: 8px;
+  }
+}

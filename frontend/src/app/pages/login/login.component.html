@@ -1,45 +1,69 @@
 <div class="auth">
-  <div class="card auth__card">
-    <a routerLink="/mapa" class="auth__back">
-      <app-icon name="arrowLeft" [size]="14" />
-      Volver al mapa
-    </a>
+  <div class="auth__card">
+    <div class="auth__brand">
+      <div class="auth__brand-texture" aria-hidden="true"></div>
 
-    <h1>Iniciar sesión</h1>
-    <p class="auth__lead">Entrá para publicar necesidades y ofrecer recursos.</p>
-
-    @if (justRegistered()) {
-      <p class="auth__notice">
-        ¡Cuenta creada! Te mandamos un correo para confirmarla -- hasta que lo hagas, vas a poder
-        entrar pero no publicar ni enviar solicitudes.
-      </p>
-    }
-
-    @if (errorMessage()) {
-      <p class="auth__alert">{{ errorMessage() }}</p>
-    }
-
-    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-      <div class="field">
-        <label for="login-email">Email</label>
-        <input id="login-email" type="email" formControlName="email" autocomplete="email" />
+      <div class="auth__brand-copy">
+        <h2>Bienvenido de vuelta a tu comunidad</h2>
+        <p>Entrá para publicar necesidades, ofrecer recursos y ver quién está pidiendo o dando una mano cerca tuyo.</p>
       </div>
 
-      <div class="field">
-        <label for="login-password">Contraseña</label>
-        <input
-          id="login-password"
-          type="password"
-          formControlName="password"
-          autocomplete="current-password"
-        />
-      </div>
+      <svg class="auth__brand-decor" viewBox="0 0 280 280" aria-hidden="true">
+        <g fill="none" stroke="rgb(255 255 255 / 28%)" stroke-width="2">
+          <path d="M60 90 Q130 60 200 110" />
+          <path d="M60 90 Q90 170 150 200" />
+          <path d="M200 110 Q220 180 150 200" />
+          <path class="auth__brand-decor-flow" d="M60 90 Q130 60 200 110" stroke="#ffd9c4" stroke-dasharray="3 8" />
+          <path class="auth__brand-decor-flow" d="M200 110 Q220 180 150 200" stroke="#a8f0dd" stroke-dasharray="3 8" />
+        </g>
+        <circle class="auth__brand-decor-node" cx="60" cy="90" r="13" fill="#e0512c" stroke="#ffcbb3" stroke-width="2" />
+        <circle class="auth__brand-decor-node auth__brand-decor-node--b" cx="200" cy="110" r="15" fill="#17857a" stroke="#7ff0d6" stroke-width="2" />
+        <circle class="auth__brand-decor-node auth__brand-decor-node--c" cx="150" cy="200" r="12" fill="#e0512c" stroke="#ffcbb3" stroke-width="2" />
+      </svg>
+    </div>
 
-      <button type="submit" class="btn btn--block" [disabled]="isSubmitting()">
-        {{ isSubmitting() ? 'Ingresando…' : 'Iniciar sesión' }}
-      </button>
-    </form>
+    <div class="auth__form">
+      <a routerLink="/mapa" class="auth__back">
+        <i class="ph-bold ph-arrow-left" aria-hidden="true"></i>
+        Volver al mapa
+      </a>
 
-    <p class="auth__switch">¿No tenés cuenta? <a routerLink="/registro">Creá una</a></p>
+      <h1>Iniciar sesión</h1>
+      <p class="auth__lead">Entrá para publicar necesidades y ofrecer recursos.</p>
+
+      @if (justRegistered()) {
+        <p class="auth__notice">
+          ¡Cuenta creada! Te mandamos un correo para confirmarla -- hasta que lo hagas, vas a poder
+          entrar pero no publicar ni enviar solicitudes.
+        </p>
+      }
+
+      @if (errorMessage()) {
+        <p class="auth__alert">{{ errorMessage() }}</p>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="field">
+          <label for="login-email">Email</label>
+          <input id="login-email" type="email" formControlName="email" autocomplete="email" />
+        </div>
+
+        <div class="field">
+          <label for="login-password">Contraseña</label>
+          <input
+            id="login-password"
+            type="password"
+            formControlName="password"
+            autocomplete="current-password"
+          />
+        </div>
+
+        <button type="submit" class="btn btn--block" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'Ingresando…' : 'Iniciar sesión' }}
+        </button>
+      </form>
+
+      <p class="auth__switch">¿No tenés cuenta? <a routerLink="/registro">Creá una</a></p>
+    </div>
   </div>
 </div>

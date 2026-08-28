@@ -1,37 +1,44 @@
 :host {
   display: block;
   min-height: 100vh;
+  background: var(--bg);
 }
 
 .mod-org {
-  max-width: 640px;
+  max-width: 880px;
   margin: 0 auto;
-  padding: 20px 20px 60px;
+  padding: 28px 24px 64px;
 }
 
 .mod-org__header {
-  padding: 12px 0 24px;
+  padding: 4px 0 28px;
 
   h1 {
-    margin: 10px 0 6px;
-    font-size: 1.6rem;
+    margin: 12px 0 6px;
+    font-size: var(--text-lg);
   }
 
   p {
+    margin: 0;
     color: var(--ink-soft);
-    font-size: 0.9rem;
+    font-size: 0.92rem;
   }
 }
 
 .mod-org__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--ink-soft);
   font-size: 0.85rem;
   font-weight: 600;
 }
 
 .mod-org__loc-link {
-  display: inline-block;
-  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
   color: var(--help-color-text);
   font-size: 0.84rem;
   font-weight: 600;
@@ -58,11 +65,15 @@
 }
 
 .mod-org__section {
-  margin-bottom: 32px;
+  margin-bottom: 36px;
 
   h2 {
-    margin-bottom: 14px;
-    font-size: 1.05rem;
+    margin: 0 0 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
   }
 }
 
@@ -84,34 +95,63 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  padding: 16px 18px;
-}
+  gap: 20px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  transition: border-color 150ms ease;
 
-// Sin opacity: reducía el contraste de --verified y --ink-soft por debajo
-// de AA (una organización ya avalada igual se distingue por el badge
-// "✓ Verificada" de acá abajo, no hace falta atenuar toda la fila).
+  &:hover {
+    border-color: var(--ink-soft);
+  }
+}
 
 .mod-org__name {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
-  margin: 0 0 4px;
+  margin: 0 0 6px;
   font-weight: 700;
+  font-size: 0.98rem;
 }
 
 .mod-org__meta {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   color: var(--ink-soft);
   font-size: 0.82rem;
 }
 
 .mod-org__desc {
   margin: 0;
+  max-width: 400px;
   color: var(--ink-soft);
-  font-size: 0.85rem;
-  line-height: 1.5;
-  max-width: 340px;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+// Mismo criterio de color que el resto de los paneles: teal para lo ya
+// resuelto/aprobado, coral para lo que sigue esperando una decisión.
+.mod-org__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.mod-org__badge--pending {
+  background: var(--brand-soft);
+  color: var(--need-color-text);
+}
+
+.mod-org__badge--verified {
+  background: var(--help-color-soft);
+  color: var(--help-color-text);
 }
 
 .mod-org__actions {
@@ -119,9 +159,27 @@
   flex-direction: column;
   gap: 8px;
   flex: 0 0 auto;
+  width: 160px;
+}
+
+.mod-org__actions .btn {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 0.8rem;
 }
 
 .mod-org__reject {
   color: var(--danger);
   border-color: var(--danger);
+}
+
+@media (max-width: 560px) {
+  .mod-org__item {
+    flex-direction: column;
+  }
+
+  .mod-org__actions {
+    width: 100%;
+    flex-direction: row;
+  }
 }
