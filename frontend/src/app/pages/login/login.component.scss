@@ -50,7 +50,12 @@
 .auth__password-wrap {
   position: relative;
 
+  // .field es flex-column: el input de email se estira solo por ser hijo
+  // DIRECTO de ese flex (align-items: stretch). Este wrapper rompe esa
+  // cadena -- el input queda un nivel más adentro y pierde el estirado,
+  // volviendo a su ancho nativo angosto. width:100% lo repone a mano.
   input {
+    width: 100%;
     // Deja lugar al botón sin que el texto tipeado le quede por debajo --
     // mismo padding vertical del resto de los campos, solo se agranda el
     // derecho.
