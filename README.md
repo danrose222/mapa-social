@@ -2,6 +2,33 @@
 
 Plataforma colaborativa territorial para conectar necesidades comunitarias con recursos disponibles, ubicados geográficamente en un mapa interactivo. Pensada para que vecinos y organizaciones de Córdoba puedan registrar una necesidad o publicar un recurso, y encontrar ayuda cercana filtrando por categoría y distancia.
 
+## Demo rápida
+
+Todo corre en Docker. Con los puertos **80**, **3000**, **3306** y **8025** libres, desde la raíz del repo:
+
+```bash
+cp .env.example .env                                  # variables de docker-compose (JWT y credenciales de la DB)
+docker compose up -d --build                          # db, backend, frontend y MailHog
+docker exec mapa_social_backend npm run migration:run:prod
+docker exec mapa_social_backend npm run seed:prod     # datos de ejemplo centrados en Córdoba
+```
+
+| Servicio | URL |
+|---|---|
+| Frontend | http://localhost |
+| API + Swagger | http://localhost:3000/docs |
+| Bandeja de correo (MailHog) | http://localhost:8025 |
+
+El seed deja el mapa poblado con necesidades y recursos de varias localidades del Gran Córdoba, más estas cuentas ya verificadas:
+
+| Rol | Email | Contraseña |
+|---|---|---|
+| Moderador (paneles de moderación y aval de organizaciones) | `moderador@example.com` | `moderador123` |
+| Vecino | `lucia.fernandez@example.com` | `vecino123` |
+| Vecino | `martin.gomez@example.com` | `vecino123` |
+
+Al registrar una cuenta nueva, el correo de verificación llega a MailHog (`http://localhost:8025`). Para saltear ese paso en una demo, `SKIP_EMAIL_VERIFICATION=true` en el entorno del backend.
+
 ## Tecnologías
 
 - **Backend**: NestJS + TypeORM
@@ -28,10 +55,11 @@ database/   Script de inicialización de MySQL
 Desde la raíz del repositorio:
 
 ```bash
+cp .env.example .env
 docker compose up -d --build
 ```
 
-Esto levanta los tres servicios (`db`, `backend`, `frontend`). La primera vez, o después de borrar el volumen de la base de datos, hay que crear las tablas y cargar datos de ejemplo:
+Esto levanta los servicios `db`, `backend`, `frontend` y `mailhog`. La primera vez, o después de borrar el volumen de la base de datos, hay que crear las tablas y cargar datos de ejemplo:
 
 ```bash
 docker exec mapa_social_backend npm run migration:run:prod
@@ -45,6 +73,7 @@ Una vez arriba:
 | Frontend | http://localhost |
 | API | http://localhost:3000/api |
 | Documentación (Swagger) | http://localhost:3000/docs |
+| Bandeja de correo (MailHog) | http://localhost:8025 |
 
 ## Cómo levantar el proyecto — desarrollo
 
@@ -103,7 +132,7 @@ El esquema se maneja con migraciones de TypeORM (`synchronize` está deshabilita
 | Revertir última migración | `npm run migration:revert` | `npm run migration:revert:prod` |
 | Cargar datos de ejemplo | `npm run seed` | `npm run seed:prod` |
 
-El seed crea un rol, un usuario, una categoría, una necesidad y un recurso de ejemplo (centrados en Córdoba), útiles para ver el mapa poblado sin cargar datos a mano.
+El seed carga roles, un moderador, vecinos, organizaciones, categorías y varias necesidades y recursos repartidos por el Gran Córdoba, para ver el mapa poblado y probar el flujo de moderación sin cargar datos a mano. Las credenciales están en la sección [Demo rápida](#demo-rápida).
 
 ## Generar módulos (backend)
 
